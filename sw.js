@@ -1,6 +1,6 @@
 // Service worker for "Я шагаю. Казань" PWA.
 // App shell cached for offline; Supabase data is cached opportunistically (offline pack).
-const CACHE = "yashagayu-v2";
+const CACHE = "yashagayu-v3";
 const SHELL = [
   "./index.html",
   "./manifest.json",

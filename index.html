@@ -178,7 +178,7 @@ body{background:#E7DCC6;font-family:"Golos Text",system-ui,sans-serif;color:var(
         <div class="pgbar"><i id="progBar" style="width:0%"></i></div>
         <div style="display:flex;gap:6px;margin-top:12px" id="badges"></div>
       </div>
-      <div class="sect" id="offT">СПЕЦПРЕДЛОЖЕНИЯ ПАРТНЁРОВ</div>
+      <div class="sect" id="offT">СПЕЦПРЕДЛОЖЕНИЯ ПАРТНЕРОВ</div>
       <div id="offerList"></div>
     </div>
   </div>
@@ -193,7 +193,7 @@ body{background:#E7DCC6;font-family:"Golos Text",system-ui,sans-serif;color:var(
       </div>
       <div class="sect" id="favT">ИЗБРАННОЕ</div>
       <div id="favList"></div>
-      <div class="sect">НАСТРОЙКИ</div>
+      <div class="sect" id="setT">НАСТРОЙКИ</div>
       <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span id="offlineT">📥 Офлайн-пакет «Казань»</span><button class="chip" onclick="cacheOffline()" id="offlineBtn">Скачать</button></div>
     </div>
   </div>
@@ -226,8 +226,8 @@ const UI={
  ru:{greet:"Сәлам! 👋",homesub:"Гид по Казани в кармане",askT:"Спросить Зиланта",askP:"AI-гид по Казани на вашем языке",
   near:"РЯДОМ С ВАМИ",feat:"ИНТЕРЕСНЫЕ МЕСТА",onmap:"на карте →",home:"Обзор",map:"Карта",routes:"Маршруты",rewards:"Награды",profile:"Профиль",
   rTitle:"Маршруты",rSub:"Готовые прогулки с аудио на каждой точке",rwTitle:"Награды",rwSub:"Отмечайтесь на местах и открывайте скидки",
-  offT:"СПЕЦПРЕДЛОЖЕНИЯ ПАРТНЁРОВ",progL:"Ваш прогресс",pTitle:"Профиль",pSub:"Анонимный вход · без регистрации",
-  premT:"Я шагаю Premium",premS:"Офлайн, все языки, AI-гид, эпохи",premBtn:"Открыть Premium",favT:"ИЗБРАННОЕ",offline:"📥 Офлайн-пакет «Казань»",dl:"Скачать",
+  offT:"СПЕЦПРЕДЛОЖЕНИЯ ПАРТНЕРОВ",progL:"Ваш прогресс",pTitle:"Профиль",pSub:"Анонимный вход · без регистрации",
+  premT:"Я шагаю Premium",premS:"Офлайн, все языки, AI-гид, эпохи",premBtn:"Открыть Premium",favT:"ИЗБРАННОЕ",offline:"📥 Офлайн-пакет «Казань»",dl:"Скачать",setT:"НАСТРОЙКИ",
   allEra:"Все эпохи",allCat:"Все места",km:"км",min:"мин",listen:"Слушать",stop:"Стоп",save:"В избранное",saved:"В избранном ✓",check:"Я здесь",
   aiHi:"Сәлам! Я Зилант, знаю Казань наизусть. Спросите: «маршрут на 3 часа», «где поесть эчпочмак» или «расскажи про Кремль».",
   q1:"Маршрут на 3 часа",q2:"Что посмотреть за день",q3:"Где поесть по-татарски",send:"Спросить…",
@@ -240,7 +240,7 @@ const UI={
   near:"NEAR YOU",feat:"PLACES TO SEE",onmap:"on map →",home:"Home",map:"Map",routes:"Routes",rewards:"Rewards",profile:"Profile",
   rTitle:"Routes",rSub:"Curated walks with audio at every stop",rwTitle:"Rewards",rwSub:"Check in at places and unlock discounts",
   offT:"PARTNER OFFERS",progL:"Your progress",pTitle:"Profile",pSub:"Anonymous · no sign-up",
-  premT:"Я шагаю Premium",premS:"Offline, all languages, AI guide, eras",premBtn:"Get Premium",favT:"FAVOURITES",offline:"📥 Offline pack “Kazan”",dl:"Download",
+  premT:"Я шагаю Premium",premS:"Offline, all languages, AI guide, eras",premBtn:"Get Premium",favT:"FAVOURITES",offline:"📥 Offline pack “Kazan”",dl:"Download",setT:"SETTINGS",
   allEra:"All eras",allCat:"All places",km:"km",min:"min",listen:"Listen",stop:"Stop",save:"Save",saved:"Saved ✓",check:"I'm here",
   aiHi:"Hi! I'm Zilant and I know Kazan by heart. Try: “3-hour route”, “where to eat echpochmak”, or “tell me about the Kremlin”.",
   q1:"A 3-hour route",q2:"What to see in a day",q3:"Where to eat Tatar food",send:"Ask…",
@@ -252,8 +252,8 @@ const UI={
  tt:{greet:"Сәлам! 👋",homesub:"Кесәңдә Казан гиды",askT:"Зиланттан сора",askP:"Казан буенча ЯИ-гид үз телеңдә",
   near:"СЕЗНЕҢ ЯНДА",feat:"КАРАР УРЫННАР",onmap:"картада →",home:"Төп",map:"Карта",routes:"Маршрутлар",rewards:"Бүләкләр",profile:"Профиль",
   rTitle:"Маршрутлар",rSub:"Һәр ноктада аудио белән әзер йөрешләр",rwTitle:"Бүләкләр",rwSub:"Урыннарда билгеләнегез, ташламалар ачыгыз",
-  offT:"ПАРТНЁР ТӘКЪДИМНӘРЕ",progL:"Сезнең уңыш",pTitle:"Профиль",pSub:"Аноним керү · теркәлүсез",
-  premT:"Я шагаю Premium",premS:"Офлайн, барлык телләр, ЯИ-гид",premBtn:"Premium ачу",favT:"САЙЛАНМАЛАР",offline:"📥 «Казан» офлайн-пакеты",dl:"Йөкләү",
+  offT:"ПАРТНЕР ТӘКЪДИМНӘРЕ",progL:"Сезнең уңыш",pTitle:"Профиль",pSub:"Аноним керү · теркәлүсез",
+  premT:"Я шагаю Premium",premS:"Офлайн, барлык телләр, ЯИ-гид",premBtn:"Premium ачу",favT:"САЙЛАНМАЛАР",offline:"📥 «Казан» офлайн-пакеты",dl:"Йөкләү",setT:"КӨЙЛӘҮЛӘР",
   allEra:"Барлык чорлар",allCat:"Барлык урыннар",km:"км",min:"мин",listen:"Тыңларга",stop:"Туктату",save:"Сакларга",saved:"Сакланды ✓",check:"Мин монда",
   aiHi:"Сәлам! Мин Зилант, Казанны яттан беләм. Сора: «3 сәгатьлек маршрут» яки «Кирмән турында сөйлә».",
   q1:"3 сәгатьлек маршрут",q2:"Бер көнгә нәрсә",q3:"Кайда татарча ашарга",send:"Сора…",
@@ -274,7 +274,8 @@ let DB={periods:[],cats:[],places:[],routes:[],stops:[],partners:[]};
 let chatHist=[];
 const $=id=>document.getElementById(id);
 const L=()=>UI[lang];
-const tr=o=>o?(o[lang]||o.ru||o.en||""):"";
+const ns=s=>typeof s==="string"?s.replace(/\s*—\s*/g,", ").replace(/ё/g,"е").replace(/Ё/g,"Е"):s;
+const tr=o=>o?ns(o[lang]||o.ru||o.en||""):"";
 function load(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function persist(){save("ik_v",[...visited]);save("ik_f",[...favs]);save("ik_l",lang);save("ik_prem",premium);}
@@ -343,7 +344,7 @@ function renderRewards(){
 }
 function renderProfile(){
   $("pTitle").textContent=L().pTitle;$("pSub").textContent=L().pSub;$("premT").textContent=L().premT;$("premS").textContent=L().premS;
-  $("premBtn").textContent=premium?"✓ Premium":L().premBtn;$("favT").textContent=L().favT;$("offlineT").textContent=L().offline;$("offlineBtn").textContent=L().dl;
+  $("premBtn").textContent=premium?"✓ Premium":L().premBtn;$("favT").textContent=L().favT;$("setT").textContent=L().setT;$("offlineT").textContent=L().offline;$("offlineBtn").textContent=L().dl;
   const fl=[...favs].map(id=>DB.places.find(p=>p.id===id)).filter(Boolean);
   const favHint={ru:"Пока пусто. Жмите ❤ на карточке места, чтобы сохранить.",en:"Empty for now. Tap ❤ on a place to save it.",tt:"Хәзергә буш. Сакларга урын карточкасында ❤ басыгыз."}[lang];
   $("favList").innerHTML=fl.length?fl.map(p=>placeCard(p,false)).join(""):`<div class="card" style="color:var(--faint);font-size:12.5px;text-align:center">🤍<br>${favHint}</div>`;
@@ -459,7 +460,7 @@ async function ask(text){
   try{
     const r=await fetch(FN,{method:"POST",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify({lang,messages:chatHist.filter(m=>m.role!=='sys'&&m.content!=='…')})});
     const d=await r.json();chatHist.pop();
-    if(d.reply)chatHist.push({role:"assistant",content:d.reply});
+    if(d.reply)chatHist.push({role:"assistant",content:ns(d.reply)});
     else chatHist.push({role:"sys",content:d.error==='OPENAI_API_KEY is not set on the server yet.'||(d.error||'').indexOf('503')>=0?"Зилант заговорит, когда добавим ключ OpenAI на сервер.":"Зилант недоступен: "+(d.error||r.status)});
   }catch(e){chatHist.pop();chatHist.push({role:"sys",content:"Нет связи с сервером Зиланта."});}
   drawMsgs();
