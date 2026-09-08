@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Я шагаю. Казань</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#FBF3E6">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF3E6;--card:#FFFFFF;--ink:#2A2018;--soft:#6E5D50;--faint:#A8917F;
+  --line:#F0E2CC;--line2:#EAD9BE;
+  --em:#1F7A5A;--em-ink:#16624A;--em-soft:#DCF0E6;
+  --tc:#C7623B;--tc-ink:#A94E2C;--tc-soft:#FBE3D3;
+  --gold:#C79A3E;--gold-soft:#F3E7CE;
+  --sh:0 10px 26px -14px rgba(120,70,30,.35);--sheet-sh:0 -12px 44px -10px rgba(120,70,30,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#E7DCC6;font-family:"Golos Text",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.app{max-width:460px;margin:0 auto;height:100dvh;background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.screen{flex:1;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+.screen.on{display:block}
+.hd{padding:16px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:6}
+.hd h1{font-family:"Baloo 2";font-size:22px;font-weight:700}
+.hd .sub{font-size:12.5px;color:var(--soft);margin-top:2px}
+.langs{position:absolute;top:16px;right:16px;display:flex;gap:4px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:3px}
+.langs button{font-family:"Baloo 2";font-weight:600;font-size:12px;padding:5px 8px;border:none;border-radius:9px;background:transparent;color:var(--soft)}
+.langs button.on{background:var(--tc);color:#fff}
+.body{padding:4px 16px 20px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:8px 16px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:20px;white-space:nowrap;border:1.5px solid var(--line);background:var(--card);color:var(--soft);flex:none}
+.chip.on{background:var(--em-soft);color:var(--em-ink);border-color:var(--em)}
+.chip.era.on{background:var(--tc-soft);color:var(--tc-ink);border-color:var(--tc)}
+.sect{font-family:"Baloo 2";font-size:13px;font-weight:700;color:var(--faint);letter-spacing:.03em;margin:18px 2px 11px;display:flex;align-items:center;gap:8px}
+.sect .n{font-size:11px;color:var(--em-ink);background:var(--em-soft);border-radius:20px;padding:1px 8px}
+.sect .more{margin-left:auto;font-size:12px;color:var(--tc-ink);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px;margin-bottom:11px;box-shadow:var(--sh)}
+.pcard{display:flex;gap:13px;align-items:flex-start}
+.thumb{width:56px;height:56px;border-radius:15px;background:linear-gradient(135deg,var(--em-soft),var(--tc-soft));display:grid;place-items:center;flex:none;font-size:25px}
+.pcard h3{font-family:"Baloo 2";font-size:15.5px;font-weight:700;line-height:1.13}
+.pcard .hook{font-size:12.7px;color:var(--soft);margin-top:4px;line-height:1.4}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.bd{font-size:10.5px;font-weight:600;font-family:"Baloo 2";padding:2px 9px;border-radius:20px;background:var(--gold-soft);color:#8a6b21}
+.bd.em{background:var(--em-soft);color:var(--em-ink)}.bd.tc{background:var(--tc-soft);color:var(--tc-ink)}
+.dist{font-size:11px;font-weight:700;color:var(--tc-ink);font-family:"Baloo 2";white-space:nowrap}
+.fav{margin-left:auto;font-size:20px;background:none;border:none;cursor:pointer;flex:none;line-height:1}
+.rcard{display:flex;gap:12px;align-items:center}
+.rem{width:46px;height:46px;border-radius:14px;background:var(--em-soft);display:grid;place-items:center;font-size:22px;flex:none}
+.rcard h3{font-family:"Baloo 2";font-size:15px;font-weight:700}
+.rcard p{font-size:12.3px;color:var(--soft);margin-top:2px}
+.rmeta{margin-top:5px;font-size:11.5px;color:var(--em-ink);font-weight:600;font-family:"Baloo 2";display:flex;gap:12px}
+.ocard{display:flex;gap:12px;align-items:center}
+.oem{width:44px;height:44px;border-radius:13px;background:var(--gold-soft);display:grid;place-items:center;font-size:21px;flex:none}
+.ocard h3{font-family:"Baloo 2";font-size:14px;font-weight:700}
+.ocard .off{font-size:12.3px;color:var(--tc-ink);font-weight:600;margin-top:2px}
+.ocard.lock{opacity:.55}
+.ocard .need{margin-left:auto;font-size:10px;font-family:"Baloo 2";font-weight:600;color:var(--faint);background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:3px 8px;white-space:nowrap;text-align:center}
+.ask{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#1F7A5A,#2b9e74);color:#fff;border-radius:18px;padding:14px;margin-bottom:6px;box-shadow:var(--sh);border:none;width:100%;text-align:left}
+.ask .z{width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:24px;flex:none}
+.ask h3{font-family:"Baloo 2";font-size:15px;font-weight:700}
+.ask p{font-size:12px;opacity:.9;margin-top:1px}
+.near{margin-left:auto;font-family:"Baloo 2";font-weight:600;font-size:12px;color:var(--tc-ink);background:var(--tc-soft);border:1.5px solid var(--tc);border-radius:20px;padding:5px 12px}
+/* map */
+#map{position:absolute;inset:0}
+.mapwrap{position:relative;height:100%}
+.maptop{position:absolute;top:0;left:0;right:0;z-index:5;background:linear-gradient(#FBF3E6,#FBF3E6ee,#FBF3E600);padding-bottom:6px}
+.notoken{position:absolute;inset:0;display:grid;place-items:center;padding:30px;text-align:center;color:var(--soft);font-size:13px;background:repeating-linear-gradient(45deg,#F0E7D6,#F0E7D6 14px,#ece1cc 14px,#ece1cc 28px)}
+.mk{width:34px;height:34px;border-radius:50% 50% 50% 4px;transform:rotate(45deg);border:3px solid #fff;box-shadow:0 5px 12px -3px rgba(0,0,0,.4);display:grid;place-items:center;cursor:pointer}
+.mk span{transform:rotate(-45deg);font-size:15px}
+/* bottom nav */
+.nav{height:74px;background:var(--card);border-top:1px solid var(--line);display:flex;align-items:center;padding:0 4px;flex:none;padding-bottom:env(safe-area-inset-bottom)}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-size:10px;font-weight:600;padding-top:8px;background:none;border:none}
+.nav button .ic{font-size:20px}
+.nav button.on{color:var(--em)}
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(40,25,10,.4);z-index:40;opacity:0;pointer-events:none;transition:.25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:26px 26px 0 0;z-index:50;transform:translateY(100%);transition:transform .3s cubic-bezier(.3,.8,.3,1);max-height:92%;overflow-y:auto;box-shadow:var(--sheet-sh)}
+.sheet.on{transform:translateY(0)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line2);margin:10px auto 4px}
+.shpad{padding:8px 18px 26px}
+.det h2{font-family:"Baloo 2";font-size:21px;font-weight:700;line-height:1.1}
+.det .era{display:inline-block;margin-top:8px;font-size:11px;font-weight:600;font-family:"Baloo 2";color:var(--tc-ink);background:var(--tc-soft);border-radius:20px;padding:3px 11px}
+.det p{font-size:14px;line-height:1.55;color:var(--ink);margin-top:14px}
+.audio{margin-top:16px;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;align-items:center;gap:13px}
+.play{width:46px;height:46px;border-radius:14px;background:var(--tc);color:#fff;display:grid;place-items:center;font-size:20px;border:none;flex:none}
+.audio .t{font-size:13px;font-weight:600}.audio .s{font-size:11.5px;color:var(--soft)}
+.actions{display:flex;gap:10px;margin-top:14px}
+.btn{flex:1;padding:13px;border-radius:14px;font-family:"Baloo 2";font-weight:700;font-size:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.p{background:var(--em);color:#fff;border-color:var(--em)}
+/* ai chat */
+.chat{display:flex;flex-direction:column;height:70vh}
+.msgs{flex:1;overflow-y:auto;padding:6px 2px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:82%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.45}
+.msg.a{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px;align-self:flex-start}
+.msg.u{background:var(--em);color:#fff;border-bottom-right-radius:5px;align-self:flex-end}
+.msg.sys{align-self:center;background:var(--gold-soft);color:#8a6b21;font-size:11.5px;text-align:center}
+.cin{display:flex;gap:8px;padding-top:10px}
+.cin input{flex:1;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;font-family:inherit;background:var(--card)}
+.cin button{width:48px;border-radius:14px;background:var(--tc);color:#fff;border:none;font-size:18px}
+.qbtns{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.qbtn{font-size:12px;font-weight:600;padding:7px 12px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--em-ink)}
+/* onboarding + paywall */
+.ob{position:absolute;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;padding:26px 22px calc(26px + env(safe-area-inset-bottom))}
+.ob.on{display:flex}
+.ob .zbig{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,var(--em),#2b9e74);display:grid;place-items:center;font-size:40px;box-shadow:var(--sh)}
+.ob h2{font-family:"Baloo 2";font-size:25px;font-weight:700;margin-top:20px;line-height:1.12}
+.ob .obsub{font-size:14px;color:var(--soft);margin-top:8px;line-height:1.5}
+.opts{margin-top:22px;display:flex;flex-direction:column;gap:11px}
+.opt{padding:15px;border-radius:16px;border:2px solid var(--line);background:var(--card);font-size:15px;font-weight:600;text-align:left;font-family:"Baloo 2"}
+.opt.on{border-color:var(--em);background:var(--em-soft);color:var(--em-ink)}
+.obnav{margin-top:auto;display:flex;gap:12px;align-items:center;padding-top:18px}
+.obnav .skip{color:var(--faint);font-size:13px;font-weight:600;background:none;border:none}
+.cta{flex:1;padding:15px;border-radius:15px;background:var(--tc);color:#fff;font-family:"Baloo 2";font-weight:700;font-size:15px;border:none}
+.plan{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.pl{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--line);border-radius:16px;background:var(--card)}
+.pl.on{border-color:var(--gold);background:var(--gold-soft)}
+.pl .p1{font-family:"Baloo 2";font-weight:700;font-size:15px}
+.pl .p2{font-size:12px;color:var(--soft)}
+.pl .pr{margin-left:auto;font-family:"Baloo 2";font-weight:700}
+.pl .pop{font-size:9.5px;background:var(--tc);color:#fff;border-radius:20px;padding:2px 7px;margin-left:6px}
+.dark{background:#241d16;color:#f3e7ce}
+.toast{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);background:#241d16;color:#fff;padding:11px 18px;border-radius:14px;font-size:13px;font-weight:600;z-index:80;opacity:0;transition:.3s;white-space:nowrap}
+.toast.on{opacity:1}
+.pgbar{height:8px;background:var(--line);border-radius:20px;overflow:hidden;margin:8px 0 4px}
+.pgbar i{display:block;height:100%;background:linear-gradient(90deg,var(--em),var(--tc));border-radius:20px}
+.badge{display:inline-flex;flex-direction:column;align-items:center;gap:4px;width:72px;text-align:center}
+.badge .b{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:var(--em-soft)}
+.badge.off .b{background:var(--line);filter:grayscale(1);opacity:.5}
+.badge span{font-size:10px;font-weight:600;color:var(--soft)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- HOME -->
+  <div class="screen on" id="s-home">
+    <div class="hd"><h1 id="greet">Сәлам! 👋</h1><div class="sub" id="homesub">Гид по Казани в кармане</div>
+      <div class="langs" id="langs"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button><button data-l="tt">TT</button></div>
+    </div>
+    <div class="body">
+      <button class="ask" onclick="openAI()"><div class="z">🐉</div><div><h3 id="askT">Спросить Зиланта</h3><p id="askP">AI-гид по Казани на вашем языке</p></div></button>
+      <div class="sect"><span id="nearT">РЯДОМ С ВАМИ</span><button class="near" id="nearBtn" onclick="geoNear()">📍</button></div>
+      <div id="nearList"></div>
+      <div class="sect"><span id="featT">ИНТЕРЕСНЫЕ МЕСТА</span><span class="more" onclick="go('map')" id="onmap">на карте →</span></div>
+      <div id="homeList"></div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="screen" id="s-map">
+    <div class="mapwrap">
+      <div id="map"></div>
+      <div class="notoken" id="notoken" hidden></div>
+      <div class="maptop">
+        <div class="chips" id="eraChips"></div>
+        <div class="chips" id="catChips"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUTES -->
+  <div class="screen" id="s-routes">
+    <div class="hd"><h1 id="rTitle">Маршруты</h1><div class="sub" id="rSub">Готовые прогулки с аудио на каждой точке</div></div>
+    <div class="body" id="routeList"></div>
+  </div>
+
+  <!-- REWARDS -->
+  <div class="screen" id="s-rewards">
+    <div class="hd"><h1 id="rwTitle">Награды</h1><div class="sub" id="rwSub">Отмечайтесь на местах и открывайте скидки</div></div>
+    <div class="body">
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b id="progL">Ваш прогресс</b><span id="progN" style="font-family:Baloo 2;color:var(--em-ink);font-weight:700"></span></div>
+        <div class="pgbar"><i id="progBar" style="width:0%"></i></div>
+        <div style="display:flex;gap:6px;margin-top:12px" id="badges"></div>
+      </div>
+      <div class="sect" id="offT">СПЕЦПРЕДЛОЖЕНИЯ ПАРТНЁРОВ</div>
+      <div id="offerList"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="s-profile">
+    <div class="hd"><h1 id="pTitle">Профиль</h1><div class="sub" id="pSub">Анонимный вход · без регистрации</div></div>
+    <div class="body">
+      <div class="card dark" style="border:none">
+        <div style="display:flex;align-items:center;gap:10px"><div style="font-size:26px">👑</div><div><div style="font-family:Baloo 2;font-weight:700;font-size:16px" id="premT">Я шагаю Premium</div><div style="font-size:12px;opacity:.8" id="premS">Офлайн, все языки, AI-гид, эпохи</div></div></div>
+        <button class="cta" style="margin-top:12px;width:100%;background:var(--gold)" onclick="openPay()" id="premBtn">Открыть Premium</button>
+      </div>
+      <div class="sect" id="favT">ИЗБРАННОЕ</div>
+      <div id="favList"></div>
+      <div class="sect">НАСТРОЙКИ</div>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span id="offlineT">📥 Офлайн-пакет «Казань»</span><button class="chip" onclick="cacheOffline()" id="offlineBtn">Скачать</button></div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav" id="nav"></div>
+
+  <!-- scrim + sheets -->
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet"><div class="grab"></div><div class="shpad" id="sheetBody"></div></div>
+
+  <!-- onboarding -->
+  <div class="ob" id="ob"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
+<script>
+/* ===== config ===== */
+const SUPA="https://lwxpnsvukgaaexibskjz.supabase.co";
+const SBKEY="sb_publishable_HXssdA62OhOX_zkZGAyxWw_yTK1zYHM";
+// Карта: MapLibre GL + OpenStreetMap (без токена и без карты оплаты).
+// Чтобы перейти на Mapbox позже: подключить mapbox-gl, задать accessToken и style — 2 строки в initMap.
+const H={apikey:SBKEY,Authorization:"Bearer "+SBKEY};
+const FN=SUPA+"/functions/v1/ai-guide";
+const FN_TTS=SUPA+"/functions/v1/tts";
+
+/* ===== i18n (UI) ===== */
+const UI={
+ ru:{greet:"Сәлам! 👋",homesub:"Гид по Казани в кармане",askT:"Спросить Зиланта",askP:"AI-гид по Казани на вашем языке",
+  near:"РЯДОМ С ВАМИ",feat:"ИНТЕРЕСНЫЕ МЕСТА",onmap:"на карте →",home:"Обзор",map:"Карта",routes:"Маршруты",rewards:"Награды",profile:"Профиль",
+  rTitle:"Маршруты",rSub:"Готовые прогулки с аудио на каждой точке",rwTitle:"Награды",rwSub:"Отмечайтесь на местах и открывайте скидки",
+  offT:"СПЕЦПРЕДЛОЖЕНИЯ ПАРТНЁРОВ",progL:"Ваш прогресс",pTitle:"Профиль",pSub:"Анонимный вход · без регистрации",
+  premT:"Я шагаю Premium",premS:"Офлайн, все языки, AI-гид, эпохи",premBtn:"Открыть Premium",favT:"ИЗБРАННОЕ",offline:"📥 Офлайн-пакет «Казань»",dl:"Скачать",
+  allEra:"Все эпохи",allCat:"Все места",km:"км",min:"мин",listen:"Слушать",stop:"Стоп",save:"В избранное",saved:"В избранном ✓",check:"Я здесь",
+  aiHi:"Сәлам! Я Зилант, знаю Казань наизусть. Спросите: «маршрут на 3 часа», «где поесть эчпочмак» или «расскажи про Кремль».",
+  q1:"Маршрут на 3 часа",q2:"Что посмотреть за день",q3:"Где поесть по-татарски",send:"Спросить…",
+  toastSave:"Добавлено в избранное",toastCheck:"Отметка засчитана! +1 🐉",toastPrem:"Premium активирован (демо)",
+  payT:"Открой всю Казань с Premium",b1:"Офлайн: весь город без интернета",b2:"Все маршруты и языки (RU/EN/TT)",b3:"AI-гид и «машина времени» по эпохам",
+  week:"Неделя",month:"Месяц",year:"Год",forever:"Навсегда",pop:"ХИТ",cta:"Оформить Premium",skip:"Позже",
+  places:"мест",need:n=>"Откроется после "+n+" мест",noToken:"Загружаем карту. Если не появилась, проверьте интернет. Места также есть списком на «Обзоре».",
+  progN:(a,b)=>a+" из "+b},
+ en:{greet:"Hi! 👋",homesub:"Kazan guide in your pocket",askT:"Ask Zilant",askP:"AI guide to Kazan in your language",
+  near:"NEAR YOU",feat:"PLACES TO SEE",onmap:"on map →",home:"Home",map:"Map",routes:"Routes",rewards:"Rewards",profile:"Profile",
+  rTitle:"Routes",rSub:"Curated walks with audio at every stop",rwTitle:"Rewards",rwSub:"Check in at places and unlock discounts",
+  offT:"PARTNER OFFERS",progL:"Your progress",pTitle:"Profile",pSub:"Anonymous · no sign-up",
+  premT:"Я шагаю Premium",premS:"Offline, all languages, AI guide, eras",premBtn:"Get Premium",favT:"FAVOURITES",offline:"📥 Offline pack “Kazan”",dl:"Download",
+  allEra:"All eras",allCat:"All places",km:"km",min:"min",listen:"Listen",stop:"Stop",save:"Save",saved:"Saved ✓",check:"I'm here",
+  aiHi:"Hi! I'm Zilant and I know Kazan by heart. Try: “3-hour route”, “where to eat echpochmak”, or “tell me about the Kremlin”.",
+  q1:"A 3-hour route",q2:"What to see in a day",q3:"Where to eat Tatar food",send:"Ask…",
+  toastSave:"Saved to favourites",toastCheck:"Checked in! +1 🐉",toastPrem:"Premium activated (demo)",
+  payT:"Unlock all of Kazan with Premium",b1:"Offline: the whole city, no internet",b2:"All routes and languages (RU/EN/TT)",b3:"AI guide and time-machine by eras",
+  week:"Week",month:"Month",year:"Year",forever:"Forever",pop:"POPULAR",cta:"Get Premium",skip:"Later",
+  places:"places",need:n=>"Unlocks after "+n+" places",noToken:"Loading the map. If it does not appear, check your connection. Places are also listed on Home.",
+  progN:(a,b)=>a+" of "+b},
+ tt:{greet:"Сәлам! 👋",homesub:"Кесәңдә Казан гиды",askT:"Зиланттан сора",askP:"Казан буенча ЯИ-гид үз телеңдә",
+  near:"СЕЗНЕҢ ЯНДА",feat:"КАРАР УРЫННАР",onmap:"картада →",home:"Төп",map:"Карта",routes:"Маршрутлар",rewards:"Бүләкләр",profile:"Профиль",
+  rTitle:"Маршрутлар",rSub:"Һәр ноктада аудио белән әзер йөрешләр",rwTitle:"Бүләкләр",rwSub:"Урыннарда билгеләнегез, ташламалар ачыгыз",
+  offT:"ПАРТНЁР ТӘКЪДИМНӘРЕ",progL:"Сезнең уңыш",pTitle:"Профиль",pSub:"Аноним керү · теркәлүсез",
+  premT:"Я шагаю Premium",premS:"Офлайн, барлык телләр, ЯИ-гид",premBtn:"Premium ачу",favT:"САЙЛАНМАЛАР",offline:"📥 «Казан» офлайн-пакеты",dl:"Йөкләү",
+  allEra:"Барлык чорлар",allCat:"Барлык урыннар",km:"км",min:"мин",listen:"Тыңларга",stop:"Туктату",save:"Сакларга",saved:"Сакланды ✓",check:"Мин монда",
+  aiHi:"Сәлам! Мин Зилант, Казанны яттан беләм. Сора: «3 сәгатьлек маршрут» яки «Кирмән турында сөйлә».",
+  q1:"3 сәгатьлек маршрут",q2:"Бер көнгә нәрсә",q3:"Кайда татарча ашарга",send:"Сора…",
+  toastSave:"Сайланмаларга өстәлде",toastCheck:"Билге исәпләнде! +1 🐉",toastPrem:"Premium ачылды (демо)",
+  payT:"Premium белән бөтен Казанны ач",b1:"Офлайн: бөтен шәһәр, интернетсыз",b2:"Барлык маршрутлар һәм телләр",b3:"ЯИ-гид һәм чорлар «вакыт машинасы»",
+  week:"Атна",month:"Ай",year:"Ел",forever:"Мәңге",pop:"ХИТ",cta:"Premium алу",skip:"Соңрак",
+  places:"урын",need:n=>n+" урыннан соң ачыла",noToken:"Карта йөкләнә. Күренмәсә, интернетны тикшерегез. Урыннар «Төп»тә исемлектә дә бар.",
+  progN:(a,b)=>b+" тан "+a}
+};
+const CATNAMES={history:{ru:"История",en:"History",tt:"Тарих"},arch:{ru:"Архитектура",en:"Architecture",tt:"Архитектура"},religion:{ru:"Религия",en:"Religion",tt:"Дин"},culture:{ru:"Культура",en:"Culture",tt:"Мәдәният"},nature:{ru:"Природа",en:"Nature",tt:"Табигать"},museum:{ru:"Музеи",en:"Museums",tt:"Музейлар"},walk:{ru:"Прогулка",en:"Walk",tt:"Йөреш"},food:{ru:"Кухня",en:"Cuisine",tt:"Аш-су"}};
+const ICON={history:"🏛️",arch:"🏰",religion:"🕌",culture:"🎭",nature:"🌿",museum:"🖼️",walk:"🚶",food:"🍽️"};
+const PARTIC={cafe:"☕",museum:"🏛️",tour:"⛵",food:"🍽️"};
+
+/* ===== state ===== */
+let lang=load("ik_l","ru"), tab="home", eraF="all", catF="all", premium=load("ik_prem",false), map=null, markers=[], nearIds=null;
+const visited=new Set(load("ik_v",[])), favs=new Set(load("ik_f",[]));
+let DB={periods:[],cats:[],places:[],routes:[],stops:[],partners:[]};
+let chatHist=[];
+const $=id=>document.getElementById(id);
+const L=()=>UI[lang];
+const tr=o=>o?(o[lang]||o.ru||o.en||""):"";
+function load(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function persist(){save("ik_v",[...visited]);save("ik_f",[...favs]);save("ik_l",lang);save("ik_prem",premium);}
+
+/* ===== data ===== */
+async function api(p){const r=await fetch(SUPA+"/rest/v1/"+p,{headers:H});if(!r.ok)throw new Error(p+" "+r.status);return r.json();}
+async function boot(){
+  try{
+    const [periods,cats,places,routes,stops,partners]=await Promise.all([
+      api("periods?select=id,ord,name,years&order=ord"),api("categories?select=id,name"),
+      api("places?select=id,lat,lng,cats,periods,title,hook,descr&order=id"),
+      api("routes?select=id,emoji,km,min,difficulty,title,descr&order=km"),
+      api("route_stops?select=route_id,place_id,ord&order=ord"),
+      api("partners?select=id,type,unlock_places,name,offer&order=unlock_places")]);
+    DB={periods,cats,places,routes,stops,partners};
+    save("ik_cache",DB);
+  }catch(e){ const c=load("ik_cache",null); if(c)DB=c; else{toast("Нет связи с базой");} }
+  renderAll();
+}
+
+/* ===== nav ===== */
+const NAV=["home","map","routes","rewards","profile"];
+const NAVIC={home:"🏠",map:"🗺️",routes:"🧭",rewards:"🏅",profile:"👤"};
+function renderNav(){$("nav").innerHTML=NAV.map(k=>`<button onclick="go('${k}')" class="${k===tab?'on':''}"><span class="ic">${NAVIC[k]}</span><span>${L()[k]}</span></button>`).join("");}
+function go(t){tab=t;document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+t));renderNav();const sc=$('s-'+t);if(sc)sc.scrollTop=0;if(t==='map')initMap();}
+
+/* ===== render ===== */
+function placeCard(p,showDist){
+  const ic=ICON[(p.cats||[])[0]]||"📍";
+  const dist=showDist&&p._d!=null?`<span class="dist">${p._d} ${L().km}</span>`:"";
+  const on=favs.has(p.id);
+  const badges=(p.cats||[]).slice(0,3).map((c,i)=>`<span class="bd ${i%2?'tc':'em'}">${tr(CATNAMES[c])||c}</span>`).join("");
+  return `<div class="card pcard" onclick="openPlace('${p.id}')"><div class="thumb">${ic}</div>
+   <div style="flex:1;min-width:0"><div style="display:flex;gap:8px;align-items:flex-start"><h3 style="flex:1">${tr(p.title)}</h3>${dist}
+   <button class="fav" onclick="event.stopPropagation();toggleFav('${p.id}')">${on?'❤️':'🤍'}</button></div>
+   <div class="hook">${tr(p.hook)||(tr(p.descr)||'').slice(0,110)}</div><div class="badges">${badges}</div></div></div>`;
+}
+function renderHome(){
+  $("greet").textContent=L().greet;$("homesub").textContent=L().homesub;$("askT").textContent=L().askT;$("askP").textContent=L().askP;
+  $("nearT").textContent=L().near;$("featT").textContent=L().feat;$("onmap").textContent=L().onmap;
+  $("nearList").innerHTML = nearIds
+    ? nearIds.slice(0,3).map(id=>{const p=DB.places.find(x=>x.id===id);return p?placeCard(p,true):"";}).join("")
+    : `<div class="card" style="color:var(--faint);font-size:12.5px">${L().near==='NEAR YOU'?'Tap 📍 to find places around you.':'Нажмите 📍, найду места вокруг вас.'}</div>`;
+  $("homeList").innerHTML=DB.places.slice(0,6).map(p=>placeCard(p,false)).join("");
+}
+function renderChips(){
+  const eras=[{id:"all",name:{ru:L().allEra,en:UI.en.allEra,tt:UI.tt.allEra}}].concat(DB.periods);
+  $("eraChips").innerHTML=eras.map(e=>`<button class="chip era ${eraF===e.id?'on':''}" onclick="eraF='${e.id}';renderChips();drawMarkers()">${e.id==='all'?'🕰 ':''}${tr(e.name)}</button>`).join("");
+  const cats=[{id:"all",name:{ru:L().allCat,en:UI.en.allCat,tt:UI.tt.allCat}}].concat(DB.cats);
+  $("catChips").innerHTML=cats.map(c=>`<button class="chip ${catF===c.id?'on':''}" onclick="catF='${c.id}';renderChips();drawMarkers()">${c.id!=='all'&&ICON[c.id]?ICON[c.id]+' ':''}${tr(c.name)}</button>`).join("");
+}
+function renderRoutes(){
+  $("rTitle").textContent=L().rTitle;$("rSub").textContent=L().rSub;
+  $("routeList").innerHTML=DB.routes.map(r=>{const n=DB.stops.filter(s=>s.route_id===r.id).length;
+   return `<div class="card rcard" onclick="openRoute('${r.id}')"><div class="rem">${r.emoji||'🚶'}</div><div style="flex:1"><h3>${tr(r.title)}</h3><p>${tr(r.descr)}</p>
+   <div class="rmeta"><span>${r.km} ${L().km}</span><span>${r.min} ${L().min}</span><span>${n} ${L().places}</span></div></div></div>`;}).join("");
+}
+function renderRewards(){
+  $("rwTitle").textContent=L().rwTitle;$("rwSub").textContent=L().rwSub;$("offT").textContent=L().offT;$("progL").textContent=L().progL;
+  const done=visited.size,total=DB.places.length||20;
+  $("progN").textContent=L().progN(done,total);$("progBar").style.width=Math.min(100,done/total*100)+"%";
+  const badgeDefs=[{n:3,e:"🚶",t:{ru:"Первые шаги",en:"First steps",tt:"Беренче адым"}},{n:6,e:"🕌",t:{ru:"Знаток",en:"Explorer",tt:"Белгеч"}},{n:12,e:"🏛️",t:{ru:"Историк",en:"Historian",tt:"Тарихчы"}},{n:20,e:"🐉",t:{ru:"Зилант",en:"Zilant",tt:"Зилант"}}];
+  $("badges").innerHTML=badgeDefs.map(b=>`<div class="badge ${done>=b.n?'':'off'}"><div class="b">${b.e}</div><span>${tr(b.t)}</span></div>`).join("");
+  $("offerList").innerHTML=DB.partners.map(p=>{const lock=done<p.unlock_places;
+   return `<div class="card ocard ${lock?'lock':''}"><div class="oem">${PARTIC[p.type]||'🎁'}</div><div style="flex:1;min-width:0"><h3>${tr(p.name)}</h3><div class="off">${tr(p.offer)}</div></div>${lock?`<div class="need">${L().need(p.unlock_places)}</div>`:'<div class="dist">✓</div>'}</div>`;}).join("");
+}
+function renderProfile(){
+  $("pTitle").textContent=L().pTitle;$("pSub").textContent=L().pSub;$("premT").textContent=L().premT;$("premS").textContent=L().premS;
+  $("premBtn").textContent=premium?"✓ Premium":L().premBtn;$("favT").textContent=L().favT;$("offlineT").textContent=L().offline;$("offlineBtn").textContent=L().dl;
+  const fl=[...favs].map(id=>DB.places.find(p=>p.id===id)).filter(Boolean);
+  const favHint={ru:"Пока пусто. Жмите ❤ на карточке места, чтобы сохранить.",en:"Empty for now. Tap ❤ on a place to save it.",tt:"Хәзергә буш. Сакларга урын карточкасында ❤ басыгыз."}[lang];
+  $("favList").innerHTML=fl.length?fl.map(p=>placeCard(p,false)).join(""):`<div class="card" style="color:var(--faint);font-size:12.5px;text-align:center">🤍<br>${favHint}</div>`;
+}
+function renderAll(){renderNav();renderHome();renderChips();renderRoutes();renderRewards();renderProfile();$("rSub");}
+
+/* ===== map ===== */
+function initMap(){
+  if(map){map.resize();return;}
+  if(typeof maplibregl==="undefined"){$("notoken").hidden=false;$("notoken").textContent=L().noToken;return;}
+  map=new maplibregl.Map({container:'map',
+    style:{version:8,
+      sources:{osm:{type:'raster',tileSize:256,
+        tiles:['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png','https://b.tile.openstreetmap.org/{z}/{x}/{y}.png','https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+        attribution:'© OpenStreetMap'}},
+      layers:[{id:'osm',type:'raster',source:'osm'}]},
+    center:[49.108,55.78],zoom:12.2,attributionControl:false});
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+  map.on('load',drawMarkers);
+}
+const matchP=p=>(eraF==='all'||(p.periods||[]).includes(eraF))&&(catF==='all'||(p.cats||[]).includes(catF));
+function drawMarkers(){
+  if(!map)return;markers.forEach(m=>m.remove());markers=[];
+  DB.places.filter(matchP).forEach(p=>{
+    const el=document.createElement('div');el.className='mk';const relig=(p.cats||[]).includes('religion');
+    el.style.background=relig?'#C7623B':'#1F7A5A';el.innerHTML=`<span>${ICON[(p.cats||[])[0]]||'📍'}</span>`;
+    el.onclick=()=>openPlace(p.id);
+    markers.push(new maplibregl.Marker(el).setLngLat([p.lng,p.lat]).addTo(map));
+  });
+}
+
+/* ===== geolocation ===== */
+function geoNear(){
+  if(!navigator.geolocation){toast("Геолокация недоступна");return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const R=6371,rad=d=>d*Math.PI/180,la=pos.coords.latitude,lo=pos.coords.longitude;
+    DB.places.forEach(p=>{const dLa=rad(p.lat-la),dLo=rad(p.lng-lo);const a=Math.sin(dLa/2)**2+Math.cos(rad(la))*Math.cos(rad(p.lat))*Math.sin(dLo/2)**2;p._d=(2*R*Math.asin(Math.sqrt(a))).toFixed(1);});
+    nearIds=[...DB.places].sort((a,b)=>a._d-b._d).map(p=>p.id);
+    renderHome();
+  },()=>toast("Не удалось определить местоположение"),{timeout:8000});
+}
+
+/* ===== place detail + audio ===== */
+function openPlace(id){
+  const p=DB.places.find(x=>x.id===id);if(!p)return;
+  const era=(p.periods||[])[0];const eraName=(DB.periods.find(x=>x.id===era)||{}).name;
+  const desc=tr(p.descr)||tr(p.hook);
+  $("sheetBody").innerHTML=`<div class="det"><h2>${tr(p.title)}</h2>${era?`<span class="era">🕰 ${tr(eraName)}</span>`:''}
+   <div class="audio"><button class="play" id="playBtn">▶</button><div style="flex:1"><div class="t" id="audioT">${L().listen}</div><div class="s">${(p.cats||[]).map(c=>tr(CATNAMES[c])).join(' · ')}</div></div></div>
+   <p>${desc}</p>
+   <div class="actions"><button class="btn" id="favBtn" onclick="toggleFav('${p.id}');openPlace('${p.id}')">${favs.has(p.id)?L().saved:'🤍 '+L().save}</button>
+   <button class="btn p" onclick="checkIn('${p.id}')">📍 ${L().check}</button></div></div>`;
+  openSheet();
+  $("playBtn").onclick=()=>narrate(tr(p.title)+". "+desc);
+}
+/* Audio: try OpenAI TTS (premium voice) via Edge Function, fall back to on-device synthesis. */
+let speaking=false, audioEl=null, ttsLoading=false;
+const loadingTxt={ru:"Загрузка голоса…",en:"Loading voice…",tt:"Тавыш йөкләнә…"};
+function stopAudio(){
+  if(audioEl){try{audioEl.pause();}catch(e){}audioEl=null;}
+  if('speechSynthesis'in window){try{speechSynthesis.cancel();}catch(e){}}
+  speaking=false;const b=$("playBtn"),l=$("audioT");if(b)b.textContent="▶";if(l)l.textContent=L().listen;
+}
+async function narrate(text){
+  const b=$("playBtn"),l=$("audioT");
+  if(speaking||ttsLoading){stopAudio();ttsLoading=false;return;}
+  ttsLoading=true;if(l)l.textContent=loadingTxt[lang];if(b)b.textContent="…";
+  try{
+    const r=await fetch(FN_TTS,{method:"POST",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify({text:text.slice(0,900)})});
+    if(!r.ok)throw new Error("tts "+r.status);
+    const buf=await r.arrayBuffer();
+    ttsLoading=false;
+    audioEl=new Audio(URL.createObjectURL(new Blob([buf],{type:"audio/mpeg"})));
+    audioEl.onended=()=>stopAudio();
+    audioEl.onerror=()=>{speakLocal(text);};
+    await audioEl.play();
+    speaking=true;if(l)l.textContent=L().stop;if(b)b.textContent="⏸";
+  }catch(e){ ttsLoading=false; speakLocal(text); }
+}
+function speakLocal(text){
+  const b=$("playBtn"),l=$("audioT");
+  if(!('speechSynthesis'in window)){toast("Аудио недоступно");if(l)l.textContent=L().listen;if(b)b.textContent="▶";return;}
+  const u=new SpeechSynthesisUtterance(text);u.lang=lang==='en'?'en-US':(lang==='tt'?'ru-RU':'ru-RU');u.rate=.98;
+  u.onend=()=>stopAudio();
+  speechSynthesis.speak(u);speaking=true;if(l)l.textContent=L().stop;if(b)b.textContent="⏸";
+}
+function toggleFav(id){if(favs.has(id))favs.delete(id);else{favs.add(id);toast(L().toastSave);}persist();renderHome();renderProfile();}
+function checkIn(id){if(!visited.has(id)){visited.add(id);persist();toast(L().toastCheck);renderRewards();}closeSheet();}
+
+/* ===== routes ===== */
+function openRoute(id){
+  const r=DB.routes.find(x=>x.id===id);if(!r)return;
+  const stops=DB.stops.filter(s=>s.route_id===id).sort((a,b)=>a.ord-b.ord).map(s=>DB.places.find(p=>p.id===s.place_id)).filter(Boolean);
+  $("sheetBody").innerHTML=`<div class="det"><h2>${r.emoji||''} ${tr(r.title)}</h2><p style="margin-top:8px">${tr(r.descr)}</p>
+   <div class="rmeta" style="margin-top:10px">${r.km} ${L().km} · ${r.min} ${L().min} · ${stops.length} ${L().places}</div>
+   <div style="margin-top:16px">${stops.map((p,i)=>`<div class="card pcard" style="margin-bottom:9px" onclick="openPlace('${p.id}')"><div class="thumb" style="font-size:16px;font-family:Baloo 2;font-weight:700;color:var(--em-ink)">${i+1}</div><div style="flex:1"><h3 style="font-size:14.5px">${tr(p.title)}</h3><div class="hook">${tr(p.hook)}</div></div></div>`).join("")}</div></div>`;
+  openSheet();
+}
+
+/* ===== AI chat (real OpenAI via Edge Function) ===== */
+function openAI(){
+  chatHist=chatHist.length?chatHist:[{role:"assistant",content:L().aiHi}];
+  $("sheetBody").innerHTML=`<div class="chat"><div class="msgs" id="msgs"></div>
+   <div class="qbtns" id="qbtns"><button class="qbtn" onclick="ask('${L().q1}')">${L().q1}</button><button class="qbtn" onclick="ask('${L().q2}')">${L().q2}</button><button class="qbtn" onclick="ask('${L().q3}')">${L().q3}</button></div>
+   <div class="cin"><input id="cinp" placeholder="${L().send}" onkeydown="if(event.key==='Enter')ask(this.value)"><button onclick="ask($('cinp').value)">➤</button></div></div>`;
+  drawMsgs();openSheet();
+}
+function drawMsgs(){const m=$("msgs");if(!m)return;m.innerHTML=chatHist.map(x=>`<div class="msg ${x.role==='assistant'?'a':x.role==='sys'?'sys':'u'}">${x.content}</div>`).join("");m.scrollTop=m.scrollHeight;}
+async function ask(text){
+  text=(text||"").trim();if(!text)return;const inp=$("cinp");if(inp)inp.value="";
+  chatHist.push({role:"user",content:text});chatHist.push({role:"assistant",content:"…"});drawMsgs();
+  try{
+    const r=await fetch(FN,{method:"POST",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify({lang,messages:chatHist.filter(m=>m.role!=='sys'&&m.content!=='…')})});
+    const d=await r.json();chatHist.pop();
+    if(d.reply)chatHist.push({role:"assistant",content:d.reply});
+    else chatHist.push({role:"sys",content:d.error==='OPENAI_API_KEY is not set on the server yet.'||(d.error||'').indexOf('503')>=0?"Зилант заговорит, когда добавим ключ OpenAI на сервер.":"Зилант недоступен: "+(d.error||r.status)});
+  }catch(e){chatHist.pop();chatHist.push({role:"sys",content:"Нет связи с сервером Зиланта."});}
+  drawMsgs();
+}
+
+/* ===== sheets / toast ===== */
+function openSheet(){$("scrim").classList.add("on");$("sheet").classList.add("on");}
+function closeSheet(){$("scrim").classList.remove("on");$("sheet").classList.remove("on");stopAudio();ttsLoading=false;}
+let toastTmr;function toast(t){const el=$("toast");el.textContent=t;el.classList.add("on");clearTimeout(toastTmr);toastTmr=setTimeout(()=>el.classList.remove("on"),1900);}
+
+/* ===== paywall ===== */
+function openPay(){
+  const t=L();
+  $("sheetBody").innerHTML=`<div class="det"><h2>${t.payT}</h2>
+   <div style="margin-top:14px;font-size:14px;line-height:2">✓ ${t.b1}<br>✓ ${t.b2}<br>✓ ${t.b3}</div>
+   <div class="plan"><div class="pl" onclick="selPlan(this)"><div><div class="p1">${t.week}</div><div class="p2">${t.skip==='Later'?'try it':'попробовать'}</div></div><div class="pr">199 ₽</div></div>
+   <div class="pl on" onclick="selPlan(this)"><div><div class="p1">${t.month}<span class="pop">${t.pop}</span></div><div class="p2">349 ₽/мес</div></div><div class="pr">349 ₽</div></div>
+   <div class="pl" onclick="selPlan(this)"><div><div class="p1">${t.forever}</div><div class="p2">${t.skip==='Later'?'one-time':'разово'}</div></div><div class="pr">6990 ₽</div></div></div>
+   <button class="cta" style="width:100%;margin-top:16px" onclick="buyPremium()">${t.cta}</button>
+   <div style="text-align:center;font-size:11px;color:var(--faint);margin-top:10px">${t.skip==='Later'?'Real purchases via App Store / Google Play (RevenueCat) in the native app.':'Реальная оплата через App Store / Google Play (RevenueCat) в нативном приложении.'}</div></div>`;
+  openSheet();
+}
+function selPlan(el){document.querySelectorAll('.pl').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
+function buyPremium(){premium=true;persist();toast(L().toastPrem);renderProfile();closeSheet();}
+
+/* ===== onboarding ===== */
+let obStep=0,obLang=lang,obWho=null;
+function onboard(){
+  if(load("ik_onboarded",false)){$("ob").classList.remove("on");return;}
+  $("ob").classList.add("on");drawOb();
+}
+function drawOb(){
+  const steps=[
+    ()=>`<div class="zbig">🐉</div><h2>${obLang==='en'?'Welcome!':obLang==='tt'?'Рәхим итегез!':'Добро пожаловать!'}</h2><div class="obsub">${obLang==='en'?'Choose your language':obLang==='tt'?'Телегезне сайлагыз':'Выберите язык'}</div>
+      <div class="opts">${[['ru','Русский'],['en','English'],['tt','Татарча']].map(([k,v])=>`<button class="opt ${obLang===k?'on':''}" onclick="obLang='${k}';lang='${k}';drawOb()">${v}</button>`).join("")}</div>`,
+    ()=>`<div class="zbig">🚶</div><h2>${L().greet}</h2><div class="obsub">${obLang==='en'?'Who are you in Kazan?':obLang==='tt'?'Казанда сез кем?':'Кто вы в Казани?'}</div>
+      <div class="opts">${[[ 'tourist',{ru:'Турист на 1-3 дня',en:'Tourist for 1-3 days',tt:'1-3 көнлек турист'}],['local',{ru:'Местный житель',en:'Local resident',tt:'Җирле кеше'}],['family',{ru:'С семьей / детьми',en:'With family / kids',tt:'Гаилә белән'}]].map(([k,v])=>`<button class="opt ${obWho===k?'on':''}" onclick="obWho='${k}';drawOb()">${tr(v)}</button>`).join("")}</div>`,
+    ()=>`<div class="zbig">✨</div><h2>${L().payT}</h2><div class="obsub">${obLang==='en'?'Try Premium free, or start with the free version.':obLang==='tt'?'Premium’ны сынап карагыз яки бушлай башлагыз.':'Попробуйте Premium или начните с бесплатной версии.'}</div>
+      <div style="margin-top:16px;font-size:14px;line-height:2">✓ ${L().b1}<br>✓ ${L().b2}<br>✓ ${L().b3}</div>`
+  ];
+  const isLast=obStep===steps.length-1;
+  $("ob").innerHTML=steps[obStep]()+`<div class="obnav"><button class="skip" onclick="finishOb()">${L().skip}</button><button class="cta" onclick="${isLast?'finishOb(true)':'obStep++;drawOb()'}">${isLast?L().cta:(obLang==='en'?'Continue':obLang==='tt'?'Дәвам':'Далее')}</button></div>`;
+  renderAll();
+}
+function finishOb(buy){if(buy)buyPremium();save("ik_onboarded",true);persist();$("ob").classList.remove("on");renderAll();}
+
+/* ===== offline ===== */
+function cacheOffline(){save("ik_cache",DB);toast(lang==='en'?'Offline pack saved':lang==='tt'?'Офлайн-пакет сакланды':'Офлайн-пакет сохранен');}
+
+/* ===== lang switch ===== */
+$("langs").querySelectorAll("button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;persist();$("langs").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));renderAll();});
+
+/* ===== start ===== */
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+boot();onboard();
+</script>
+</body>
+</html>
