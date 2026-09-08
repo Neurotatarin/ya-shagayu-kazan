@@ -69,6 +69,7 @@ body{background:#E7DCC6;font-family:"Golos Text",system-ui,sans-serif;color:var(
 #map{position:absolute;inset:0}
 .mapwrap{position:relative;height:100%}
 .maptop{position:absolute;top:0;left:0;right:0;z-index:5;background:linear-gradient(#FBF3E6,#FBF3E6ee,#FBF3E600);padding-bottom:6px}
+.notoken[hidden]{display:none}
 .notoken{position:absolute;inset:0;display:grid;place-items:center;padding:30px;text-align:center;color:var(--soft);font-size:13px;background:repeating-linear-gradient(45deg,#F0E7D6,#F0E7D6 14px,#ece1cc 14px,#ece1cc 28px)}
 .mk{width:34px;height:34px;border-radius:50% 50% 50% 4px;transform:rotate(45deg);border:3px solid #fff;box-shadow:0 5px 12px -3px rgba(0,0,0,.4);display:grid;place-items:center;cursor:pointer}
 .mk span{transform:rotate(-45deg);font-size:15px}
@@ -352,7 +353,8 @@ function renderAll(){renderNav();renderHome();renderChips();renderRoutes();rende
 /* ===== map ===== */
 function initMap(){
   if(map){map.resize();return;}
-  if(typeof maplibregl==="undefined"){$("notoken").hidden=false;$("notoken").textContent=L().noToken;return;}
+  if(typeof maplibregl==="undefined"){$("notoken").hidden=false;$("notoken").textContent=L().noToken;setTimeout(initMap,600);return;}
+  $("notoken").hidden=true;
   map=new maplibregl.Map({container:'map',
     style:{version:8,
       sources:{osm:{type:'raster',tileSize:256,
@@ -361,7 +363,7 @@ function initMap(){
       layers:[{id:'osm',type:'raster',source:'osm'}]},
     center:[49.108,55.78],zoom:12.2,attributionControl:false});
   map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
-  map.on('load',drawMarkers);
+  map.on('load',()=>{drawMarkers();setTimeout(()=>{try{map.resize();}catch(e){}},120);});
 }
 const matchP=p=>(eraF==='all'||(p.periods||[]).includes(eraF))&&(catF==='all'||(p.cats||[]).includes(catF));
 function drawMarkers(){
