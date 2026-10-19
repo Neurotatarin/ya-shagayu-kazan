@@ -1,0 +1,6 @@
+[Unit]
+Description=Renew only the Kazan demo TLS certificate
+
+[Service]
+Type=oneshot
+ExecStart=/opt/telegram-mcp-certbot/bin/certbot renew --quiet --config-dir /etc/kazan-demo-acme --work-dir /var/lib/kazan-demo-acme --logs-dir /var/log/kazan-demo-acme --deploy-hook "/usr/sbin/nginx -t && /usr/bin/systemctl reload nginx"

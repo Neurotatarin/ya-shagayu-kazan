@@ -1,0 +1,62 @@
+name: Demo home web and iPhone
+on:
+  push:
+    branches: [demo/home-foundation]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: demo-home-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-checks
+          path: test-results/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-preview
+          path: dist/
+          retention-days: 7
+  iphone:
+    needs: web
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm exec cap add ios
+      - run: pnpm exec cap sync ios
+      - name: Build unsigned physical iPhone app and package IPA
+        run: bash scripts/build-iphone.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iphone-ipa
+          path: work/iphone-output/
+          retention-days: 7
