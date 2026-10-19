@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-test("home layout, original local resources and working navigation", async ({
+test("home layout, local resource loading and working navigation", async ({
   page,
 }, testInfo) => {
   const errors: string[] = [];

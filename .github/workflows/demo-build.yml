@@ -25,6 +25,10 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm test:e2e
+      - name: Verify isolated HTTPS preview
+        run: pnpm test:e2e
+        env:
+          DEMO_BASE_URL: https://kazan-demo.38-180-191-162.sslip.io
       - uses: actions/upload-artifact@v4
         if: always()
         with:
