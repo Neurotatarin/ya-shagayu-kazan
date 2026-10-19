@@ -20,7 +20,11 @@ const home: HomeContent = {
 };
 export const localHomeRepository: HomeRepository = {
   async getHome(signal) {
-    signal?.throwIfAborted();
-    return structuredClone(home);
+    if (signal?.aborted) throw new DOMException("Request aborted", "AbortError");
+    return {
+      ...home,
+      hero: { ...home.hero },
+      featuredRoute: { ...home.featuredRoute },
+    };
   },
 };

@@ -32,7 +32,7 @@ export function App({
     clearTimeout(timer.current);
     if (destination === "home") {
       setNotice(false);
-      window.scrollTo({ top: 0, behavior: "instant" });
+      window.scrollTo({ top: 0, behavior: "auto" });
       return;
     }
     setNotice(true);
