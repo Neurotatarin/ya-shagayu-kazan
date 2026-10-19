@@ -1,9 +1,15 @@
 import { test, expect } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 test("home layout, local resource loading and working navigation", async ({
   page,
+  browserName,
 }, testInfo) => {
   const errors: string[] = [];
+  const consoleMessages: string[] = [];
+  page.on("console", (message) => {
+    if (["error", "warning"].includes(message.type()))
+      consoleMessages.push(message.text());
+  });
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("response", (response) => {
     if (response.status() >= 400)
@@ -14,6 +20,54 @@ test("home layout, local resource loading and working navigation", async ({
     page.getByRole("heading", { name: "Город ждёт." }),
   ).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
+  await mkdir("test-results/screenshots", { recursive: true });
+  const fontDiagnostics = await page.evaluate(() => ({
+    heading: getComputedStyle(document.querySelector("h1")!).fontFamily,
+    faces: Array.from(document.fonts)
+      .filter((font) => font.status === "loaded")
+      .map((font) => ({
+        family: font.family,
+        unicodeRange: font.unicodeRange,
+      })),
+  }));
+  let platformFonts: {
+    familyName: string;
+    isCustomFont: boolean;
+    glyphCount: number;
+  }[] = [];
+  if (browserName === "chromium") {
+    const session = await page.context().newCDPSession(page);
+    await session.send("DOM.enable");
+    await session.send("CSS.enable");
+    const { root } = await session.send("DOM.getDocument");
+    const { nodeId } = await session.send("DOM.querySelector", {
+      nodeId: root.nodeId,
+      selector: "h1",
+    });
+    ({ fonts: platformFonts } = await session.send(
+      "CSS.getPlatformFontsForNode",
+      { nodeId },
+    ));
+    await session.detach();
+  }
+  await writeFile(
+    `test-results/fonts-${testInfo.project.name}.json`,
+    JSON.stringify(
+      { fontDiagnostics, platformFonts, consoleMessages },
+      null,
+      2,
+    ),
+  );
+  if (browserName === "chromium") {
+    expect(
+      platformFonts.some(
+        (font) =>
+          font.isCustomFont &&
+          font.familyName === "Tenor Sans" &&
+          font.glyphCount >= 8,
+      ),
+    ).toBe(true);
+  }
   const loadedResources = await page.evaluate(() =>
     performance.getEntriesByType("resource").map((resource) => resource.name),
   );

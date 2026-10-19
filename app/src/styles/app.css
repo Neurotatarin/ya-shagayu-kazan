@@ -5,7 +5,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0 auto;
-  padding-top: max(20px, var(--safe-top));
+  padding-top: calc(20px + var(--safe-top));
   background: var(--color-white);
   overflow-x: clip;
 }
@@ -172,7 +172,7 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  flex: 0 0 45%;
+  flex: 0 0 50%;
   padding: 20px 18px;
   min-width: 0;
 }
@@ -207,7 +207,7 @@
   position: absolute;
   right: 0;
   top: 0;
-  width: 55%;
+  width: 50%;
   height: 100%;
   object-fit: cover;
 }
@@ -377,10 +377,6 @@
   }
   .route-copy {
     padding-inline: 14px;
-    flex-basis: 47%;
-  }
-  .route-photo {
-    width: 53%;
   }
   .route-meta {
     gap: 4px;
