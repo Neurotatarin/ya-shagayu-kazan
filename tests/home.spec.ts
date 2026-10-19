@@ -14,6 +14,12 @@ test("home layout, local resource loading and working navigation", async ({
     page.getByRole("heading", { name: "Город ждёт." }),
   ).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
+  const loadedResources = await page.evaluate(() =>
+    performance.getEntriesByType("resource").map((resource) => resource.name),
+  );
+  for (const font of ["tenor-sans-cyrillic-400", "onest-cyrillic-400"]) {
+    expect(loadedResources.some((url) => url.includes(font))).toBe(true);
+  }
   await expect(
     page.getByRole("navigation", { name: "Основная навигация" }),
   ).toBeVisible();
