@@ -60,7 +60,8 @@ curl -fsS --noproxy '*' --connect-timeout 5 --max-time 15 \
   --resolve "$DEMO_HOST:443:127.0.0.1" "https://$DEMO_HOST/status.css" \
   -o "$BACKUP/verified-status.css"
 cmp "$RELEASE/status.css" "$BACKUP/verified-status.css"
-grep -q 'name="demo-stage" content="figma-restart"' "$BACKUP/verified-index.html"
+grep -q 'name="demo-stage" content="legacy-redirect"' "$BACKUP/verified-index.html"
+grep -q 'http-equiv="refresh" content="0;url=https://neurotatarin.github.io/ya-shagayu-kazan/"' "$BACKUP/verified-index.html"
 
 for ipa in "$DEMO_ROOT/downloads"/YaShagayuKazan-*.ipa; do
   [ -f "$ipa" ] || continue
