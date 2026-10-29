@@ -13,12 +13,21 @@ const geometry: Record<string, [string, number][]> = {
   routes: [[".themes-gallery", 227], [".route-zilant-cta", 610]],
 };
 
-test("all nine Figma screens: assets, SVG proportions, layout and screenshots", async ({ page }, info) => {
+test("all nine Figma screens: assets, SVG proportions, layout and screenshots", async ({ page, browserName }, info) => {
   test.setTimeout(90000);
   const errors: string[] = [];
+  let takingScreenshot = false;
   page.on("pageerror", error => errors.push(error.message));
   page.on("response", response => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
-  page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  page.on("console", message => {
+    if (message.type() !== "error") return;
+    // WebKit's screenshot helper injects its own stylesheet. A strict production
+    // CSP rejects that helper, even with caret:'initial'. A no-screenshot probe
+    // verified zero app errors; keep CSP intact and allow only this exact helper
+    // warning while taking a screenshot. All app-time CSP violations still fail.
+    if (browserName === "webkit" && takingScreenshot && message.text() === "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.") return;
+    errors.push(message.text());
+  });
   await mkdir("test-results/screenshots", { recursive: true });
   for (const screen of screens) {
     await page.goto(`/#/${screen}`);
@@ -48,7 +57,9 @@ test("all nine Figma screens: assets, SVG proportions, layout and screenshots", 
         expect(Math.abs(rect.y - shell.y - y), `${screen} ${selector}: expected y=${y}, actual ${rect.y - shell.y}`).toBeLessThan(2);
       }
     }
-    await page.screenshot({ path: `test-results/screenshots/${screen.replace("/", "-")}-${info.project.name}.png`, fullPage: true });
+    takingScreenshot = true;
+    try { await page.screenshot({ path: `test-results/screenshots/${screen.replace("/", "-")}-${info.project.name}.png`, fullPage: true }); }
+    finally { takingScreenshot = false; }
   }
   expect(errors).toEqual([]);
 });

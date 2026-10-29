@@ -44,7 +44,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     window.addEventListener("hashchange", onHashChange);
     return () => { window.removeEventListener("hashchange", onHashChange); clearTimeout(noticeTimeout.current); clearTimeout(pendingRequest.current); };
   }, []);
-  useLayoutEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [screen]);
+  useLayoutEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [screen]);
   useEffect(() => { if (screen !== "waiting") clearTimeout(pendingRequest.current); }, [screen]);
 
   function showNotice(message: string) { clearTimeout(noticeTimeout.current); setNotice(message); noticeTimeout.current = setTimeout(() => setNotice(""), 6500); }
@@ -54,7 +54,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     setNotice(""); setSheet(undefined);
     location.hash = `/${target}${id ? `/${id}` : ""}`;
     setScreen(target);
-    if (target === screen) window.scrollTo({ top: 0, behavior: "instant" });
+    if (target === screen) window.scrollTo({ top: 0, behavior: "auto" });
   }
   function navigate(destination: Destination) { go(destination); }
   function openPlace(id: PlaceId) { go("place", id); }

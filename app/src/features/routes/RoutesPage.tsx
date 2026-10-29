@@ -28,10 +28,10 @@ export function RoutesPage({ routes, onSelect, onZilant }: { routes: readonly Th
   return <main className="routes-page standard-page" data-figma-node="11:8928">
     <h1>Маршруты</h1><p className="page-subtitle">Выбирай, как знакомиться с Казанью.</p>
     <h2 className="themes-heading">Темы прогулок</h2>
-    <div className="themes-gallery" ref={gallery} aria-label="Пять тем прогулок" tabIndex={0} onKeyDown={event => { if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); gallery.current?.scrollBy({ left: (event.key === "ArrowRight" ? 1 : -1) * 330, behavior: "instant" }); } }}>
+    <div className="themes-gallery" ref={gallery} aria-label="Пять тем прогулок" tabIndex={0} onKeyDown={event => { if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); gallery.current?.scrollBy({ left: (event.key === "ArrowRight" ? 1 : -1) * 330, behavior: "auto" }); } }}>
       {routes.map((route, index) => <ThemeCard key={route.id} route={route} number={index + 1} onOpen={() => onSelect(route)} />)}
     </div>
-    <div className="themes-footer"><span>5 маршрутов</span><button type="button" aria-label="Следующая тема прогулки" onClick={() => { const el = gallery.current!; el.scrollTo({ left: el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 ? 0 : el.scrollLeft + Math.min(330, el.clientWidth - 20), behavior: "instant" }); }}><span>Листай и выбирай</span><span className="theme-footer-arrow"><OriginalAsset asset="routes-footer-arrow.imgArrowRight" /></span></button></div>
+    <div className="themes-footer"><span>5 маршрутов</span><button type="button" aria-label="Следующая тема прогулки" onClick={() => { const el = gallery.current!; el.scrollTo({ left: el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 ? 0 : el.scrollLeft + Math.min(330, el.clientWidth - 20), behavior: "auto" }); }}><span>Листай и выбирай</span><span className="theme-footer-arrow"><OriginalAsset asset="routes-footer-arrow.imgArrowRight" /></span></button></div>
     <section className="route-zilant-cta"><h2>Хочется чего-то другого?</h2><p>Зилант поможет выбрать прогулку.</p><button className="primary-action" type="button" onClick={onZilant}><OriginalAsset asset="routes-cta.imgArrowUpRight" /><span>Подобрать с Зилантом</span></button></section>
   </main>;
 }
