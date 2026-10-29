@@ -1,0 +1,28 @@
+:root {
+  --white: #fff;
+  --ink: #17392e;
+  --green: #08734f;
+  --mint: #def4e5;
+  --pale: #f0f7f2;
+  --deep: #123f31;
+  --lime: #d8f59a;
+  --muted: #62756c;
+  --font-body: "Onest", sans-serif;
+  --font-display: "Tenor Sans", sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  color: var(--ink);
+  background: var(--pale);
+  font-family: var(--font-body);
+  font-synthesis: none;
+  color-scheme: light;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 3px solid var(--green); outline-offset: 4px; }
+h1, h2, p { margin: 0; }
+img { display: block; max-width: none; }

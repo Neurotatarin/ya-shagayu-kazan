@@ -1,0 +1,85 @@
+.app-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 460px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-top: calc(15px + var(--safe-top));
+  padding-bottom: calc(12px + var(--safe-bottom));
+  background: var(--white);
+}
+.home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 46px;
+  flex: none;
+  margin: 0 22px;
+}
+.brand { padding-top: 4px; }
+.brand > span { display: block; font: 400 21px/25px var(--font-display); }
+.brand > small { display: block; font: 400 13px/16px var(--font-body); color: var(--muted); }
+.profile-shortcut { display: grid; place-items: center; width: 46px; height: 46px; padding: 0; border: 0; border-radius: 23px; background: var(--pale); }
+.figma-icon { flex: none; }
+.home-page { display: flow-root; }
+.home-title { margin: 21px 22px 18px; font: 400 36px/43px var(--font-display); letter-spacing: -.35px; }
+.welcome-scene { position: relative; isolation: isolate; width: calc(100% - 36px); height: 300px; margin-left: 17px; overflow: hidden; border-radius: 34px; background: var(--mint); }
+.zilant-scene-window { position: absolute; left: 8.7431694%; top: -11px; width: 91.2568306%; height: 330px; overflow: hidden; pointer-events: none; }
+.zilant-hello { position: absolute; left: 20.9580838%; top: 24px; width: 131.4371257%; height: auto; aspect-ratio: 439 / 355; object-fit: contain; }
+.scene-eyebrow { position: absolute; left: 22px; top: 24px; font: 600 10px/14px var(--font-body); color: var(--green); }
+.welcome-scene h2 { position: absolute; left: 22px; top: 58px; width: 157px; font: 400 29px/35px var(--font-display); letter-spacing: -.35px; white-space: pre-line; }
+.scene-description { position: absolute; left: 22px; top: 143px; width: 147px; font: 400 13px/19px var(--font-body); white-space: pre-line; }
+.start-walk { position: absolute; right: 21px; bottom: 13px; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 9px; width: 228px; height: 54px; padding: 0; border: 0; border-radius: 27px; background: var(--deep); color: var(--white); font: 600 15px/20px var(--font-body); }
+.featured-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; min-height: 30px; margin: 29px 27px 10px 22px; }
+.featured-heading h2 { font: 400 22px/26px var(--font-display); }
+.featured-heading button { flex: none; margin-top: 1px; width: 29px; height: 29px; padding: 0; border: 0; background: transparent; }
+.route-card { position: relative; display: block; isolation: isolate; width: calc(100% - 36px); height: 182px; margin: 0 18px; padding: 0; overflow: hidden; border: 0; border-radius: 30px; background: var(--deep); color: var(--white); text-align: left; }
+.kremlin-photo { position: absolute; left: 44.8087432%; top: 0; width: 55.1912568%; height: 182px; object-fit: cover; }
+.route-copy { position: absolute; left: 0; top: 0; width: 49.72677596%; height: 182px; background: var(--deep); }
+.route-eyebrow { position: absolute; left: 20px; top: 20px; font: 600 10px/14px var(--font-body); color: var(--lime); white-space: nowrap; }
+.route-title { position: absolute; left: 20px; top: 46px; width: calc(100% - 32px); font: 400 25px/30px var(--font-display); white-space: pre-line; }
+.route-meta { position: absolute; left: 20px; top: 125px; display: flex; align-items: center; gap: 7px; height: 22px; font: 500 12px/16px var(--font-body); white-space: nowrap; }
+.open-route { position: absolute; right: 15px; bottom: 16px; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 22px; background: var(--white); }
+.navigation-gap { height: 28px; flex: none; }
+.bottom-navigation { position: sticky; bottom: calc(12px + var(--safe-bottom)); z-index: 5; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; height: 76px; flex: none; margin: auto 18px 0; padding: 0 9px; border-radius: 38px; background: var(--white); filter: drop-shadow(0 5px 11px rgb(23 57 46 / 9%)); }
+.nav-destination { position: relative; height: 76px; min-width: 0; padding: 0; border: 0; background: transparent; color: var(--muted); }
+.nav-destination > .figma-icon { position: absolute; left: calc(50% - 14px); top: 13px; }
+.nav-active { position: absolute; left: 0; top: 8px; width: 100%; height: 60px; border-radius: 29px; background: var(--mint); }
+.nav-label { position: absolute; top: 47px; left: 0; width: 100%; font: 500 10.5px/14px var(--font-body); white-space: nowrap; text-align: center; }
+.nav-home { color: var(--green); }
+.nav-home .nav-label { font-weight: 600; }
+.nav-zilant { transform: translateX(-1px); }
+.zilant-disc { position: absolute; left: calc(50% - 32px); top: 5px; width: 64px; height: 64px; border-radius: 32px; background: var(--mint); }
+.zilant-face { position: absolute; left: calc(50% - 23px); top: 12px; display: block; width: 44px; height: 44px; overflow: hidden; }
+.zilant-face-source { position: relative; display: block; width: 46px; height: 44.376px; overflow: hidden; }
+.zilant-face-head { position: absolute; left: 3.01%; top: 11.61%; }
+.zilant-face-crown { position: absolute; left: 38.36%; top: 3.32%; }
+.notice-region { position: fixed; left: 50%; bottom: calc(108px + var(--safe-bottom)); z-index: 10; width: min(354px, calc(100% - 48px)); transform: translateX(-50%); pointer-events: none; }
+.notice { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 10px 18px; border-radius: 20px; background: var(--deep); color: var(--white); font: 500 14px/20px var(--font-body); box-shadow: 0 5px 11px rgb(23 57 46 / 9%); pointer-events: auto; }
+.notice button { width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 26px; }
+.content-state { padding: 22px 24px; }
+.content-state h1 { font: 400 28px/35px var(--font-display); }
+.content-state p { margin-top: 16px; }
+.content-state button { margin-top: 20px; padding: 14px 22px; border: 0; border-radius: 27px; background: var(--deep); color: white; }
+@media (max-width: 359px) {
+  .welcome-scene { height: 264px; }
+  .scene-eyebrow, .welcome-scene h2, .scene-description { left: 18px; }
+  .welcome-scene h2 { top: 54px; font-size: 27px; line-height: 33px; }
+  .scene-description { top: 131px; font-size: 12px; line-height: 18px; }
+  .start-walk { width: 220px; right: 16px; }
+  .featured-heading h2 { font-size: 19px; }
+  .featured-heading { margin-right: 22px; }
+  .route-eyebrow { left: 16px; font-size: 9px; }
+  .route-title { left: 16px; font-size: 23px; line-height: 29px; }
+  .route-meta { left: 16px; gap: 4px; font-size: 10px; }
+  .bottom-navigation { padding-inline: 5px; }
+  .nav-label { font-size: 9px; }
+  .zilant-disc { left: calc(50% - 29px); width: 58px; height: 58px; top: 8px; }
+}
+@media (min-width: 768px) {
+  .app-shell { --safe-top: 44px; --safe-bottom: 20px; width: 402px; min-height: 874px; margin: 24px auto; border-radius: 42px; box-shadow: 0 12px 30px rgb(23 57 46 / 9%); }
+  .notice-region { bottom: max(128px, calc(100dvh - 770px)); }
+}
