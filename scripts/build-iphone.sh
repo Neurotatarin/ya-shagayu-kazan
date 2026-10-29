@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 xcodebuild -version
-# Keep the existing project icon; no substitute character or newly invented artwork.
-sips -z 1024 1024 icon-512.png --out ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png >/dev/null
+# Original Figma icon; its configured export is already 1024x1024.
+cp app/public/branding/app-icon.png ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
 python3 - <<'PY'
 import plistlib
 from pathlib import Path

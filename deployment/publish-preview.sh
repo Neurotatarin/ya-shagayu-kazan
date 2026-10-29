@@ -23,7 +23,7 @@ cp -p /etc/nginx/sites-available/kazan-demo "$BACKUP/kazan-demo.conf"
 install -d -m 755 "$RELEASE"
 tar -xzf "$ARCHIVE" -C "$RELEASE" --no-same-owner --no-same-permissions
 test -s "$RELEASE/index.html"
-grep -q 'name="demo-stage" content="figma-home"' "$RELEASE/index.html"
+grep -q 'name="demo-stage" content="figma-pages"' "$RELEASE/index.html"
 find "$RELEASE" -type d -exec chmod 755 {} +
 find "$RELEASE" -type f -exec chmod 644 {} +
 rollback() {
@@ -43,6 +43,7 @@ cmp "$RELEASE/index.html" "$BACKUP/verified-index.html"
 for asset in zilant-hello.png kremlin.jpg house.svg zilant-head.svg zilant-crown.svg; do
   curl -fsS --noproxy '*' --max-time 15 --resolve "$HOST:443:127.0.0.1" "https://$HOST/assets/home/$asset" -o /dev/null
 done
+curl -fsS --noproxy '*' --max-time 15 --resolve "$HOST:443:127.0.0.1" "https://$HOST/branding/app-icon.png" -o /dev/null
 /usr/sbin/nginx -t
 test "$NGINX_BEFORE" = "$(sha256sum /etc/nginx/nginx.conf /etc/nginx/sites-available/kazan-demo)"
 printf 'Release: %s\nPrevious: %s\nBackup: %s\nNginx configuration unchanged.\n' "$RELEASE" "$PREVIOUS" "$BACKUP"

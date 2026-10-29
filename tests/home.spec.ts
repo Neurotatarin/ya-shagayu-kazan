@@ -51,15 +51,6 @@ test("original assets, readable layout, navigation and no animation", async ({ p
   await mkdir("test-results/screenshots", { recursive: true });
   await page.screenshot({ path: `test-results/screenshots/home-${info.project.name}.png`, fullPage: true });
 
-  const actions = [page.getByRole("button", { name: "Начать прогулку", exact: true }), page.getByRole("button", { name: "Открыть профиль", exact: true }), page.getByRole("button", { name: "Все маршруты", exact: true }), page.getByRole("button", { name: /^Вокруг Кремля,/ })];
-  for (const label of ["Карта", "Зилант", "Маршруты", "Профиль"]) actions.push(page.getByRole("navigation").getByRole("button", { name: label, exact: true }));
-  for (const action of actions) {
-    await action.click();
-    await expect(page.getByRole("status")).toContainText("Раздел в разработке");
-    await expect(page.getByRole("heading", { name: "Город ждёт." })).toBeVisible();
-    await page.getByRole("button", { name: "Закрыть сообщение" }).click();
-    await expect(page.getByRole("status")).toBeEmpty();
-  }
   await page.locator(".route-card").scrollIntoViewIfNeeded();
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   const route = await page.locator(".route-card").boundingBox();
@@ -68,8 +59,7 @@ test("original assets, readable layout, navigation and no animation", async ({ p
   await page.getByRole("navigation").getByRole("button", { name: "Главная", exact: true }).click();
   await expect(page.getByRole("status")).toBeEmpty();
   await context.setOffline(true);
-  await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Раздел в разработке");
+  await expect(page.getByRole("heading", { name: "Город ждёт." })).toBeVisible();
   await context.setOffline(false);
   expect(errors).toEqual([]);
 });

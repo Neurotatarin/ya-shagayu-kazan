@@ -1,4 +1,4 @@
-name: Figma home web and physical iPhone
+name: Figma pages web and physical iPhone
 on:
   push:
     branches: [demo/figma-restart]
