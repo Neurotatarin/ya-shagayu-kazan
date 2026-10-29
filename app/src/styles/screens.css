@@ -106,6 +106,7 @@
 .theme-meta { position: absolute; left: 22px; top: 281px; width: 225px; color: var(--green); font: 500 11px/16px var(--font-body); }
 .theme-imperial .theme-meta { left: 19px; top: 274px; }
 .theme-open { position: absolute; left: 256px; top: 264px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--green); }
+.theme-tatar .theme-open { background: var(--white); }
 .theme-number { position: absolute; left: 268px; top: 16px; display: grid; place-items: center; width: 29px; height: 23px; border-radius: 11px; background: white; color: var(--green); font: 600 10px/13px var(--font-body); }
 .themes-footer { display: flex; align-items: center; justify-content: space-between; margin: 17px 24px 0 22px; height: 18px; font: 500 12px/18px var(--font-body); color: var(--green); }
 .themes-footer button { display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: transparent; color: var(--muted); font: 400 12px/18px var(--font-body); }
