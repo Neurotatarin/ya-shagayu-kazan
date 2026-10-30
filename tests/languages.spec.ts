@@ -38,6 +38,11 @@ test("English and Arabic persist across all screens without changing the route o
       await expect(page.locator("main[data-figma-node],main.home-page")).toBeVisible();
       await page.evaluate(() => document.fonts.ready);
       await expect(page.locator(".language-trigger")).toHaveText(language.toUpperCase());
+      if (screen === "home") {
+        const shell = (await page.locator(".app-shell").boundingBox())!;
+        const hero = (await page.locator(".welcome-scene").boundingBox())!;
+        expect(hero.x - shell.x, "Arabic must retain the original Figma composition").toBe(17);
+      }
       const layout = await page.evaluate(() => {
         const control = document.querySelector(".language-trigger")!.getBoundingClientRect();
         const headingNode = document.querySelector(".profile-page > h1,.routes-page > h1");

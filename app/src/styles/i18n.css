@@ -15,6 +15,7 @@
 .language-option [lang="ru"], .language-option [lang="en"] { font-family: "Onest", sans-serif; }
 .language-code { color: var(--green); font: 500 12px/16px "Onest", sans-serif; }
 .sheet-panel > .language-note { margin: 20px 0 0; font-size: 12px; color: var(--muted); }
+.language-sheet { min-height: 350px; }
 .audio-unavailable .play-action { background: var(--pale); box-shadow: none; }
 .audio-unavailable .play-action img, .audio-unavailable .skip-action, .audio-unavailable .playback-speed { opacity: .35; }
 button:disabled, input:disabled { cursor: default; }
@@ -36,6 +37,8 @@ button:disabled, input:disabled { cursor: default; }
 :root[dir="rtl"] .chat-header, :root[dir="rtl"] .chat-composer,
 :root[dir="rtl"] .player-progress, :root[dir="rtl"] .traveler-card { direction: ltr; }
 :root[dir="rtl"] .featured-heading, :root[dir="rtl"] .start-walk, :root[dir="rtl"] .primary-action { direction: ltr; }
+:root[dir="rtl"] .audio-filter, :root[dir="rtl"] .listen-next-stop { direction: ltr; }
+:root[dir="rtl"] .welcome-scene { margin-right: 19px; }
 :root[dir="rtl"] .brand, :root[dir="rtl"] .chat-header > div:not(.chat-avatar),
 :root[dir="rtl"] .traveler-card > span:last-child, :root[dir="rtl"] .chat-composer input { direction: rtl; text-align: right; }
 :root[dir="rtl"] .welcome-scene h2, :root[dir="rtl"] .scene-description { width: 39%; text-align: right; }
