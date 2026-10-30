@@ -5,7 +5,7 @@
 .map-control-layer, .screen-map .bottom-navigation, .screen-map .language-control { transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
 .map-chrome-hidden .map-control-layer, .map-chrome-hidden .language-control { opacity: 0; visibility: hidden; transform: translateY(-16px); pointer-events: none; }
 .map-chrome-hidden .language-control { transform: translate(-50%, -16px); }
-.screen-map.map-chrome-hidden .bottom-navigation { opacity: 0; visibility: hidden; transform: translateY(calc(100% + 60px)); pointer-events: none; }
+.screen-map.map-chrome-hidden .bottom-navigation { opacity: 0; visibility: hidden; transform: translateY(12px); pointer-events: none; }
 .map-context-dock { position: absolute; z-index: 3; left: 18px; right: 18px; bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--safe-bottom)); height: var(--map-dock-height); transition: height 180ms ease; pointer-events: none; }
 .map-context-dock > [data-visible] { transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
 .map-context-dock > [data-visible="false"] { opacity: 0; visibility: hidden; transform: translateY(16px); pointer-events: none; }
@@ -19,8 +19,8 @@
 .map-route-peek strong, .map-route-peek small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .map-route-peek strong { font: 500 14px/20px var(--font-body); }
 .map-route-peek small { font: 400 12px/16px var(--font-body); color: var(--muted); }
-.screen-map .locate-map { bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--map-dock-height) + 24px + var(--safe-bottom)); }
-.screen-map .map-attribution { bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--map-dock-height) + 4px + var(--safe-bottom)); transform: none; }
+.screen-map .map-page .locate-map { bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--map-dock-height) + 24px + var(--safe-bottom)); }
+.screen-map .map-page .map-attribution { bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--map-dock-height) + 4px + var(--safe-bottom)); transform: none; }
 .screen-map.has-mini-player .mini-player { bottom: calc(var(--map-nav-height) + var(--safe-bottom)); height: 56px; transition: bottom 180ms ease; }
 .screen-map .mini-player-row, .screen-map .mini-player-open { height: 44px; }
 .screen-map .mini-player-photo { width: 32px; height: 32px; }

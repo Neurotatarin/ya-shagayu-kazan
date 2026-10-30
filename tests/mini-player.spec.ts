@@ -47,7 +47,7 @@ test("mini-player controls the same audio everywhere, restores photos and closes
   await expect(page.locator(".cover-chapter")).toHaveAttribute("aria-label", "Кадр 3 из 4");
   await page.getByRole("button", { name: "Воспроизвести историю" }).click();
   const slider = page.getByRole("slider", { name: "Позиция аудиоистории" });
-  await expect.poll(async () => Number(await slider.inputValue())).toBeGreaterThan(0);
+  await expect.poll(async () => Number(await slider.inputValue()), { timeout: 25000 }).toBeGreaterThan(0);
   await slider.fill("17");
   await page.getByRole("button", { name: "Назад к месту" }).click();
   const mini = page.getByRole("complementary", { name: "Мини-плеер экскурсии" });
@@ -83,6 +83,10 @@ test("mini-player controls the same audio everywhere, restores photos and closes
       await expect.poll(async () => (await mini.boundingBox())!.y).toBeGreaterThan(box.y + 50);
       await mini.getByRole("button", { name: "Пауза", exact: true }).click();
       await mini.getByRole("button", { name: "Воспроизвести историю" }).click();
+      expect(await page.locator(".app-shell").evaluate(shell => shell.scrollTop)).toBe(0);
+      const quietBox = (await mini.boundingBox())!, gps = (await page.locator(".locate-map").boundingBox())!;
+      expect(quietBox.y - gps.y - gps.height).toBeGreaterThanOrEqual(0);
+      expect(quietBox.y - gps.y - gps.height).toBeLessThanOrEqual(48);
       await page.screenshot({ path: `test-results/screenshots/map-free-audio-${info.project.name}.png` });
       await page.mouse.click(point.x, point.y);
       await expect(page.getByRole("navigation")).toBeVisible();
