@@ -1,10 +1,10 @@
 import { DetailSheet } from "./DetailSheet";
 import { languages, languageNames, setLanguage, useI18n, type Language } from "../i18n";
 
-export function LanguageControl({ open, onOpen, onClose, onChange }: { open: boolean; onOpen: () => void; onClose: () => void; onChange: (language: Language) => void }) {
+export function LanguageControl({ open, onOpen, onClose, onChange, concealed = false }: { open: boolean; onOpen: () => void; onClose: () => void; onChange: (language: Language) => void; concealed?: boolean }) {
   const { language, t } = useI18n();
   return <>
-    <div className="language-control">
+    <div className="language-control" inert={concealed} aria-hidden={concealed || undefined}>
       <button className="language-trigger" type="button" aria-label={t("Выбрать язык")} aria-haspopup="dialog" aria-expanded={open} onClick={onOpen} data-figma-node="2013:6443"><span dir="ltr">{language.toUpperCase()}</span></button>
     </div>
     {open && <DetailSheet className="language-sheet" title={t("Язык")} onClose={onClose}>

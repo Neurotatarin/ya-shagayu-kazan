@@ -1,0 +1,34 @@
+/* Figma 2022:7008. Contextual overlays share one dock; the map keeps its size. */
+.screen-map { --map-nav-height: 104px; --map-audio-height: 0px; }
+.screen-map.has-mini-player { --map-audio-height: 68px; }
+.screen-map.map-chrome-hidden { --map-nav-height: 12px; }
+.map-control-layer, .screen-map .bottom-navigation, .screen-map .language-control { transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
+.map-chrome-hidden .map-control-layer, .map-chrome-hidden .language-control { opacity: 0; visibility: hidden; transform: translateY(-16px); pointer-events: none; }
+.map-chrome-hidden .language-control { transform: translate(-50%, -16px); }
+.screen-map.map-chrome-hidden .bottom-navigation { opacity: 0; visibility: hidden; transform: translateY(calc(100% + 60px)); pointer-events: none; }
+.map-context-dock { position: absolute; z-index: 3; left: 18px; right: 18px; bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--safe-bottom)); height: var(--map-dock-height); transition: height 180ms ease; pointer-events: none; }
+.map-context-dock > [data-visible] { transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
+.map-context-dock > [data-visible="false"] { opacity: 0; visibility: hidden; transform: translateY(16px); pointer-events: none; }
+.map-context-dock > [data-visible="true"] { opacity: 1; visibility: visible; transform: none; pointer-events: auto; }
+.screen-map .map-context-dock .next-stop-card { inset: auto 0 0; height: 182px; touch-action: pan-x; }
+.map-card-handle { position: absolute; z-index: 2; top: 7px; left: calc(33.469945% - 16px); width: 32px; height: 3px; border-radius: 2px; background: #e1ebe4; }
+.map-card-close { position: absolute; top: 8px; right: 10px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 22px; background: var(--white); color: var(--green); font: 400 28px/34px "Onest", sans-serif; }
+.map-walk-here { position: absolute; bottom: 13px; right: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; width: 88px; height: 44px; border: 0; padding: 0; border-radius: 22px; background: var(--white); color: var(--green); font: 600 12px/16px var(--font-body); }
+.map-route-peek { position: absolute; inset: auto 0 0; display: flex; align-items: center; gap: 8px; width: 100%; height: 56px; padding: 0 16px; border: 0; border-radius: 22px; background: var(--white); color: var(--ink); text-align: start; box-shadow: 0 5px 22px rgb(23 57 46 / 9%); }
+.map-route-peek > span { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.map-route-peek strong, .map-route-peek small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.map-route-peek strong { font: 500 14px/20px var(--font-body); }
+.map-route-peek small { font: 400 12px/16px var(--font-body); color: var(--muted); }
+.screen-map .locate-map { bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--map-dock-height) + 24px + var(--safe-bottom)); }
+.screen-map .map-attribution { bottom: calc(var(--map-nav-height) + var(--map-audio-height) + var(--map-dock-height) + 4px + var(--safe-bottom)); transform: none; }
+.screen-map.has-mini-player .mini-player { bottom: calc(var(--map-nav-height) + var(--safe-bottom)); height: 56px; transition: bottom 180ms ease; }
+.screen-map .mini-player-row, .screen-map .mini-player-open { height: 44px; }
+.screen-map .mini-player-photo { width: 32px; height: 32px; }
+.screen-map .mini-player-title { -webkit-line-clamp: 1; }
+.screen-map .mini-player-status { display: none; }
+.screen-map .mini-player-progress { top: 46px; }
+.screen-map .notice-region { bottom: calc(var(--map-nav-height) + var(--map-audio-height) + 12px + var(--safe-bottom)); }
+:root[dir="rtl"] .map-route-peek { direction: ltr; }
+:root[dir="rtl"] .map-route-peek > span { direction: rtl; }
+@media (max-width: 359px) { .map-walk-here { width: 82px; right: 6px; } .map-context-dock .listen-next-stop { width: 142px; } }
+@media (prefers-reduced-motion: reduce) { .map-control-layer, .screen-map .bottom-navigation, .screen-map .language-control, .map-context-dock, .map-context-dock > [data-visible], .screen-map.has-mini-player .mini-player { transition: none; } }

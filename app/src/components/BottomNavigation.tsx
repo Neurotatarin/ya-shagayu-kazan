@@ -11,9 +11,9 @@ const destinations = [
   { id: "profile", label: "Профиль" },
 ] as const;
 
-export function BottomNavigation({ current = "home", onNavigate }: { current?: Destination; onNavigate: (destination: Destination) => void }) {
+export function BottomNavigation({ current = "home", onNavigate, concealed = false }: { current?: Destination; onNavigate: (destination: Destination) => void; concealed?: boolean }) {
   return (
-    <nav className="bottom-navigation" aria-label={t("Основная навигация")} data-figma-node="9:1752">
+    <nav className="bottom-navigation" inert={concealed} aria-hidden={concealed || undefined} aria-label={t("Основная навигация")} data-figma-node="9:1752">
       {destinations.map(({ id, label }) => (
         <button key={id} type="button" className={`nav-destination nav-${id} ${current === id ? "nav-current" : ""}`} aria-label={t(label)} aria-current={id === current ? "page" : undefined} onClick={() => onNavigate(id)}>
           {id === current && id !== "zilant" && <span className="nav-active" />}

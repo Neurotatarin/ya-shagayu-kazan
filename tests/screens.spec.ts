@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => deterministicServices(page));
 
 const screens = ["home", "map", "place/ushkova", "player/ushkova", "zilant", "dialog", "waiting", "profile", "routes"];
 const geometry: Record<string, [string, number][]> = {
-  map: [[".next-stop-card", 562]],
+  map: [],
   "place/ushkova": [[".place-sheet", 315], [".place-sheet h1", 380]],
   "player/ushkova": [[".audio-cover", 136], [".player-caption", 503]],
   zilant: [[".chat-header", 61], [".greeting-figure", 128], [".greeting-title", 364], [".chat-composer", 680]],

@@ -1,6 +1,10 @@
 // Russian copy is the stable lookup key and the original Figma wording.
 // Each entry contains English and Arabic; no runtime translation service.
 const entries: [string, string, string][] = [
+  ["Выбранное место", "Selected place", "المكان المحدد"],
+  ["Закрыть карточку места", "Close place card", "إغلاق بطاقة المكان"],
+  ["Открыть сведения о маршруте", "Open route details", "فتح تفاصيل المسار"],
+  ["Идти", "Walk", "اذهب"],
   ["Мини-плеер экскурсии", "Tour mini-player", "مشغل الجولة المصغر"],
   ["Вернуться к экскурсии: {0}", "Return to tour: {0}", "العودة إلى الجولة: {0}"],
   ["Закрыть экскурсию", "Close tour", "إغلاق الجولة"],

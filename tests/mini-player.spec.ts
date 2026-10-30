@@ -60,7 +60,7 @@ test("mini-player controls the same audio everywhere, restores photos and closes
     await expect(mini).toBeVisible();
     await expect(mini.locator(".mini-player-title")).toHaveText("Дом Ушковой");
     const box = (await mini.boundingBox())!;
-    expect(box.height).toBe(80);
+    expect(box.height).toBe(destination === "map" ? 56 : 80);
     expect(box.y).toBeGreaterThanOrEqual(0);
     expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize()!.height);
     if (!["place/kremlin", "player/kremlin"].includes(destination)) {
@@ -68,8 +68,24 @@ test("mini-player controls the same audio everywhere, restores photos and closes
       expect(box.y + box.height).toBeLessThanOrEqual(nav.y);
     }
     if (destination === "map") {
-      const card = (await page.locator(".next-stop-card").boundingBox())!;
-      expect(card.y + card.height).toBeLessThanOrEqual(box.y);
+      await expect(page.locator(".next-stop-card")).not.toBeVisible();
+      const point = await page.locator(".maplibregl-canvas").evaluate(canvas => {
+        const bounds = canvas.getBoundingClientRect();
+        for (const y of [.3, .4, .5]) for (const x of [.7, .4, .2]) {
+          const value = { x: bounds.x + bounds.width * x, y: bounds.y + bounds.height * y };
+          if (document.elementFromPoint(value.x, value.y) === canvas) return value;
+        }
+        throw new Error("No free map surface");
+      });
+      await page.mouse.click(point.x, point.y);
+      await expect(page.locator("main.map-page")).toHaveAttribute("data-map-quiet", "true");
+      await expect(mini).toBeVisible();
+      await expect.poll(async () => (await mini.boundingBox())!.y).toBeGreaterThan(box.y + 50);
+      await mini.getByRole("button", { name: "Пауза", exact: true }).click();
+      await mini.getByRole("button", { name: "Воспроизвести историю" }).click();
+      await page.screenshot({ path: `test-results/screenshots/map-free-audio-${info.project.name}.png` });
+      await page.mouse.click(point.x, point.y);
+      await expect(page.getByRole("navigation")).toBeVisible();
     }
     if (["home", "map"].includes(destination)) await page.screenshot({ path: `test-results/screenshots/mini-${destination}-${info.project.name}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);

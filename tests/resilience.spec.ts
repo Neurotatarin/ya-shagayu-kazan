@@ -27,6 +27,7 @@ test("GPS outside Kazan does not create a route from substituted coordinates", a
   await expect(page.locator("main.map-page")).toHaveAttribute("data-map-ready", "true");
   await page.getByRole("button", { name: "Моё местоположение" }).click();
   await expect(page.locator(".notice-region")).toContainText("вне Казани");
+  await page.locator('[data-place-id="kul-sharif"]').click();
   await page.getByRole("button", { name: "Идти к этому месту" }).click();
   await expect(page.locator(".notice-region")).toContainText("Путь от тебя доступен в Казани");
   expect(requests.every(request => !(request as { start?: unknown }).start)).toBe(true);

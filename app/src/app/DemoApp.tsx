@@ -37,14 +37,15 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   const [attempt, setAttempt] = useState(0);
   const [screen, setScreen] = useState<Screen>(() => readScreen(location.hash));
   const [placeId, setPlaceId] = useState<PlaceId>(() => location.hash.split("/")[2] || "ushkova");
-  const [mapSelection, setMapSelection] = useState<PlaceId>("kul-sharif");
+  const [mapSelection, setMapSelection] = useState<PlaceId>();
+  const [mapQuiet, setMapQuiet] = useState(false);
   const [progress, setProgress] = useState(loadLocalProgress);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<ZilantAnswer>();
   const [chatError, setChatError] = useState("");
   const [conversation, setConversation] = useState(() => crypto.randomUUID());
   const [turns, setTurns] = useState<{ question: string; answer: string }[]>([]);
-  const [routePlaceIds, setRoutePlaceIds] = useState<PlaceId[]>(["kul-sharif", "ushkova"]);
+  const [routePlaceIds, setRoutePlaceIds] = useState<PlaceId[]>([]);
   const [routeTitle, setRouteTitle] = useState(t("Кремль и Кремлёвская улица"));
   const [progressReady, setProgressReady] = useState(false);
   const [sheet, setSheet] = useState<Sheet>();
@@ -65,7 +66,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     window.addEventListener("hashchange", onHashChange);
     return () => { window.removeEventListener("hashchange", onHashChange); clearTimeout(noticeTimeout.current); pendingRequest.current?.abort(); };
   }, []);
-  useLayoutEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [screen]);
+  useLayoutEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); setMapQuiet(false); }, [screen]);
   useEffect(() => { if (screen !== "waiting") pendingRequest.current?.abort(); }, [screen]);
   useEffect(() => {
     let active = true;
@@ -95,7 +96,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   }
   function navigate(destination: Destination) { go(destination); }
   function openPlace(id: PlaceId) { go("place", id); }
-  function chooseRoute(route: ThemeRoute) { if (!route.placeIds?.length) return showNotice(t("Остановки этой прогулки ещё проверяются.")); setRoutePlaceIds(route.placeIds); setRouteTitle(sourceCatalog?.routes.find(item => item.id === route.id)?.title ?? route.title); setMapSelection(route.placeIds[0]!); go("map"); }
+  function chooseRoute(route: ThemeRoute) { if (!route.placeIds?.length) return showNotice(t("Остановки этой прогулки ещё проверяются.")); setRoutePlaceIds(route.placeIds); setRouteTitle(sourceCatalog?.routes.find(item => item.id === route.id)?.title ?? route.title); setMapSelection(undefined); go("map"); }
   function updateProgress(next: typeof progress) { dirtyProgress.current = true; setProgress(next); if (!saveLocalProgress(next)) showNotice(t("Браузер не разрешил сохранение. Изменения доступны до закрытия страницы.")); }
   function changeLanguage(_next: Language) {
     if (playback.placeId) updateProgress(withAudioPosition(progress, playback.placeId, playback.language, playback.position));
@@ -125,20 +126,20 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   const playingPlace = catalog?.places.find(p => p.id === playback.placeId && p.audioLanguage === playback.language);
   const showMiniPlayer = !!playingPlace && (screen !== "player" || place?.id !== playback.placeId);
 
-  return <div className={`app-shell platform-${platform} screen-${screen} ${screen === "home" ? "" : "additional-screen"} ${showMiniPlayer ? `has-mini-player ${withNavigation ? "" : "mini-player-without-navigation"}` : ""}`}>
+  return <div className={`app-shell platform-${platform} screen-${screen} ${screen === "home" ? "" : "additional-screen"} ${showMiniPlayer ? `has-mini-player ${withNavigation ? "" : "mini-player-without-navigation"}` : ""} ${screen === "map" && mapQuiet ? "map-chrome-hidden" : ""}`}>
     {content && catalog && place ? <>
       {screen === "home" && <HomePage content={content} onNavigate={navigate} />}
-      {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>{t("Загружаем карту…")}</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={t(routeTitle).replace(/\n/g, " ")} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} /></Suspense>}
+      {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>{t("Загружаем карту…")}</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={t(routeTitle).replace(/\n/g, " ")} quiet={mapQuiet} onQuietChange={setMapQuiet} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} /></Suspense>}
       {screen === "place" && <PlacePage place={place} visited={progress.visited?.includes(place.id) ?? false} onVisit={() => updateProgress({ ...progress, visited: progress.visited?.includes(place.id) ? progress.visited.filter(id => id !== place.id) : [...(progress.visited ?? []), place.id] })} favorite={progress.favorites.includes(place.id)} onFavorite={() => updateProgress({ ...progress, favorites: progress.favorites.includes(place.id) ? progress.favorites.filter(id => id !== place.id) : [...progress.favorites, place.id] })} onBack={() => { setMapSelection(place.id); go("map"); }} onListen={() => go("player", place.id)} />}
       {screen === "player" && <PlayerPage key={place.id} place={place} position={audioPosition(progress, place.id, language)} onPosition={seconds => updateProgress(withAudioPosition(progress, place.id, language, seconds))} onBack={() => go("place", place.id)} onMap={() => { setMapSelection(place.id); go("map"); }} onMore={() => setSheet("player-actions")} notice={showNotice} />}
       {screen === "routes" && <RoutesPage routes={catalog.routes} onSelect={chooseRoute} onZilant={() => go("zilant")} />}
       {screen === "profile" && <ProfilePage onOpen={setSheet} />}
-      {chat && <ZilantPage key={screen} mode={screen as "zilant" | "dialog" | "waiting"} question={question} answer={answer} routePlace={catalog.places.find(p => answer?.placeIds.includes(p.id) && hasPlacePhoto(p))} error={chatError} turns={turns} onSend={sendQuestion} onNew={() => { setQuestion(""); setAnswer(undefined); setTurns([]); setChatError(""); setConversation(crypto.randomUUID()); go("zilant"); }} onStop={() => { pendingRequest.current?.abort(); go("zilant"); showNotice(t("Ожидание ответа остановлено.")); }} onMap={() => { if (!answer?.placeIds.length) return; setRoutePlaceIds(answer.placeIds); setRouteTitle(answer.routeTitle); setMapSelection(answer.placeIds[0]!); go("map"); }} onAlternative={() => go("routes")} />}
+      {chat && <ZilantPage key={screen} mode={screen as "zilant" | "dialog" | "waiting"} question={question} answer={answer} routePlace={catalog.places.find(p => answer?.placeIds.includes(p.id) && hasPlacePhoto(p))} error={chatError} turns={turns} onSend={sendQuestion} onNew={() => { setQuestion(""); setAnswer(undefined); setTurns([]); setChatError(""); setConversation(crypto.randomUUID()); go("zilant"); }} onStop={() => { pendingRequest.current?.abort(); go("zilant"); showNotice(t("Ожидание ответа остановлено.")); }} onMap={() => { if (!answer?.placeIds.length) return; setRoutePlaceIds(answer.placeIds); setRouteTitle(answer.routeTitle); setMapSelection(undefined); go("map"); }} onAlternative={() => go("routes")} />}
     </> : <main className="content-state" aria-busy={!failed}><h1>{failed ? t("Не получилось загрузить приложение") : t("Загружаем Казань…")}</h1>{failed && <><p>{t("Попробуй ещё раз.")}</p><button type="button" onClick={() => setAttempt(value => value + 1)}>{t("Повторить")}</button></>}</main>}
     {withNavigation && <div className="navigation-gap" aria-hidden="true" />}
-    {showMiniPlayer && playingPlace && <MiniPlayer place={playingPlace} onOpen={() => go("player", playingPlace.id)} onClose={closeExcursion} notice={showNotice} />}
-    {withNavigation && <BottomNavigation current={current} onNavigate={navigate} />}
-    <LanguageControl open={languageOpen} onOpen={() => { setSheet(undefined); setLanguageOpen(true); }} onClose={() => setLanguageOpen(false)} onChange={changeLanguage} />
+    {showMiniPlayer && playingPlace && <MiniPlayer place={playingPlace} compact={screen === "map"} onOpen={() => go("player", playingPlace.id)} onClose={closeExcursion} notice={showNotice} />}
+    {withNavigation && <BottomNavigation current={current} onNavigate={navigate} concealed={screen === "map" && mapQuiet} />}
+    <LanguageControl concealed={screen === "map" && mapQuiet} open={languageOpen} onOpen={() => { setSheet(undefined); setLanguageOpen(true); }} onClose={() => setLanguageOpen(false)} onChange={changeLanguage} />
     <div className="notice-region" role="status" aria-live="polite" aria-atomic="true">{notice && <div className="notice"><span>{t(notice)}</span><button type="button" aria-label={t("Закрыть сообщение")} onClick={() => setNotice("")}>×</button></div>}</div>
     {sheet && catalog && place && <DetailSheet title={t(sheetTitles[sheet])} onClose={() => setSheet(undefined)}>
       {sheet === "favorites" ? <>{catalog.places.filter(p => progress.favorites.includes(p.id)).map(p => <button className="saved-place-row" key={p.id} type="button" onClick={() => openPlace(p.id)}>{hasPlacePhoto(p) && <PlacePhoto place={p} />}<span>{p.title}</span><OriginalAsset asset="profile.imgArrowRight" /></button>)}{!progress.favorites.length && <p>{t("Пока ничего нет. Сохрани понравившееся место с помощью закладки.")}</p>}</>

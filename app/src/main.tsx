@@ -10,6 +10,7 @@ import "./styles/home.css";
 import "./styles/screens.css";
 import "./styles/i18n.css";
 import "./styles/mini-player.css";
+import "./styles/map-context.css";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode><App /></React.StrictMode>,
