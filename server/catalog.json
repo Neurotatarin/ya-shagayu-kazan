@@ -11,9 +11,11 @@
         55.7918589
       ],
       "category": "house",
-      "durationSeconds": 260,
+      "durationSeconds": 255,
       "coordinateSource": "https://www.openstreetmap.org/way/87009792",
-      "photo": "place.imgUshkovaJpg"
+      "photo": "place.imgUshkovaJpg",
+      "audioUrl": "/media/ushkova-5e9c3ac57387.mp3",
+      "audioOriginalDurationSeconds": 255.320813
     },
     {
       "id": "kul-sharif",
@@ -41,9 +43,11 @@
         55.7990218
       ],
       "category": "history",
-      "durationSeconds": 0,
+      "durationSeconds": 246,
       "coordinateSource": "https://www.openstreetmap.org/relation/14454789",
-      "photo": "dialog.imgKremlinJpg"
+      "photo": "dialog.imgKremlinJpg",
+      "audioUrl": "/media/kremlin-06681b66c5a9.mp3",
+      "audioOriginalDurationSeconds": 245.551
     },
     {
       "id": "suyumbike",

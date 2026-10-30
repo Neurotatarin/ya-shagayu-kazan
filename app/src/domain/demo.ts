@@ -20,7 +20,7 @@ export interface WalkingRoute {
   legs: { distanceMeters: number; durationSeconds: number }[];
   placeIds: PlaceId[]; provider: string; cached: boolean;
 }
-export interface ZilantAnswer { message: string; routeTitle: string; placeIds: PlaceId[]; model: string }
+export interface ZilantAnswer { message: string; routeTitle: string; placeIds: PlaceId[]; model: string; routeDistanceMeters?: number; walkingSeconds?: number; fitsBudget?: boolean }
 export interface DemoCatalog { places: readonly Place[]; routes: readonly ThemeRoute[] }
 export interface CatalogRepository { getCatalog(signal: AbortSignal): Promise<DemoCatalog> }
 export type ShowNotice = (message: string) => void;

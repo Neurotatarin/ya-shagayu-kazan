@@ -1,10 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Destination, HomeContent, HomeRepository } from "../domain/home";
 import { readScreen, type DemoCatalog, type PlaceId, type Screen, type ThemeRoute, type ZilantAnswer } from "../domain/demo";
 import { localHomeRepository } from "../data/homeRepository";
 import { apiCatalogRepository, askZilant, getServerProgress, putServerProgress } from "../data/api";
 import { HomePage } from "../features/home/HomePage";
-import { MapPage } from "../features/map/MapPage";
 import { PlacePage } from "../features/place/PlacePage";
 import { PlayerPage } from "../features/player/PlayerPage";
 import { RoutesPage } from "../features/routes/RoutesPage";
@@ -19,6 +18,7 @@ import { useAudioPlayback } from "../platform/audioPlayback";
 
 type Sheet = ProfileSheet | "map-filters" | "player-actions";
 const sheetTitles: Record<Sheet, string> = { favorites: "Избранное", offline: "Офлайн-маршруты", settings: "Настройки", awards: "Награды", account: "Твоя Казань", "map-filters": "Фильтры карты", "player-actions": "Аудиоистория" };
+const MapPage = lazy(() => import("../features/map/MapPage").then(module => ({ default: module.MapPage })));
 
 export function App({ repository = localHomeRepository }: { repository?: HomeRepository }) {
   const [content, setContent] = useState<HomeContent>();
@@ -69,6 +69,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   }, [progress, progressReady]);
   useEffect(() => {
     if (!playback.placeId) return;
+    dirtyProgress.current = true;
     setProgress(previous => { const next = { ...previous, positions: { ...previous.positions, [playback.placeId]: playback.position } }; saveLocalProgress(next); return next; });
   }, [playback.placeId, Math.floor(playback.position / 5), playback.playing]);
 
@@ -102,7 +103,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   return <div className={`app-shell platform-${platform} screen-${screen} ${screen === "home" ? "" : "additional-screen"}`}>
     {content && catalog && place ? <>
       {screen === "home" && <HomePage content={content} onNavigate={navigate} />}
-      {screen === "map" && <MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={routeTitle} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} />}
+      {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>Загружаем карту…</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={routeTitle} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} /></Suspense>}
       {screen === "place" && <PlacePage place={place} visited={progress.visited?.includes(place.id) ?? false} onVisit={() => updateProgress({ ...progress, visited: progress.visited?.includes(place.id) ? progress.visited.filter(id => id !== place.id) : [...(progress.visited ?? []), place.id] })} favorite={progress.favorites.includes(place.id)} onFavorite={() => updateProgress({ ...progress, favorites: progress.favorites.includes(place.id) ? progress.favorites.filter(id => id !== place.id) : [...progress.favorites, place.id] })} onBack={() => { setMapSelection(place.id); go("map"); }} onListen={() => go("player", place.id)} />}
       {screen === "player" && <PlayerPage key={place.id} place={place} position={progress.positions[place.id] ?? 0} onPosition={seconds => updateProgress({ ...progress, positions: { ...progress.positions, [place.id]: seconds } })} onBack={() => go("place", place.id)} onMap={() => { setMapSelection(place.id); go("map"); }} onMore={() => setSheet("player-actions")} notice={showNotice} />}
       {screen === "routes" && <RoutesPage routes={catalog.routes} onSelect={chooseRoute} onZilant={() => go("zilant")} />}
@@ -114,7 +115,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     {sheet && catalog && place && <DetailSheet title={sheetTitles[sheet]} onClose={() => setSheet(undefined)}>
       {sheet === "favorites" ? <>{catalog.places.filter(p => progress.favorites.includes(p.id)).map(p => <button className="saved-place-row" key={p.id} type="button" onClick={() => openPlace(p.id)}>{p.photo && <OriginalAsset asset={p.photo} alt={p.title} />}<span>{p.title}</span><OriginalAsset asset="profile.imgArrowRight" /></button>)}{!progress.favorites.length && <p>Пока ничего нет. Сохрани понравившееся место с помощью закладки.</p>}</>
         : sheet === "map-filters" ? <><p>В каталоге {catalog.places.length} мест. Выбери место, чтобы открыть его карточку.</p>{catalog.places.map(p => <button key={p.id} type="button" className="sheet-option" onClick={() => openPlace(p.id)}>{p.title}</button>)}</>
-        : sheet === "player-actions" ? <><button className="sheet-option" type="button" onClick={() => openPlace(place.id)}>Открыть место</button><p>Плеер сейчас показывает данные макета. Готовая аудиозапись ещё не загружена.</p></>
+        : sheet === "player-actions" ? <><button className="sheet-option" type="button" onClick={() => openPlace(place.id)}>Открыть место</button><p>{place.audioUrl ? "Готовая аудиоистория. Позиция сохраняется, пока ты гуляешь по Казани." : "Готовая аудиозапись для этого места ещё не загружена."}</p></>
         : sheet === "awards" ? <><div className="sheet-medal"><OriginalAsset asset="profile.imgFrame" /></div><p>Ты отметил посещение {progress.visited?.length ?? 0} мест.</p>{catalog.places.filter(p => progress.visited?.includes(p.id)).map(p => <p key={p.id}>{p.title}</p>)}<p>Правила выдачи наград ещё согласуются.</p></>
         : sheet === "offline" ? <><p>Скачанных маршрутов пока нет.</p><p>Полноценная загрузка карты, текстов, фотографий и аудио ещё не подключена.</p><button className="primary-action" type="button" onClick={() => go("routes")}>Выбрать маршрут</button></>
         : sheet === "account" ? <><p>Ты знакомишься с Казанью как гость.</p><p>Избранное, посещения и позиция истории сохраняются на устройстве и сервере для этой гостевой сессии. Вход по email и объединение устройств ещё не подключены.</p></>

@@ -77,7 +77,7 @@ class ApiTests(unittest.TestCase):
         answer = {'message': 'Начни с Кремля.', 'routeTitle': 'Кремль и дом Ушковой', 'placeIds': ['kremlin', 'ushkova']}
         response = {'output': [{'content': [{'type': 'output_text', 'text': json.dumps(answer)}]}], 'usage': {'input_tokens': 100, 'output_tokens': 100}, 'model': 'gpt-5.4-mini-2026-03-17'}
         token = self.guest()
-        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-only-not-a-real-key'}), patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(response).encode())) as request:
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-only-not-a-real-key'}), patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(response).encode())) as request, patch.object(server, 'walking_route', return_value={'distanceMeters': 1300, 'durationSeconds': 1080}):
             code, result = self.request('chat', {'message': 'Прогулка на час', 'conversationId': 'test-conversation-1234'}, token)
             self.assertEqual(code, 200)
             self.assertEqual(result['placeIds'], answer['placeIds'])
@@ -87,6 +87,32 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(sent['max_output_tokens'], 900)
         with server.connect() as db:
             self.assertEqual(len(json.loads(db.execute('SELECT body FROM conversations').fetchone()[0])), 2)
+
+    def test_ai_walk_is_checked_against_street_path_and_time_budget(self):
+        self.assertEqual(server.route_constraints('У меня час, хочу 2–3 близких места.'), (3, 60))
+        self.assertEqual(server.route_constraints('На 1 час 20 минут, до 4 остановок'), (4, 80))
+        places = server.catalog()['places']
+        answer = {'message': 'Успеешь за час!', 'routeTitle': 'Прогулка', 'placeIds': ['kremlin', 'ushkova', 'temple']}
+        with patch.object(server, 'walking_route', side_effect=[{'distanceMeters': 14000, 'durationSeconds': 11000}, {'distanceMeters': 1300, 'durationSeconds': 1080}]) as router:
+            result = server.checked_ai_route(answer, 'Час на Кремль и Дом Ушковой, 2–3 места', places)
+        self.assertEqual(result['placeIds'], ['kremlin', 'ushkova'])
+        self.assertEqual(router.call_count, 2)
+        self.assertEqual(result['walkingSeconds'], 1080)
+        self.assertTrue(result['fitsBudget'])
+        self.assertNotIn('Успеешь', result['message'])
+        self.assertIn('1,3 км', result['message'])
+
+    def test_ai_does_not_promise_an_impossible_or_unchecked_walk(self):
+        answer = {'message': 'Успеешь!', 'routeTitle': 'Прогулка', 'placeIds': ['kremlin', 'ushkova']}
+        with patch.object(server, 'walking_route', return_value={'distanceMeters': 1300, 'durationSeconds': 1080}):
+            result = server.checked_ai_route(answer, 'За 10 минут Кремль и Дом Ушковой', server.catalog()['places'])
+        self.assertFalse(result['fitsBudget'])
+        self.assertEqual(result['placeIds'], answer['placeIds'])
+        self.assertIn('не помещается', result['message'])
+        with patch.object(server, 'walking_route', side_effect=server.ApiError(503, 'offline')):
+            result = server.checked_ai_route(answer, 'Прогулка на час', server.catalog()['places'])
+        self.assertNotIn('walkingSeconds', result)
+        self.assertIn('не подтверждены', result['message'])
 
 
 if __name__ == '__main__':

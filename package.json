@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "check": "tsc --noEmit",
-    "build": "pnpm check && vite build",
+    "build": "pnpm check && vite build && node scripts/precompress.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test:e2e": "playwright test",
     "ios:sync": "pnpm build && cap sync ios",

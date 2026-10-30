@@ -88,6 +88,20 @@ try:
         text = text.replace(marker, api_location + marker, 1)
     text = text.replace("img-src 'self' data:;", "img-src 'self' data: blob: https://tiles.openfreemap.org;")
     text = text.replace("connect-src 'self';", "connect-src 'self' https://tiles.openfreemap.org; worker-src 'self';")
+    if '# KAZAN STATIC PERFORMANCE' not in text:
+        # Compressed files are produced locally. Only content-hashed Vite assets
+        # get immutable caching; original Figma filenames remain revalidated.
+        security = '\n'.join(line for line in text.splitlines() if line.strip().startswith('add_header ') and 'Cache-Control' not in line)
+        performance = '''    # KAZAN STATIC PERFORMANCE
+    gzip_static on;
+    gzip_vary on;
+    location ~* ^/assets/.+-[A-Za-z0-9_-]{8}\\.(js|css|woff2?)$ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+''' + security + '\n    }\n'
+        marker = '    location /assets/'
+        assert marker in text
+        text = text.replace(marker, performance + marker, 1)
     config.write_text(text)
     subprocess.run(['/usr/sbin/nginx', '-t'], check=True)
     subprocess.run(['systemctl', 'reload', 'nginx'], check=True)
