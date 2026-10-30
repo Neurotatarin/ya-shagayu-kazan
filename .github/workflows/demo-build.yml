@@ -1,7 +1,7 @@
 name: Figma pages web and physical iPhone
 on:
   push:
-    branches: [demo/figma-restart]
+    branches: [demo/figma-restart, demo/global-mini-player]
   workflow_dispatch:
 permissions:
   contents: read

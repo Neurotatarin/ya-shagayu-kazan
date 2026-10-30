@@ -9,6 +9,7 @@ import { apiCatalogRepository, askZilant, getServerProgress, putServerProgress }
 import { HomePage } from "../features/home/HomePage";
 import { PlacePage } from "../features/place/PlacePage";
 import { PlayerPage } from "../features/player/PlayerPage";
+import { MiniPlayer } from "../features/player/MiniPlayer";
 import { RoutesPage } from "../features/routes/RoutesPage";
 import { ProfilePage, type ProfileSheet } from "../features/profile/ProfilePage";
 import { ZilantPage } from "../features/zilant/ZilantPage";
@@ -18,7 +19,7 @@ import { PlacePhoto, hasPlacePhoto } from "../components/PlacePhoto";
 import { OriginalAsset } from "../components/OriginalAsset";
 import { platform } from "../platform/runtime";
 import { acknowledgeProgress, audioPosition, withAudioPosition, hasPendingProgress, loadLocalProgress, saveLocalProgress } from "../platform/localProgress";
-import { clearAudioForLanguageChange, useAudioPlayback } from "../platform/audioPlayback";
+import { clearAudioForLanguageChange, closeAudio, useAudioPlayback } from "../platform/audioPlayback";
 import { backgroundMusic } from "../data/backgroundMusic";
 
 type Sheet = ProfileSheet | "map-filters" | "player-actions";
@@ -101,6 +102,13 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     void clearAudioForLanguageChange();
     if (screen === "waiting") { pendingRequest.current?.abort(); setChatError("Язык изменён. Отправь вопрос ещё раз."); go("dialog"); }
   }
+  function closeExcursion() {
+    if (playback.placeId) {
+      dirtyProgress.current = true;
+      setProgress(previous => { const next = withAudioPosition(previous, playback.placeId, playback.language, playback.position); saveLocalProgress(next); return next; });
+    }
+    void closeAudio().catch(() => showNotice(t("Не удалось закрыть экскурсию. Попробуй ещё раз.")));
+  }
   async function sendQuestion(text: string) {
     pendingRequest.current?.abort();
     if (answer) setTurns(previous => [...previous, { question, answer: answer.message }].slice(-7));
@@ -114,8 +122,10 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   const chat = screen === "zilant" || screen === "dialog" || screen === "waiting";
   const current: Destination = chat ? "zilant" : screen === "map" || screen === "routes" || screen === "profile" ? screen : "home";
   const withNavigation = screen !== "place" && screen !== "player";
+  const playingPlace = catalog?.places.find(p => p.id === playback.placeId && p.audioLanguage === playback.language);
+  const showMiniPlayer = !!playingPlace && (screen !== "player" || place?.id !== playback.placeId);
 
-  return <div className={`app-shell platform-${platform} screen-${screen} ${screen === "home" ? "" : "additional-screen"}`}>
+  return <div className={`app-shell platform-${platform} screen-${screen} ${screen === "home" ? "" : "additional-screen"} ${showMiniPlayer ? `has-mini-player ${withNavigation ? "" : "mini-player-without-navigation"}` : ""}`}>
     {content && catalog && place ? <>
       {screen === "home" && <HomePage content={content} onNavigate={navigate} />}
       {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>{t("Загружаем карту…")}</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={t(routeTitle).replace(/\n/g, " ")} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} /></Suspense>}
@@ -125,7 +135,9 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
       {screen === "profile" && <ProfilePage onOpen={setSheet} />}
       {chat && <ZilantPage key={screen} mode={screen as "zilant" | "dialog" | "waiting"} question={question} answer={answer} routePlace={catalog.places.find(p => answer?.placeIds.includes(p.id) && hasPlacePhoto(p))} error={chatError} turns={turns} onSend={sendQuestion} onNew={() => { setQuestion(""); setAnswer(undefined); setTurns([]); setChatError(""); setConversation(crypto.randomUUID()); go("zilant"); }} onStop={() => { pendingRequest.current?.abort(); go("zilant"); showNotice(t("Ожидание ответа остановлено.")); }} onMap={() => { if (!answer?.placeIds.length) return; setRoutePlaceIds(answer.placeIds); setRouteTitle(answer.routeTitle); setMapSelection(answer.placeIds[0]!); go("map"); }} onAlternative={() => go("routes")} />}
     </> : <main className="content-state" aria-busy={!failed}><h1>{failed ? t("Не получилось загрузить приложение") : t("Загружаем Казань…")}</h1>{failed && <><p>{t("Попробуй ещё раз.")}</p><button type="button" onClick={() => setAttempt(value => value + 1)}>{t("Повторить")}</button></>}</main>}
-    {withNavigation && <><div className="navigation-gap" aria-hidden="true" /><BottomNavigation current={current} onNavigate={navigate} /></>}
+    {withNavigation && <div className="navigation-gap" aria-hidden="true" />}
+    {showMiniPlayer && playingPlace && <MiniPlayer place={playingPlace} onOpen={() => go("player", playingPlace.id)} onClose={closeExcursion} notice={showNotice} />}
+    {withNavigation && <BottomNavigation current={current} onNavigate={navigate} />}
     <LanguageControl open={languageOpen} onOpen={() => { setSheet(undefined); setLanguageOpen(true); }} onClose={() => setLanguageOpen(false)} onChange={changeLanguage} />
     <div className="notice-region" role="status" aria-live="polite" aria-atomic="true">{notice && <div className="notice"><span>{t(notice)}</span><button type="button" aria-label={t("Закрыть сообщение")} onClick={() => setNotice("")}>×</button></div>}</div>
     {sheet && catalog && place && <DetailSheet title={t(sheetTitles[sheet])} onClose={() => setSheet(undefined)}>

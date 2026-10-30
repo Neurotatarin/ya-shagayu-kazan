@@ -139,7 +139,7 @@ export async function toggleAudio(place: Place, position: number, speed = 1): Pr
   }
   return true;
 }
-export async function clearAudioForLanguageChange() {
+export async function closeAudio() {
   trackVersion++;
   if (native) {
     await nativeReady;
@@ -155,6 +155,7 @@ export async function clearAudioForLanguageChange() {
     update({ placeId: "", language: getLanguage(), position: 0, duration: 0, playing: false, loading: false, error: "", backgroundPlaying: false, backgroundError: "" });
   }
 }
+export const clearAudioForLanguageChange = closeAudio;
 export async function setBackgroundEnabled(enabled: boolean) {
   update({ backgroundError: "" });
   if (native) {

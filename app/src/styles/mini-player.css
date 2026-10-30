@@ -1,0 +1,30 @@
+/* Figma 2017:6979: the same 80px panel on every screen. */
+.app-shell { --mini-space-8: 8px; --mini-space-12: 12px; --mini-radius-24: 24px; --mini-radius-12: 12px; }
+.mini-player { position: sticky; bottom: calc(104px + var(--safe-bottom)); z-index: 6; flex: none; height: 80px; margin: 0 18px 12px; border-radius: var(--mini-radius-24); background: var(--pale); box-shadow: 0 5px 22px rgb(23 57 46 / 9%); direction: ltr; }
+.mini-player-row { display: flex; align-items: center; height: 64px; padding-inline: var(--mini-space-8); }
+.mini-player-open { display: flex; align-items: center; gap: var(--mini-space-12); flex: 1; min-width: 0; height: 64px; padding: 0; border: 0; background: transparent; color: var(--ink); text-align: start; }
+.mini-player-photo { flex: none; width: 44px; height: 44px; object-fit: cover; border-radius: var(--mini-radius-12); }
+.mini-player-copy { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+.mini-player-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; font: 500 14px/20px var(--font-body); }
+.mini-player-status { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 12px/16px var(--font-body); color: var(--muted); }
+.mini-player-toggle, .mini-player-close { display: grid; place-items: center; flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 22px; }
+.mini-player-toggle { background: var(--green); }
+.mini-player-close { background: transparent; color: var(--green); font: 400 28px/34px "Onest", sans-serif; }
+.mini-player-progress { position: absolute; left: 12px; right: 12px; top: 68px; height: 4px; border-radius: 2px; overflow: hidden; background: #e1ebe4; }
+.mini-player-progress > span { display: block; height: 100%; background: var(--green); border-radius: inherit; }
+.has-mini-player .navigation-gap { margin-top: auto; }
+.has-mini-player .bottom-navigation { margin-top: 0; }
+.has-mini-player .notice-region { bottom: calc(200px + var(--safe-bottom)); }
+.mini-player-without-navigation .mini-player { bottom: calc(12px + var(--safe-bottom)); margin-bottom: calc(12px + var(--safe-bottom)); }
+.mini-player-without-navigation .notice-region { bottom: calc(108px + var(--safe-bottom)); }
+.screen-map.has-mini-player .mini-player { position: absolute; left: 18px; right: 18px; margin: 0; }
+.screen-map.has-mini-player .next-stop-card { bottom: calc(202px + var(--safe-bottom)); }
+.screen-map.has-mini-player .walking-summary { bottom: calc(408px + var(--safe-bottom)); }
+.screen-map.has-mini-player .locate-map { bottom: calc(437px + var(--safe-bottom)); }
+.screen-map.has-mini-player .map-attribution { bottom: calc(386px + var(--safe-bottom)); }
+:root[dir="rtl"] .mini-player-copy { direction: rtl; }
+@media (max-height: 650px) {
+  .screen-map.has-mini-player .walking-summary { bottom: calc(387px + var(--safe-bottom)); max-height: 42px; padding-block: 5px; overflow-y: auto; }
+  .screen-map.has-mini-player .locate-map { bottom: calc(386px + var(--safe-bottom)); }
+  .screen-map.has-mini-player .map-attribution { bottom: calc(386px + var(--safe-bottom)); transform: translateY(100%); }
+}

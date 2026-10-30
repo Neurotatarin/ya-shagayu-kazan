@@ -1,6 +1,14 @@
 // Russian copy is the stable lookup key and the original Figma wording.
 // Each entry contains English and Arabic; no runtime translation service.
 const entries: [string, string, string][] = [
+  ["Мини-плеер экскурсии", "Tour mini-player", "مشغل الجولة المصغر"],
+  ["Вернуться к экскурсии: {0}", "Return to tour: {0}", "العودة إلى الجولة: {0}"],
+  ["Закрыть экскурсию", "Close tour", "إغلاق الجولة"],
+  ["Прогресс экскурсии", "Tour progress", "تقدم الجولة"],
+  ["Сейчас звучит", "Now playing", "قيد التشغيل"],
+  ["На паузе", "Paused", "متوقف مؤقتاً"],
+  ["Повторить загрузку", "Retry loading", "إعادة التحميل"],
+  ["Не удалось закрыть экскурсию. Попробуй ещё раз.", "Could not close the tour. Please try again.", "تعذر إغلاق الجولة. حاول مرة أخرى."],
   ["Главная", "Home", "الرئيسية"],
   ["Карта", "Map", "الخريطة"],
   ["Зилант", "Zilant", "زيلانت"],

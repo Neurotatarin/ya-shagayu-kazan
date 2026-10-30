@@ -9,9 +9,16 @@ import { photoCaption, photoDate } from "../../i18n/catalog";
 import { getLanguage } from "../../i18n";
 
 const albums = new Map<string, PlaceImage[]>();
+const selectedPhotos = new Map<string, number>();
+function rememberedPhoto(key: string) {
+  try { return selectedPhotos.get(key) ?? Math.max(0, Number(sessionStorage.getItem(key)) || 0); }
+  catch { return selectedPhotos.get(key) ?? 0; }
+}
 export function PhotoGallery({ place, children }: { place: Place; children: ReactNode }) {
-  const [items, setItems] = useState<PlaceImage[]>(place.image ? [place.image] : []);
-  const [index, setIndex] = useState(0), [expanded, setExpanded] = useState(false);
+  const photoKey = `kazan:gallery:${place.id}:${place.galleryUrl ?? "cover"}`;
+  const [items, setItems] = useState<PlaceImage[]>(albums.get(mediaUrl(place.galleryUrl ?? "")) ?? (place.image ? [place.image] : []));
+  const [selectedIndex, setIndex] = useState(() => rememberedPhoto(photoKey)), [expanded, setExpanded] = useState(false);
+  const index = Math.min(selectedIndex, items.length);
   const [failed, setFailed] = useState(false), [attempt, setAttempt] = useState(0), [imageFailed, setImageFailed] = useState(false);
   const down = useRef<{ x: number; y: number } | undefined>(undefined), swiped = useRef(false);
   const current = items[index - 1], total = items.length + 1;
@@ -33,7 +40,13 @@ export function PhotoGallery({ place, children }: { place: Place; children: Reac
     const next = items[index];
     if (next) { const image = new Image(); image.src = mediaUrl(next.url); }
   }, [items, index]);
-  function move(step: number) { setImageFailed(false); setIndex(value => Math.max(0, Math.min(items.length, value + step))); }
+  function move(step: number) {
+    setImageFailed(false);
+    const next = Math.max(0, Math.min(items.length, index + step));
+    selectedPhotos.set(photoKey, next);
+    try { sessionStorage.setItem(photoKey, String(next)); } catch { /* Memory keeps the frame when storage is unavailable. */ }
+    setIndex(next);
+  }
   function start(event: PointerEvent) {
     swiped.current = false; down.current = undefined;
     if ((event.target as HTMLElement).closest("[data-gallery-control]")) return;
