@@ -37,7 +37,8 @@ test("background is opt-in, quiet, independent of voice speed and follows narrat
     const observed = window as typeof window & { media: HTMLMediaElement[]; gains: GainNode[] };
     return { tracks: observed.media.map(a => ({ music: a.src.includes("/background-"), time: a.currentTime, paused: a.paused, speed: a.playbackRate })), gains: observed.gains.map(g => g.gain.value) };
   });
-  await expect.poll(async () => (await status()).tracks.filter(t => !t.paused && t.time > 1).length, { timeout: 25000 }).toBe(2);
+  try { await expect.poll(async () => (await status()).tracks.filter(t => !t.paused && t.time > 1).length, { timeout: 25000 }).toBe(2); }
+  catch (error) { throw new Error(`${String(error)}\nMedia state: ${JSON.stringify(await status())}\n${await page.locator('.notice-region').innerText()}`); }
   expect((await status()).gains[0]).toBeCloseTo(.08);
   await page.getByRole("button", { name: "Скорость воспроизведения 1", exact: true }).click();
   expect((await status()).tracks.find(t => t.music)!.speed).toBe(1);

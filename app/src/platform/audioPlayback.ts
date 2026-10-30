@@ -17,13 +17,15 @@ const nativePlayer = registerPlugin<NativeAudio>("KazanAudio");
 const audio = native ? undefined : new Audio();
 if (audio) audio.preload = "metadata";
 let state: AudioState = { placeId: "", position: 0, duration: 0, playing: false, loading: false, speed: 1, error: "", backgroundEnabled: false, backgroundPlaying: false, backgroundError: "" };
-let music: HTMLAudioElement | undefined, musicContext: AudioContext | undefined;
+let music: HTMLAudioElement | undefined, musicContext: AudioContext | undefined, musicGain: GainNode | undefined;
+let musicPriming = false, musicAttempt = 0;
 let restorePosition: number | undefined;
 const listeners = new Set<() => void>();
 const update = (change: Partial<AudioState>) => { state = { ...state, ...change }; for (const listener of listeners) listener(); };
 const failure = () => update({ error: "Не удалось загрузить аудио. Проверь подключение и попробуй ещё раз.", loading: false, playing: false });
 const backgroundFailure = () => {
-  music?.pause();
+  musicPriming = false; musicAttempt++; music?.pause();
+  if (musicGain) musicGain.gain.value = 0;
   update({ backgroundEnabled: false, backgroundPlaying: false, backgroundError: "Музыкальный фон недоступен. Рассказ продолжается; фон можно включить ещё раз." });
 };
 function prepareBackground() {
@@ -31,12 +33,12 @@ function prepareBackground() {
   const context = new AudioContext();
   const track = new Audio(); track.preload = "none"; track.loop = true;
   track.setAttribute("data-kazan-background", "true");
-  const gain = context.createGain(); gain.gain.value = backgroundMusic.volume;
+  const gain = context.createGain(); gain.gain.value = 0;
   context.createMediaElementSource(track).connect(gain); gain.connect(context.destination);
   // Stream the long recording: decoding the entire MP3 into an AudioBuffer
   // would use hundreds of MB on a phone. Only music passes through Web Audio;
   // narration keeps its existing browser/lock-screen playback path.
-  music = track; musicContext = context;
+  music = track; musicContext = context; musicGain = gain;
   track.src = mediaUrl(backgroundMusic.url);
   track.addEventListener("playing", () => update({ backgroundPlaying: true }));
   track.addEventListener("pause", () => update({ backgroundPlaying: false }));
@@ -44,8 +46,22 @@ function prepareBackground() {
 }
 function syncBackground(audible = !!audio && !audio.paused && !audio.ended && audio.readyState >= 3 && !state.loading) {
   if (!music) return;
-  if (!state.backgroundEnabled || !audible) music.pause();
-  else if (music.paused) void music.play().catch(backgroundFailure);
+  if (musicGain) musicGain.gain.value = state.backgroundEnabled && audible ? backgroundMusic.volume : 0;
+  if (!state.backgroundEnabled || !audible) { if (!musicPriming || !state.backgroundEnabled) music.pause(); }
+  else if (music.paused) void music.play().catch(error => { if (error.name !== "AbortError") backgroundFailure(); });
+}
+function primeBackgroundFromGesture() {
+  if (!music || !state.backgroundEnabled) return;
+  const attempt = ++musicAttempt; musicPriming = true;
+  void musicContext?.resume().catch(backgroundFailure);
+  // Safari unlocks each media element separately. Start the streaming element
+  // in the actual tap, muted until narration is audible, then pause if needed.
+  // Waiting for the narration's asynchronous 'playing' event loses that gesture.
+  void music.play().then(() => {
+    if (attempt === musicAttempt) { musicPriming = false; syncBackground(); }
+  }).catch(error => {
+    if (attempt === musicAttempt) { musicPriming = false; if (error.name !== "AbortError") backgroundFailure(); }
+  });
 }
 
 function browserState() {
@@ -79,7 +95,7 @@ function prepareBrowser(place: Place, position: number, speed: number) {
     audio.src = mediaUrl(place.audioUrl); audio.playbackRate = speed;
     if ("mediaSession" in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({ title: place.title, artist: "Зилант", album: "Я шагаю по Казани" });
-      for (const [name, handler] of Object.entries({ play: () => { void musicContext?.resume().catch(backgroundFailure); void audio.play().catch(failure); }, pause: () => audio.pause(), seekbackward: () => seekAudio(audio.currentTime - 15), seekforward: () => seekAudio(audio.currentTime + 15) })) {
+      for (const [name, handler] of Object.entries({ play: () => { primeBackgroundFromGesture(); void audio.play().catch(failure); }, pause: () => audio.pause(), seekbackward: () => seekAudio(audio.currentTime - 15), seekforward: () => seekAudio(audio.currentTime + 15) })) {
         try { navigator.mediaSession.setActionHandler(name as MediaSessionAction, handler); } catch { /* Optional action. */ }
       }
       try { navigator.mediaSession.setActionHandler("seekto", detail => seekAudio(detail.seekTime ?? audio.currentTime)); } catch { /* Optional action. */ }
@@ -99,7 +115,7 @@ export async function toggleAudio(place: Place, position: number, speed = 1): Pr
     prepareBrowser(place, position, speed);
     audio.preload = "auto";
     audio.playbackRate = speed;
-    if (audio.paused) { update({ loading: true, error: "" }); void musicContext?.resume().catch(backgroundFailure); await audio.play(); } else audio.pause();
+    if (audio.paused) { update({ loading: true, error: "" }); primeBackgroundFromGesture(); await audio.play(); } else audio.pause();
   }
   return true;
 }
@@ -114,10 +130,10 @@ export async function setBackgroundEnabled(enabled: boolean) {
       if (enabled) {
         prepareBackground();
         if (music?.error) music.load();
-        // Resume directly in the button gesture; Safari requires this.
-        void musicContext?.resume().catch(backgroundFailure);
       }
-      update({ backgroundEnabled: enabled }); syncBackground();
+      update({ backgroundEnabled: enabled });
+      if (enabled) primeBackgroundFromGesture();
+      syncBackground();
     } catch { backgroundFailure(); }
   }
 }
