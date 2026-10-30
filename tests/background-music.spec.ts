@@ -35,7 +35,7 @@ test("background is opt-in, quiet, independent of voice speed and follows narrat
   await page.getByRole("button", { name: "Воспроизвести историю" }).click();
   const status = () => page.evaluate(() => {
     const observed = window as typeof window & { media: HTMLMediaElement[]; gains: GainNode[] };
-    return { tracks: observed.media.map(a => ({ music: a.src.includes("/background-"), time: a.currentTime, paused: a.paused, speed: a.playbackRate })), gains: observed.gains.map(g => g.gain.value) };
+    return { tracks: observed.media.map(a => ({ music: a.src.includes("/background-"), time: a.currentTime, paused: a.paused, speed: a.playbackRate, ready: a.readyState, seeking: a.seeking, error: a.error?.code })), gains: observed.gains.map(g => g.gain.value), caption: document.querySelector('.player-caption')?.textContent, enabled: document.querySelector('.background-toggle')?.getAttribute('aria-pressed') };
   });
   try { await expect.poll(async () => (await status()).tracks.filter(t => !t.paused && t.time > 1).length, { timeout: 25000 }).toBe(2); }
   catch (error) { throw new Error(`${String(error)}\nMedia state: ${JSON.stringify(await status())}\n${await page.locator('.notice-region').innerText()}`); }

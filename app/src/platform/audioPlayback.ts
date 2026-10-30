@@ -19,6 +19,7 @@ if (audio) audio.preload = "metadata";
 let state: AudioState = { placeId: "", position: 0, duration: 0, playing: false, loading: false, speed: 1, error: "", backgroundEnabled: false, backgroundPlaying: false, backgroundError: "" };
 let music: HTMLAudioElement | undefined, musicContext: AudioContext | undefined, musicGain: GainNode | undefined;
 let musicPriming = false, musicAttempt = 0;
+let browserAudible = false, lastBrowserTime = 0;
 let restorePosition: number | undefined;
 const listeners = new Set<() => void>();
 const update = (change: Partial<AudioState>) => { state = { ...state, ...change }; for (const listener of listeners) listener(); };
@@ -44,10 +45,13 @@ function prepareBackground() {
   track.addEventListener("pause", () => update({ backgroundPlaying: false }));
   track.addEventListener("error", backgroundFailure);
 }
-function syncBackground(audible = !!audio && !audio.paused && !audio.ended && audio.readyState >= 3 && !state.loading) {
+function syncBackground(audible = browserAudible && !!audio && !audio.paused && !audio.ended && !audio.seeking) {
   if (!music) return;
   if (musicGain) musicGain.gain.value = state.backgroundEnabled && audible ? backgroundMusic.volume : 0;
-  if (!state.backgroundEnabled || !audible) { if (!musicPriming || !state.backgroundEnabled) music.pause(); }
+  // During buffering/seek keep the already-unlocked stream silent. Pausing it
+  // here would require a second Safari gesture when narration becomes ready.
+  const paused = !state.backgroundEnabled || !audio || audio.paused || audio.ended;
+  if (paused) { if (!musicPriming || !state.backgroundEnabled) music.pause(); }
   else if (music.paused) void music.play().catch(error => { if (error.name !== "AbortError") backgroundFailure(); });
 }
 function primeBackgroundFromGesture() {
@@ -75,13 +79,21 @@ function browserState() {
 }
 if (audio) {
   for (const event of ["timeupdate", "play", "pause", "ratechange", "ended"]) audio.addEventListener(event, browserState);
+  audio.addEventListener("timeupdate", () => {
+    // WebKit may report a stalled network connection while buffered narration
+    // keeps playing. Advancing playback is stronger evidence than that event.
+    if (!audio.paused && !audio.seeking && audio.currentTime > lastBrowserTime + .01) { browserAudible = true; update({ loading: false }); syncBackground(); }
+    lastBrowserTime = audio.currentTime;
+  });
   audio.addEventListener("loadedmetadata", () => {
     if (restorePosition !== undefined) { audio.currentTime = Math.min(restorePosition, audio.duration || restorePosition); restorePosition = undefined; }
     browserState();
   });
-  for (const event of ["waiting", "stalled", "seeking"]) audio.addEventListener(event, () => { update({ loading: !audio.paused }); syncBackground(false); });
-  for (const event of ["playing", "canplay", "pause", "ended", "seeked"]) audio.addEventListener(event, () => { update({ loading: false }); syncBackground(); });
-  audio.addEventListener("error", () => { failure(); syncBackground(false); });
+  for (const event of ["waiting", "seeking"]) audio.addEventListener(event, () => { browserAudible = false; update({ loading: !audio.paused }); syncBackground(false); });
+  audio.addEventListener("stalled", () => { if (audio.readyState < 2) { browserAudible = false; update({ loading: !audio.paused }); syncBackground(false); } });
+  audio.addEventListener("playing", () => { browserAudible = true; update({ loading: false }); syncBackground(); });
+  for (const event of ["pause", "ended"]) audio.addEventListener(event, () => { browserAudible = false; update({ loading: false }); syncBackground(false); });
+  audio.addEventListener("error", () => { browserAudible = false; failure(); syncBackground(false); });
 }
 
 const nativeReady = native ? nativePlayer.addListener("stateChange", snapshot => update(snapshot)).then(async () => update(await nativePlayer.getState())).catch(failure) : Promise.resolve();
@@ -90,7 +102,7 @@ document.addEventListener("visibilitychange", () => { if (native && document.vis
 function prepareBrowser(place: Place, position: number, speed: number) {
   if (!audio || !place.audioUrl) return;
   if (state.placeId !== place.id || audio.error) {
-    audio.pause(); restorePosition = Math.min(position, place.durationSeconds);
+    audio.pause(); browserAudible = false; lastBrowserTime = 0; restorePosition = Math.min(position, place.durationSeconds);
     update({ placeId: place.id, position: restorePosition, duration: place.durationSeconds, playing: false, loading: false, speed, error: "" });
     audio.src = mediaUrl(place.audioUrl); audio.playbackRate = speed;
     if ("mediaSession" in navigator) {
