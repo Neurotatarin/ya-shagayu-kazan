@@ -95,7 +95,7 @@ try:
         performance = '''    # KAZAN STATIC PERFORMANCE
     gzip_static on;
     gzip_vary on;
-    location ~* ^/assets/.+-[A-Za-z0-9_-]{8}\\.(js|css|woff2?)$ {
+    location ~* "^/assets/.+-[A-Za-z0-9_-]{8}\\.(js|css|woff2?)$" {
         try_files $uri =404;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
 ''' + security + '\n    }\n'
