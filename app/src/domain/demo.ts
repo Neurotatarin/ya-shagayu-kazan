@@ -2,10 +2,16 @@ import type { AssetKey } from "../data/figmaAssets";
 
 export type Screen = "home" | "map" | "place" | "player" | "zilant" | "dialog" | "waiting" | "routes" | "profile";
 export type PlaceId = string;
+export interface PlaceImage {
+  url: string; width: number; height: number; caption: string; date?: string;
+  author: string; sourceUrl: string; license: string; licenseUrl: string;
+  position?: string;
+}
 export interface Place {
   id: PlaceId; title: string; eyebrow: string; address?: string; description: string;
   photo?: AssetKey; durationSeconds: number; coordinates?: [number, number];
   category?: string; audioUrl?: string; coordinateSource?: string;
+  image?: PlaceImage; galleryUrl?: string;
 }
 export interface ThemeRoute {
   id: string; title: string; description: string; meta: string;

@@ -2,11 +2,12 @@ import { useState } from "react";
 import { OriginalAsset, ZilantAvatar } from "../../components/OriginalAsset";
 import { LayeredArt } from "../../components/LayeredArt";
 import { countPlaces, type ZilantAnswer } from "../../domain/demo";
-import type { AssetKey } from "../../data/figmaAssets";
+import type { Place } from "../../domain/demo";
+import { PlacePhoto } from "../../components/PlacePhoto";
 
 export type ChatMode = "zilant" | "dialog" | "waiting";
 
-export function ZilantPage({ mode, question, answer, routePhoto, error, turns, onSend, onNew, onStop, onMap, onAlternative }: { mode: ChatMode; question: string; answer?: ZilantAnswer; routePhoto?: AssetKey; error: string; turns: { question: string; answer: string }[]; onSend: (text: string) => void; onNew: () => void; onStop: () => void; onMap: () => void; onAlternative: () => void }) {
+export function ZilantPage({ mode, question, answer, routePlace, error, turns, onSend, onNew, onStop, onMap, onAlternative }: { mode: ChatMode; question: string; answer?: ZilantAnswer; routePlace?: Place; error: string; turns: { question: string; answer: string }[]; onSend: (text: string) => void; onNew: () => void; onStop: () => void; onMap: () => void; onAlternative: () => void }) {
   const [draft, setDraft] = useState("");
   const waiting = mode === "waiting";
   const send = () => { const value = draft.trim(); if (value) { onSend(value); setDraft(""); } };
@@ -31,7 +32,7 @@ export function ZilantPage({ mode, question, answer, routePhoto, error, turns, o
       {question && <div className="question-bubble">{question}</div>}
       <div className="answer-row"><ZilantAvatar small /><div className="answer-bubble"><p>{answer?.message || error || "Спроси меня о Казани — помогу выбрать места и прогулку."}</p>{error && <button type="button" onClick={() => onSend(question)}>Повторить запрос</button>}</div></div>
       {answer && answer.placeIds.length >= 2 && <>
-        <section className="chat-route-card" aria-label={answer.routeTitle}>{routePhoto ? <OriginalAsset asset={routePhoto} alt="Место на прогулке" /> : <span className="route-photo-pending">Фото мест<br />скоро</span>}<div><h2>{answer.routeTitle}</h2><p>{countPlaces(answer.placeIds.length)}{answer.walkingSeconds !== undefined ? ` · ${Math.ceil(answer.walkingSeconds / 60)} мин пешком` : " · пешком"}</p><button className="primary-action" type="button" onClick={onMap}><OriginalAsset asset="dialog.imgArrowUpRight" /><span>Посмотреть</span></button></div></section>
+        <section className="chat-route-card" aria-label={answer.routeTitle}>{routePlace ? <PlacePhoto place={routePlace} alt="Место на прогулке" /> : <span className="route-photo-pending">Фото мест<br />скоро</span>}<div><h2>{answer.routeTitle}</h2><p>{countPlaces(answer.placeIds.length)}{answer.walkingSeconds !== undefined ? ` · ${Math.ceil(answer.walkingSeconds / 60)} мин пешком` : " · пешком"}</p><button className="primary-action" type="button" onClick={onMap}><OriginalAsset asset="dialog.imgArrowUpRight" /><span>Посмотреть</span></button></div></section>
         <div className="chat-route-actions"><button type="button" onClick={onMap}><OriginalAsset asset="dialog.imgMapTrifold1" /><span>На карте</span></button><button type="button" onClick={onAlternative}>Другой вариант</button></div>
       </>}
     </div>}

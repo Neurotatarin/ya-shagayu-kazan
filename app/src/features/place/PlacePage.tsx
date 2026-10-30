@@ -1,9 +1,11 @@
 import { OriginalAsset } from "../../components/OriginalAsset";
 import type { Place } from "../../domain/demo";
+import { hasPlacePhoto, PhotoCredit, PlacePhoto } from "../../components/PlacePhoto";
 
 export function PlacePage({ place, favorite, visited, onVisit, onFavorite, onBack, onListen }: { place: Place; favorite: boolean; visited: boolean; onVisit: () => void; onFavorite: () => void; onBack: () => void; onListen: () => void }) {
   return <main className="place-page" data-figma-node="6:1101">
-    <div className="place-hero">{place.photo ? <OriginalAsset asset={place.photo} alt={place.title} /> : <div className="photo-pending">Фотография места скоро появится</div>}<div className="native-status-background" />
+    <div className="place-hero">{hasPlacePhoto(place) ? <PlacePhoto place={place} /> : <div className="photo-pending">Фотография места скоро появится</div>}<div className="native-status-background" />
+      {place.image && <PhotoCredit image={place.image} className="place-photo-credit" />}
       <div className="place-top-actions">
         <button className="round-action white-action" type="button" aria-label="Назад к карте" onClick={onBack}><OriginalAsset asset="place.imgArrowLeft" /></button>
         <button className="round-action white-action" type="button" aria-label={favorite ? "Убрать из избранного" : "Добавить в избранное"} aria-pressed={favorite} onClick={onFavorite}><span className={favorite ? "" : "unselected-bookmark"}><OriginalAsset asset="place.imgBookmarkSimple" /></span></button>

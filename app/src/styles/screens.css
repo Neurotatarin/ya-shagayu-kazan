@@ -50,6 +50,23 @@
 .cover-zilant-window { position: absolute; left: 0; top: 38.023952%; width: 85.79235%; height: 61.976048%; overflow: hidden; }
 .cover-zilant-window img { position: absolute; top: 0; left: -4.458599%; width: 101.273885%; height: 149.758454%; object-fit: contain; }
 .cover-chapter { position: absolute; right: 19px; top: 18px; display: grid; place-items: center; width: 54px; height: 30px; border-radius: 15px; background: var(--white); color: var(--green); font: 600 10px/13px var(--font-body); }
+.photo-credit { color: var(--muted); font: 400 10px/14px var(--font-body); overflow-wrap: anywhere; }
+.photo-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.place-photo-credit { position: absolute; z-index: 1; left: 18px; bottom: 48px; max-width: calc(100% - 36px); padding: 4px 8px; border-radius: 12px; background: rgb(255 255 255 / 94%); }
+.photo-gallery { touch-action: pan-y; }
+.gallery-photo-open { position: absolute; inset: 0; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: var(--pale); }
+.gallery-photo-open > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.gallery-photo-caption { position: absolute; left: 62px; right: 62px; bottom: 12px; padding: 6px 8px; border-radius: 14px; background: rgb(255 255 255 / 95%); color: var(--ink); font: 600 11px/16px var(--font-body); text-align: center; }
+.gallery-credit { position: absolute; z-index: 2; bottom: 67px; left: 18px; max-width: calc(100% - 36px); border-radius: 10px; background: rgb(255 255 255 / 95%); padding: 3px 6px; font-size: 9px; line-height: 12px; }
+.gallery-previous, .gallery-next { position: absolute; z-index: 3; bottom: 12px; width: 44px; height: 44px; background: var(--white); }
+.gallery-previous { left: 12px; }
+.gallery-next { right: 12px; }
+.gallery-previous img, .gallery-next img { width: 28px; height: 28px; }
+.gallery-retry, .gallery-image-error { position: absolute; left: 60px; right: 60px; bottom: 18px; padding: 8px; border: 0; border-radius: 16px; background: var(--white); color: var(--green); font: 500 11px/15px var(--font-body); }
+.expanded-gallery-photo { display: block; width: 100%; height: auto; max-height: 48dvh; object-fit: contain; border-radius: 18px; background: var(--pale); }
+.expanded-gallery-navigation { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; color: var(--green); font: 600 12px/18px var(--font-body); }
+.expanded-gallery-navigation button:disabled { opacity: .35; }
+.gallery-license-note { margin-top: 12px; color: var(--muted); font: 400 11px/16px var(--font-body); }
 .player-caption { margin: 33px 24px 0; }
 .player-caption h1 { font: 400 31px/37px var(--font-display); letter-spacing: -.35px; }
 .player-caption p { margin-top: 10px; font: 400 14px/20px var(--font-body); color: var(--muted); }
@@ -64,9 +81,12 @@
 .playback-controls { display: grid; grid-template-columns: 50px 76px 50px; gap: 37px; align-items: center; justify-content: center; height: 76px; margin-top: 28px; }
 .skip-action { width: 50px; height: 50px; }
 .play-action { width: 76px; height: 76px; background: var(--green); box-shadow: 0 5px 22px rgb(23 57 46 / 9%); }
-.player-extra-actions { display: grid; grid-template-columns: 1fr 70px 1fr; height: 63px; margin: 34px 18px calc(15px + var(--safe-bottom)); border-radius: 31px; background: var(--pale); }
+.player-extra-actions { display: grid; grid-template-columns: 1fr 52px 1fr 1fr; height: 63px; margin: 34px 18px calc(15px + var(--safe-bottom)); border-radius: 31px; background: var(--pale); }
 .player-extra-actions button { display: flex; align-items: center; justify-content: center; gap: 9px; padding: 0; border: 0; background: transparent; color: var(--ink); font: 500 12px/17px var(--font-body); }
 .player-extra-actions .playback-speed { color: var(--green); font: 600 15px/21px var(--font-body); }
+.player-extra-actions .background-toggle[aria-pressed="true"] { border-radius: 24px; margin: 9px 2px; background: var(--mint); color: var(--green); }
+.music-credit { font: 400 12px/18px var(--font-body); }
+.music-credit a { color: var(--green); text-decoration: underline; }
 
 /* Profile: the three action rows remain one reusable card. */
 .profile-page { padding-top: calc(21px + var(--safe-top)); }
@@ -245,7 +265,7 @@
   .place-description { white-space: normal; }
   .audio-cover > p { font-size: 21px; line-height: 26px; }
   .player-caption h1 { font-size: 28px; line-height: 34px; }
-  .player-extra-actions { grid-template-columns: 1fr 48px 1fr; }
+  .player-extra-actions { grid-template-columns: 1fr 40px 1fr 1fr; }
   .player-extra-actions button { gap: 5px; }
   .profile-page .page-subtitle, .routes-page .page-subtitle { font-size: 13px; }
   .traveler-card { gap: 12px; padding-inline: 14px; }

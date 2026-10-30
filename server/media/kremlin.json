@@ -1,0 +1,170 @@
+{
+  "placeId": "kremlin",
+  "items": [
+    {
+      "url": "/media/photo-152e560f78f47b2c.jpg",
+      "width": 960,
+      "height": 720,
+      "date": "2020",
+      "author": "Nikitin bokeh",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_Kremlin_from_drone.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "caption": "Казанский Кремль с высоты"
+    },
+    {
+      "url": "/media/photo-c47bad6b9c9ce381.jpg",
+      "width": 700,
+      "height": 523,
+      "date": "1894",
+      "author": "Maxim Petrovich Dmitriev",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9E%D0%B1%D1%89%D0%B8%D0%B9_%D0%B2%D0%B8%D0%B4_%D0%9A%D1%80%D0%B5%D0%BC%D0%BB%D1%8F._%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD%D1%8C.1894.jpg",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "caption": "Архивная фотография Кремля, 1894"
+    },
+    {
+      "url": "/media/photo-1c65fec268f146de.jpg",
+      "width": 800,
+      "height": 687,
+      "date": "1912",
+      "author": "Arnold Brening",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_Kremlin_(Brening,_1912).jpg",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "caption": "Архивная фотография Кремля, 1912"
+    },
+    {
+      "url": "/media/photo-b2138111ddf07747.jpg",
+      "width": 960,
+      "height": 697,
+      "date": "XVII век",
+      "author": "Adam Olearius",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:CasanTartarorum_by_Olearius.jpg",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "caption": "Историческое изображение Казани Адама Олеария"
+    },
+    {
+      "url": "/media/photo-a0d7f2921ad3a511.jpg",
+      "width": 960,
+      "height": 718,
+      "date": "1837",
+      "author": "Berlogin",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Turnerelli_1837.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "caption": "Исторический вид Казани Эдуарда Турнерелли, 1837"
+    },
+    {
+      "url": "/media/photo-0819cbead02cf27f.jpg",
+      "width": 960,
+      "height": 1280,
+      "date": "2022",
+      "author": "Vyacheslav Kirillin",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syuyumbike_Tower_(2022-06-01)_18.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "caption": "Башня Сююмбике"
+    },
+    {
+      "url": "/media/photo-6e5648de6dc1bbd6.jpg",
+      "width": 960,
+      "height": 720,
+      "date": "Дата съёмки не указана",
+      "author": "Валерий Дед",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%91%D0%BB%D0%B0%D0%B3%D0%BE%D0%B2%D0%B5%D1%89%D0%B5%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_%D1%81%D0%BE%D0%B1%D0%BE%D1%80_-_panoramio_(2).jpg",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "caption": "Благовещенский собор"
+    },
+    {
+      "url": "/media/photo-b2398b3f20ad30fc.jpg",
+      "width": 960,
+      "height": 960,
+      "date": "2020",
+      "author": "FingerWiki",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kul_Sharif_Mosque_in_Kazan_Kremlin,_19_September_2020.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "caption": "Мечеть Кул-Шариф"
+    },
+    {
+      "url": "/media/photo-bee8b6afe91259bc.jpg",
+      "width": 960,
+      "height": 1280,
+      "date": "2024",
+      "author": "Vyacheslav Kirillin",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Spasskaya_Tower,_Kazan_(2024-04-12)_10.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "caption": "Спасская башня"
+    },
+    {
+      "url": "/media/photo-d453f77fbe6ec6cf.jpg",
+      "width": 960,
+      "height": 640,
+      "date": "2024",
+      "author": "Mike1979 Russia",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_Kremlin_Governor_Palace_2024-07-14_1525.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "caption": "Губернаторский дворец"
+    },
+    {
+      "url": "/media/photo-0399485f2bff4ea3.jpg",
+      "width": 960,
+      "height": 1280,
+      "date": "2021",
+      "author": "Engelberthumperdink",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kul_Sharif_mosque,_interior_-_2021-02-02_(35).jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "caption": "Интерьер мечети Кул-Шариф"
+    },
+    {
+      "url": "/media/photo-de228179ed8bb9ab.jpg",
+      "width": 960,
+      "height": 1975,
+      "date": "2018",
+      "author": "Юкатан",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Detail_of_the_Interior_of_the_Annunciation_Cathedral_(Kazan)_-_13.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "caption": "Интерьер Благовещенского собора"
+    },
+    {
+      "url": "/media/photo-ad798e1faefda919.jpg",
+      "width": 960,
+      "height": 640,
+      "date": "2024",
+      "author": "Mike1979 Russia",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_Kremlin_Gates_2024-07-13_1439.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "caption": "Ворота Казанского Кремля"
+    },
+    {
+      "url": "/media/photo-dcc2bd37572b7f6f.jpg",
+      "width": 960,
+      "height": 600,
+      "date": "1902",
+      "author": "Автор фотографии не обозначен.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9A%D1%80%D0%B5%D0%BC%D0%BB%D1%91%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D1%81%D0%BF%D1%83%D1%81%D0%BA_(%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD%D1%8C)_(%D0%BE%D1%82%D0%BA%D1%80%D1%8B%D1%82%D0%BA%D0%B0_%D0%BD%D0%B0%D1%87%D0%B0%D0%BB%D0%B0_XX_%D0%B2.).jpg",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "caption": "Архивная открытка: Кремлёвский спуск"
+    },
+    {
+      "url": "/media/photo-9e8f299ff87e19a4.jpg",
+      "width": 960,
+      "height": 720,
+      "date": "2021",
+      "author": "Vyacheslav Kirillin",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_Kremlin_(2021-05-15)_01.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "caption": "Современный вид Казанского Кремля"
+    }
+  ]
+}

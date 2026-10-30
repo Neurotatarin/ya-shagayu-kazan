@@ -15,7 +15,8 @@
       "coordinateSource": "https://www.openstreetmap.org/way/87009792",
       "photo": "place.imgUshkovaJpg",
       "audioUrl": "/media/ushkova-5e9c3ac57387.mp3",
-      "audioOriginalDurationSeconds": 255.320813
+      "audioOriginalDurationSeconds": 255.320813,
+      "galleryUrl": "/media/gallery-ushkova-65cfd02bf9a20247.json"
     },
     {
       "id": "kul-sharif",
@@ -30,7 +31,8 @@
       "category": "mosque",
       "durationSeconds": 240,
       "coordinateSource": "https://www.openstreetmap.org/way/230132591",
-      "photo": "map.imgKulSharifJpg"
+      "photo": "map.imgKulSharifJpg",
+      "galleryUrl": "/media/gallery-kul-sharif-5a5601a10f08f82c.json"
     },
     {
       "id": "kremlin",
@@ -47,7 +49,8 @@
       "coordinateSource": "https://www.openstreetmap.org/relation/14454789",
       "photo": "dialog.imgKremlinJpg",
       "audioUrl": "/media/kremlin-06681b66c5a9.mp3",
-      "audioOriginalDurationSeconds": 245.551
+      "audioOriginalDurationSeconds": 245.551,
+      "galleryUrl": "/media/gallery-kremlin-7cb15a47ae6c314b.json"
     },
     {
       "id": "suyumbike",
@@ -61,7 +64,20 @@
       ],
       "category": "history",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/228963085"
+      "coordinateSource": "https://www.openstreetmap.org/way/228963085",
+      "image": {
+        "url": "/media/photo-0819cbead02cf27f.jpg",
+        "width": 960,
+        "height": 1280,
+        "date": "2022",
+        "author": "Vyacheslav Kirillin",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syuyumbike_Tower_(2022-06-01)_18.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Башня Сююмбике",
+        "position": "50% 15%"
+      },
+      "galleryUrl": "/media/gallery-suyumbike-311752883f073fb3.json"
     },
     {
       "id": "blago",
@@ -75,7 +91,19 @@
       ],
       "category": "church",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/259988409"
+      "coordinateSource": "https://www.openstreetmap.org/way/259988409",
+      "image": {
+        "url": "/media/photo-6e5648de6dc1bbd6.jpg",
+        "width": 960,
+        "height": 720,
+        "date": "Дата съёмки не указана",
+        "author": "Валерий Дед",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%91%D0%BB%D0%B0%D0%B3%D0%BE%D0%B2%D0%B5%D1%89%D0%B5%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_%D1%81%D0%BE%D0%B1%D0%BE%D1%80_-_panoramio_(2).jpg",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "caption": "Благовещенский собор"
+      },
+      "galleryUrl": "/media/gallery-blago-4a37b82e519f991b.json"
     },
     {
       "id": "nmrt",
@@ -89,7 +117,19 @@
       ],
       "category": "museum",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/node/1348003477"
+      "coordinateSource": "https://www.openstreetmap.org/node/1348003477",
+      "image": {
+        "url": "/media/photo-c6c52b0e0049d776.jpg",
+        "width": 960,
+        "height": 614,
+        "date": "2014",
+        "author": "Денис Петьовка",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9D%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%BC%D1%83%D0%B7%D0%B5%D0%B9_%D0%A0%D0%B5%D1%81%D0%BF%D1%83%D0%B1%D0%BB%D0%B8%D0%BA%D0%B8_%D0%A2%D0%B0%D1%82%D0%B0%D1%80%D1%81%D1%82%D0%B0%D0%BD.JPG",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "caption": "Национальный музей Республики Татарстан"
+      },
+      "galleryUrl": "/media/gallery-nmrt-c1cda9e4a1522afd.json"
     },
     {
       "id": "bauman",
@@ -103,7 +143,19 @@
       ],
       "category": "walk",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/386031039"
+      "coordinateSource": "https://www.openstreetmap.org/way/386031039",
+      "image": {
+        "url": "/media/photo-1f6eddf52cc8857f.jpg",
+        "width": 960,
+        "height": 720,
+        "date": "2011",
+        "author": "R. Sieben",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bauman_Street_in_Kazan,_Bogoyavlenskyi_Tower_in_background_-_panoramio.jpg",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "caption": "Пешеходная улица Баумана"
+      },
+      "galleryUrl": "/media/gallery-bauman-bc63745313fdb33f.json"
     },
     {
       "id": "epiphany",
@@ -117,7 +169,20 @@
       ],
       "category": "history",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/99325935"
+      "coordinateSource": "https://www.openstreetmap.org/way/99325935",
+      "image": {
+        "url": "/media/photo-c8307226d9b044fe.jpg",
+        "width": 960,
+        "height": 1280,
+        "date": "2023",
+        "author": "Vyacheslav Kirillin",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bell_tower_Church_Epiphany,_Kazan_(2023-04-12)_01.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Богоявленская колокольня",
+        "position": "50% 15%"
+      },
+      "galleryUrl": "/media/gallery-epiphany-142145b319fbcead.json"
     },
     {
       "id": "petro",
@@ -131,7 +196,20 @@
       ],
       "category": "church",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/90178098"
+      "coordinateSource": "https://www.openstreetmap.org/way/90178098",
+      "image": {
+        "url": "/media/photo-da3607d0cabc1364.jpg",
+        "width": 960,
+        "height": 1280,
+        "date": "2011",
+        "author": "Клеткин Максим Евгеньевич",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:St._Peter_and_Paul_Cathedral_in_Kazan,_Russia.jpg",
+        "license": "CC0",
+        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "caption": "Петропавловский собор",
+        "position": "50% 15%"
+      },
+      "galleryUrl": "/media/gallery-petro-5a19d640fb94349b.json"
     },
     {
       "id": "nab",
@@ -145,7 +223,19 @@
       ],
       "category": "walk",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/1413511481"
+      "coordinateSource": "https://www.openstreetmap.org/way/1413511481",
+      "image": {
+        "url": "/media/photo-8d1f98ea4a1cfbd0.jpg",
+        "width": 960,
+        "height": 640,
+        "date": "2021",
+        "author": "Дмитрий Сагдеев (Кояш)",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%9A%D1%80%D0%B5%D0%BC%D0%BB%D1%91%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%BD%D0%B0%D0%B1%D0%B5%D1%80%D0%B5%D0%B6%D0%BD%D0%B0%D1%8F_%D1%81_%D1%85%D0%BE%D0%BB%D0%BC%D0%B0.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Кремлёвская набережная"
+      },
+      "galleryUrl": "/media/gallery-nab-9a226cd84c340a9c.json"
     },
     {
       "id": "mardjani",
@@ -159,7 +249,19 @@
       ],
       "category": "mosque",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/133264462"
+      "coordinateSource": "https://www.openstreetmap.org/way/133264462",
+      "image": {
+        "url": "/media/photo-ccbe9280e4493d6c.jpg",
+        "width": 960,
+        "height": 720,
+        "date": "2023",
+        "author": "Vyacheslav Kirillin",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Marjani_Mosque_(2023-03-20)_01.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Мечеть аль-Марджани"
+      },
+      "galleryUrl": "/media/gallery-mardjani-4c1c39516bfce98a.json"
     },
     {
       "id": "sloboda",
@@ -173,7 +275,19 @@
       ],
       "category": "history",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/node/3688565521"
+      "coordinateSource": "https://www.openstreetmap.org/node/3688565521",
+      "image": {
+        "url": "/media/photo-ce6eb9cf9a06b6db.jpg",
+        "width": 960,
+        "height": 495,
+        "date": "2025",
+        "author": "Vyacheslav Bukharov",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Old_Tatar_Sloboda_in_Kazan_(April_2025)_-_0_3.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Старо-Татарская слобода"
+      },
+      "galleryUrl": "/media/gallery-sloboda-1a803d7c418b60ab.json"
     },
     {
       "id": "kaban",
@@ -187,7 +301,19 @@
       ],
       "category": "walk",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/node/3639818539"
+      "coordinateSource": "https://www.openstreetmap.org/node/3639818539",
+      "image": {
+        "url": "/media/photo-379c8f9dd8515720.jpg",
+        "width": 960,
+        "height": 540,
+        "date": "2019",
+        "author": "Ayratayrat",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Embankment_of_Lower_Kaban_lake1.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Набережная озера Кабан"
+      },
+      "galleryUrl": "/media/gallery-kaban-56caca4288a5ae40.json"
     },
     {
       "id": "tukay",
@@ -201,7 +327,19 @@
       ],
       "category": "history",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/node/1185938872"
+      "coordinateSource": "https://www.openstreetmap.org/node/1185938872",
+      "image": {
+        "url": "/media/photo-e86d186404dbccae.jpg",
+        "width": 960,
+        "height": 1280,
+        "date": "2021",
+        "author": "Vyacheslav Kirillin",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tukay_yard,_Kazan_(2021-04-05)_03.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Памятник Габдулле Тукаю в сквере на улице Пушкина"
+      },
+      "galleryUrl": "/media/gallery-tukay-68abaabdd84869dc.json"
     },
     {
       "id": "tinchurin",
@@ -215,7 +353,19 @@
       ],
       "category": "theatre",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/node/695065756"
+      "coordinateSource": "https://www.openstreetmap.org/node/695065756",
+      "image": {
+        "url": "/media/photo-80aaf37b65fc4252.jpg",
+        "width": 960,
+        "height": 640,
+        "date": "2024",
+        "author": "Mike1979 Russia",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_Kamal_Tatar_Academic_Theatre_2024-07-17_2263.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "caption": "Здание театра на улице Татарстан, 1; с 2025 года — театр Тинчурина"
+      },
+      "galleryUrl": "/media/gallery-tinchurin-04c0ad36be99e0d1.json"
     },
     {
       "id": "dvorec",
@@ -229,7 +379,19 @@
       ],
       "category": "architecture",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/90251771"
+      "coordinateSource": "https://www.openstreetmap.org/way/90251771",
+      "image": {
+        "url": "/media/photo-cf637c7216d7e9ec.jpg",
+        "width": 960,
+        "height": 553,
+        "date": "2014",
+        "author": "Денис Петьовка",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%94%D0%B2%D0%BE%D1%80%D0%B5%D1%86_%D0%97%D0%B5%D0%BC%D0%BB%D0%B5%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2_(%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD%D1%8C).JPG",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "caption": "Дворец земледельцев"
+      },
+      "galleryUrl": "/media/gallery-dvorec-2894e4f4349750fb.json"
     },
     {
       "id": "chasha",
@@ -243,7 +405,19 @@
       ],
       "category": "architecture",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/node/12729344872"
+      "coordinateSource": "https://www.openstreetmap.org/node/12729344872",
+      "image": {
+        "url": "/media/photo-5d9901ce09532d58.jpg",
+        "width": 960,
+        "height": 640,
+        "date": "2024",
+        "author": "Mike1979 Russia",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_Family_Center_2024-07-18_2468.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "caption": "Центр семьи «Казан»"
+      },
+      "galleryUrl": "/media/gallery-chasha-9e8f8154f28ce7b3.json"
     },
     {
       "id": "temple",
@@ -257,7 +431,19 @@
       ],
       "category": "architecture",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/69921955"
+      "coordinateSource": "https://www.openstreetmap.org/way/69921955",
+      "image": {
+        "url": "/media/photo-4d184848a272a730.jpg",
+        "width": 960,
+        "height": 720,
+        "date": "2021",
+        "author": "MBH",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:All_Religions_Temple_in_Kazan_01.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Храм всех религий"
+      },
+      "galleryUrl": "/media/gallery-temple-578ca7c36bef7aa7.json"
     },
     {
       "id": "ekiyat",
@@ -271,7 +457,19 @@
       ],
       "category": "theatre",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/way/102719244"
+      "coordinateSource": "https://www.openstreetmap.org/way/102719244",
+      "image": {
+        "url": "/media/photo-90d7ea56f37ccc16.jpg",
+        "width": 960,
+        "height": 623,
+        "date": "2014",
+        "author": "Konstantinkar87",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B0%D1%82%D0%B0%D1%80%D1%81%D0%BA%D0%B8%D0%B9_%D0%B3%D0%BE%D1%81%D1%83%D0%B4%D0%B0%D1%80%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9_%D1%82%D0%B5%D0%B0%D1%82%D1%80_%D0%BA%D1%83%D0%BA%D0%BE%D0%BB_%22%D0%AD%D0%BA%D0%B8%D1%8F%D1%82%22.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Театр кукол «Экият»"
+      },
+      "galleryUrl": "/media/gallery-ekiyat-27ae80a96c336c65.json"
     },
     {
       "id": "univ",
@@ -285,7 +483,19 @@
       ],
       "category": "history",
       "durationSeconds": 0,
-      "coordinateSource": "https://www.openstreetmap.org/relation/14238623"
+      "coordinateSource": "https://www.openstreetmap.org/relation/14238623",
+      "image": {
+        "url": "/media/photo-563a13fc32908c90.jpg",
+        "width": 960,
+        "height": 720,
+        "date": "2021",
+        "author": "Engelberthumperdink",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kazan_University_main_building_(2021-03-05)_05.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "caption": "Главное здание Казанского университета"
+      },
+      "galleryUrl": "/media/gallery-univ-97555ec88e1d741d.json"
     }
   ],
   "routes": [

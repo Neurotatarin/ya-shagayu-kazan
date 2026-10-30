@@ -19,9 +19,15 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "pause", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "seek", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSpeed", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setBackground", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getState", returnType: CAPPluginReturnPromise)
     ]
     private var player: AVPlayer?
+    private var music: AVQueuePlayer?
+    private var musicLooper: AVPlayerLooper?
+    private var musicObserver: NSKeyValueObservation?
+    private var backgroundEnabled = false
+    private var backgroundError = ""
     private var itemObserver: NSKeyValueObservation?
     private var playbackObserver: NSKeyValueObservation?
     private var timeObserver: Any?
@@ -84,7 +90,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let nc = NotificationCenter.default
         tokens.append(nc.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] event in
             guard let self = self, let item = event.object as? AVPlayerItem, item === self.player?.currentItem else { return }
-            self.wantsPlay = false; self.player?.pause(); self.position = self.duration; self.save(); self.emit()
+            self.wantsPlay = false; self.player?.pause(); self.music?.pause(); self.position = self.duration; self.save(); self.emit()
         })
         tokens.append(nc.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] event in
             guard let self = self, let type = event.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt else { return }
@@ -109,7 +115,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             guard let id = call.getString("id"), let raw = call.getString("url"), let url = URL(string: raw), url.scheme == "https", url.host == "kazan-demo.38-180-191-162.sslip.io", url.path.hasPrefix("/media/") else {
                 call.reject("Недопустимый адрес аудио."); return
             }
-            if self.placeId == id && self.player != nil { call.resolve(self.snapshot()); return }
+            if self.placeId == id && self.player != nil && self.player?.currentItem?.status != .failed { call.resolve(self.snapshot()); return }
             self.stop()
             if let observer = self.timeObserver { self.player?.removeTimeObserver(observer) }
             self.itemObserver?.invalidate(); self.playbackObserver?.invalidate()
@@ -154,20 +160,20 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         emit()
     }
     private func stop() {
-        wantsPlay = false; player?.pause(); save(); emit()
+        wantsPlay = false; player?.pause(); music?.pause(); save(); emit()
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
     private func move(to seconds: Double) {
         position = max(0, min(seconds, duration)); pendingSeek = position
         guard let player = player else { pendingSeek = nil; save(); emit(); return }
         player.seek(to: CMTime(seconds: position, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
-            DispatchQueue.main.async { guard let self = self else { return }; self.pendingSeek = nil; self.save(); self.emit() }
+            DispatchQueue.main.async { guard let self = self else { return }; self.pendingSeek = nil; if self.wantsPlay { self.player?.playImmediately(atRate: Float(self.speed)) }; self.save(); self.emit() }
         }
         save(); emit()
     }
     private func snapshot() -> [String: Any] {
         if pendingSeek == nil, let seconds = player?.currentTime().seconds, seconds.isFinite { position = max(0, seconds) }
-        return ["placeId": placeId, "position": position, "duration": duration, "playing": wantsPlay, "loading": wantsPlay && player?.timeControlStatus != .playing, "speed": speed, "error": failure]
+        return ["placeId": placeId, "position": position, "duration": duration, "playing": wantsPlay, "loading": wantsPlay && player?.timeControlStatus != .playing, "speed": speed, "error": failure, "backgroundEnabled": backgroundEnabled, "backgroundPlaying": music?.timeControlStatus == .playing, "backgroundError": backgroundError]
     }
     private func save() {
         guard !placeId.isEmpty else { return }
@@ -176,6 +182,11 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         lastSaved = position
     }
     private func emit() {
+        // Music follows audible narration, including stalls, interruptions and
+        // lock-screen controls. It always stays at normal speed and low volume.
+        if backgroundEnabled && wantsPlay && player?.timeControlStatus == .playing && pendingSeek == nil {
+            if music?.rate == 0 { music?.play() }
+        } else { music?.pause() }
         let data = snapshot()
         if abs(position - lastSaved) >= 5 { save() }
         if !placeId.isEmpty {
@@ -190,4 +201,33 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func seek(_ call: CAPPluginCall) { DispatchQueue.main.async { self.move(to: call.getDouble("seconds") ?? 0); call.resolve(self.snapshot()) } }
     @objc func setSpeed(_ call: CAPPluginCall) { DispatchQueue.main.async { self.speed = max(1, min(call.getDouble("speed") ?? 1, 2)); if self.wantsPlay { self.player?.rate = Float(self.speed) }; self.save(); self.emit(); call.resolve(self.snapshot()) } }
     @objc func getState(_ call: CAPPluginCall) { DispatchQueue.main.async { call.resolve(self.snapshot()) } }
+    @objc func setBackground(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let enabled = call.getBool("enabled") ?? false
+            if enabled {
+                guard let raw = call.getString("url"), let url = URL(string: raw), url.scheme == "https", url.host == "kazan-demo.38-180-191-162.sslip.io", url.path.hasPrefix("/media/") else {
+                    call.reject("Недопустимый адрес музыки."); return
+                }
+                if self.music == nil || self.musicLooper?.status == .failed {
+                    self.music?.pause(); self.musicObserver?.invalidate()
+                    self.musicLooper?.disableLooping(); self.musicLooper = nil
+                    let queue = AVQueuePlayer()
+                    queue.volume = Float(max(0, min(call.getDouble("volume") ?? 0.08, 0.15)))
+                    self.music = queue
+                    let looper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: url))
+                    self.musicLooper = looper
+                    self.musicObserver = looper.observe(\.status, options: [.new]) { [weak self] looper, _ in
+                        DispatchQueue.main.async {
+                            guard let self = self, self.musicLooper === looper, looper.status == .failed else { return }
+                            self.backgroundEnabled = false; self.music?.pause()
+                            self.backgroundError = "Музыкальный фон недоступен. Рассказ продолжается; фон можно включить ещё раз."
+                            self.emit()
+                        }
+                    }
+                }
+            }
+            self.backgroundEnabled = enabled; self.backgroundError = ""
+            self.emit(); call.resolve(self.snapshot())
+        }
+    }
 }
