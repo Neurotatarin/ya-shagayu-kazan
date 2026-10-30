@@ -1,160 +1,33 @@
-// Original vector-layer placement from high-fidelity Figma context.
+// Original Figma vector groups, precise layer bounds and clipping.
+// Imperial figure 11:7198 is outside component 11:7193 in Figma;
+// its x=41, y=63 offsets are relative to that card on board 11:4830.
 export const figmaArt = {
-  "greeting": {
-    "x": 0,
-    "y": 0,
-    "width": 206.503,
-    "height": 220.0,
-    "clip": true,
-    "children": [
-      {
-        "x": 131.1087547,
-        "y": 114.11399999999999,
-        "width": 75.3116441,
-        "height": 73.06200000000001,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img01"
-          }
-        ]
-      },
-      {
-        "x": 0.0826012,
-        "y": 14.652000000000001,
-        "width": 64.73869049999999,
-        "height": 197.45,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img02"
-          }
-        ]
-      },
-      {
-        "x": 102.9623958,
-        "y": 31.569999999999997,
-        "width": 85.38899050000002,
-        "height": 173.58,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img03"
-          }
-        ]
-      },
-      {
-        "x": 25.6476726,
-        "y": 138.226,
-        "width": 63.97462939999999,
-        "height": 79.662,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img04"
-          }
-        ]
-      },
-      {
-        "x": 20.443797,
-        "y": 0.572,
-        "width": 180.09126629999997,
-        "height": 212.674,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img05"
-          }
-        ]
-      },
-      {
-        "x": 91.04717269999999,
-        "y": 139.238,
-        "width": 72.85425839999998,
-        "height": 80.762,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img06"
-          }
-        ]
-      },
-      {
-        "x": 35.250062099999994,
-        "y": 90.838,
-        "width": 31.65690990000002,
-        "height": 50.68799999999999,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img07"
-          }
-        ]
-      },
-      {
-        "x": 120.14344539999999,
-        "y": 101.992,
-        "width": 18.585270000000005,
-        "height": 30.073999999999998,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img08"
-          }
-        ]
-      },
-      {
-        "x": 51.088842199999995,
-        "y": 12.276,
-        "width": 86.77256059999999,
-        "height": 66.96800000000003,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img09"
-          }
-        ]
-      },
-      {
-        "x": 77.6657783,
-        "y": 0.08800000000000001,
-        "width": 30.5830943,
-        "height": 26.708000000000013,
-        "clip": false,
-        "children": [
-          {
-            "asset": "zilant-figure.img10"
-          }
-        ]
-      }
-    ]
-  },
   "heart": {
-    "x": 106.0,
-    "y": 53.0,
-    "width": 216.0,
-    "height": 219.0,
+    "x": 106,
+    "y": 53,
+    "width": 216,
+    "height": 219,
     "clip": true,
     "children": [
       {
-        "x": 29.99,
-        "y": 25.57,
-        "width": 174.0,
-        "height": 212.0,
+        "x": 29.9892578125,
+        "y": 25.572998046875,
+        "width": 174,
+        "height": 212,
         "clip": true,
         "children": [
           {
             "x": 0,
             "y": 0,
-            "width": 173.23,
-            "height": 174.0,
+            "width": 173.23008728027344,
+            "height": 174,
             "clip": true,
             "children": [
               {
-                "x": 0.051968999999999994,
-                "y": 76.9602,
-                "width": 80.829118,
-                "height": 65.65020000000001,
+                "x": 0.044999223202466965,
+                "y": 76.9675064086914,
+                "width": 80.8373,
+                "height": 65.6415,
                 "clip": false,
                 "children": [
                   {
@@ -163,10 +36,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 15.971805999999999,
-                "y": 10.4748,
-                "width": 63.35021099999998,
-                "height": 86.8086,
+                "x": 15.971039772033691,
+                "y": 10.470795631408691,
+                "width": 63.3433,
+                "height": 86.8076,
                 "clip": false,
                 "children": [
                   {
@@ -175,10 +48,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 98.08282599999998,
-                "y": 22.0632,
-                "width": 53.06034900000001,
-                "height": 142.0884,
+                "x": 98.08672332763672,
+                "y": 22.05794334411621,
+                "width": 53.0551,
+                "height": 142.087,
                 "clip": false,
                 "children": [
                   {
@@ -187,10 +60,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 29.518392,
-                "y": 108.054,
-                "width": 53.597362,
-                "height": 65.946,
+                "x": 29.52685546875,
+                "y": 108.04918670654297,
+                "width": 53.5964,
+                "height": 65.9508,
                 "clip": false,
                 "children": [
                   {
@@ -199,10 +72,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 55.191078,
-                "y": 3.0798,
-                "width": 117.91766099999998,
-                "height": 161.21099999999998,
+                "x": 55.199344635009766,
+                "y": 3.079646110534668,
+                "width": 117.904,
+                "height": 161.219,
                 "clip": false,
                 "children": [
                   {
@@ -211,10 +84,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 84.345687,
-                "y": 108.6978,
-                "width": 52.384752,
-                "height": 61.30019999999999,
+                "x": 84.34869384765625,
+                "y": 108.69093322753906,
+                "width": 52.3881,
+                "height": 61.3061,
                 "clip": false,
                 "children": [
                   {
@@ -223,10 +96,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 55.589507,
-                "y": 69.5826,
-                "width": 26.123084000000006,
-                "height": 30.241199999999992,
+                "x": 55.58437728881836,
+                "y": 69.58751678466797,
+                "width": 26.1288,
+                "height": 30.2384,
                 "clip": false,
                 "children": [
                   {
@@ -235,10 +108,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 108.71914799999998,
-                "y": 62.674800000000005,
-                "width": 64.424237,
-                "height": 30.710999999999988,
+                "x": 108.71150207519531,
+                "y": 62.67079162597656,
+                "width": 64.4318,
+                "height": 30.717,
                 "clip": false,
                 "children": [
                   {
@@ -247,10 +120,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 57.893466,
-                "y": 8.9262,
-                "width": 67.299855,
-                "height": 54.027,
+                "x": 57.897342681884766,
+                "y": 8.930973052978516,
+                "width": 67.2902,
+                "height": 54.024,
                 "clip": false,
                 "children": [
                   {
@@ -259,10 +132,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 76.35978399999999,
-                "y": 0.06960000000000001,
-                "width": 22.571869000000003,
-                "height": 18.722400000000004,
+                "x": 76.35240173339844,
+                "y": 0.07231078296899796,
+                "width": 22.572,
+                "height": 18.7143,
                 "clip": false,
                 "children": [
                   {
@@ -277,24 +150,24 @@ export const figmaArt = {
     ]
   },
   "tatar": {
-    "x": 127.0,
-    "y": 45.0,
-    "width": 240.0,
-    "height": 269.0,
+    "x": 127,
+    "y": 45,
+    "width": 240,
+    "height": 269,
     "clip": true,
     "children": [
       {
         "x": 0,
         "y": 0,
-        "width": 270.0,
-        "height": 279.46,
+        "width": 270,
+        "height": 279.4602355957031,
         "clip": true,
         "children": [
           {
-            "x": 162.62099999999998,
-            "y": 140.76400199999998,
-            "width": 107.16300000000001,
-            "height": 97.363864,
+            "x": 162.6138916015625,
+            "y": 140.7657012939453,
+            "width": 107.17,
+            "height": 97.3572,
             "clip": false,
             "children": [
               {
@@ -303,10 +176,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 0.135,
-            "y": 3.577088,
-            "width": 87.831,
-            "height": 149.56699199999997,
+            "x": 0.14551196992397308,
+            "y": 3.579545497894287,
+            "width": 87.8092,
+            "height": 149.574,
             "clip": false,
             "children": [
               {
@@ -315,10 +188,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 140.103,
-            "y": 46.613927999999994,
-            "width": 98.30699999999999,
-            "height": 225.18886799999999,
+            "x": 140.11338806152344,
+            "y": 46.615055084228516,
+            "width": 98.3056,
+            "height": 225.175,
             "clip": false,
             "children": [
               {
@@ -327,10 +200,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 36.071999999999996,
-            "y": 172.873956,
-            "width": 80.784,
-            "height": 101.72344,
+            "x": 36.084476470947266,
+            "y": 172.8861083984375,
+            "width": 80.7619,
+            "height": 101.717,
             "clip": false,
             "children": [
               {
@@ -339,10 +212,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 35.721000000000004,
-            "y": 0.13973,
-            "width": 225.072,
-            "height": 271.663066,
+            "x": 35.72985076904297,
+            "y": 0.12784090638160706,
+            "width": 225.066,
+            "height": 271.662,
             "clip": false,
             "children": [
               {
@@ -351,10 +224,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 121.23,
-            "y": 175.137582,
-            "width": 89.20799999999998,
-            "height": 104.07090399999998,
+            "x": 121.22533416748047,
+            "y": 175.1364288330078,
+            "width": 89.2008,
+            "height": 104.069,
             "clip": false,
             "children": [
               {
@@ -363,10 +236,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 45.981,
-            "y": 16.096895999999997,
-            "width": 50.16599999999999,
-            "height": 124.24791599999999,
+            "x": 45.986961364746094,
+            "y": 16.107955932617188,
+            "width": 50.1498,
+            "height": 124.247,
             "clip": false,
             "children": [
               {
@@ -375,10 +248,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 160.569,
-            "y": 139.338756,
-            "width": 40.202999999999996,
-            "height": 84.87200200000002,
+            "x": 160.56326293945312,
+            "y": 139.34658813476562,
+            "width": 40.2147,
+            "height": 84.8687,
             "clip": false,
             "children": [
               {
@@ -387,10 +260,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 77.166,
-            "y": 3.688872,
-            "width": 105.46199999999999,
-            "height": 96.02245600000003,
+            "x": 77.15711212158203,
+            "y": 3.700707197189331,
+            "width": 105.472,
+            "height": 96.0152,
             "clip": false,
             "children": [
               {
@@ -399,10 +272,10 @@ export const figmaArt = {
             ]
           },
           {
-            "x": 114.723,
-            "y": 0.894272,
-            "width": 36.638999999999996,
-            "height": 36.441583999999985,
+            "x": 114.71025085449219,
+            "y": 0.9025331139564514,
+            "width": 36.6397,
+            "height": 36.427,
             "clip": false,
             "children": [
               {
@@ -415,31 +288,31 @@ export const figmaArt = {
     ]
   },
   "threeHours": {
-    "x": 101.0,
-    "y": 88.0,
-    "width": 184.0,
-    "height": 174.0,
+    "x": 101,
+    "y": 88,
+    "width": 184,
+    "height": 174,
     "clip": true,
     "children": [
       {
-        "x": 2.79,
+        "x": 2.785454511642456,
         "y": 0,
-        "width": 178.429,
-        "height": 174.0,
+        "width": 178.42910766601562,
+        "height": 174.00001525878906,
         "clip": true,
         "children": [
           {
             "x": 0,
             "y": 0,
-            "width": 178.429,
-            "height": 174.0,
+            "width": 178.42910766601562,
+            "height": 174.00001525878906,
             "clip": true,
             "children": [
               {
-                "x": 0.07137160000000001,
-                "y": 82.4064,
-                "width": 91.83740630000001,
-                "height": 60.7956,
+                "x": 0.07499734312295914,
+                "y": 82.41041564941406,
+                "width": 91.8287,
+                "height": 60.7837,
                 "clip": false,
                 "children": [
                   {
@@ -448,10 +321,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 43.7329479,
-                "y": 14.9292,
-                "width": 61.450947600000006,
-                "height": 154.6338,
+                "x": 43.729251861572266,
+                "y": 14.935123443603516,
+                "width": 61.462,
+                "height": 154.636,
                 "clip": false,
                 "children": [
                   {
@@ -460,10 +333,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 131.4486443,
-                "y": 15.3468,
-                "width": 39.539866399999994,
-                "height": 124.00979999999998,
+                "x": 131.4493408203125,
+                "y": 15.343515396118164,
+                "width": 39.5456,
+                "height": 124.015,
                 "clip": false,
                 "children": [
                   {
@@ -472,10 +345,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 55.6876909,
-                "y": 115.3098,
-                "width": 48.38994479999999,
-                "height": 58.53360000000001,
+                "x": 55.679805755615234,
+                "y": 115.3145523071289,
+                "width": 48.4039,
+                "height": 58.5281,
                 "clip": false,
                 "children": [
                   {
@@ -484,10 +357,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 1.7486042,
-                "y": 0.3132,
-                "width": 176.55549549999998,
-                "height": 170.8332,
+                "x": 1.7400000095367432,
+                "y": 0.316363662481308,
+                "width": 176.57,
+                "height": 170.836,
                 "clip": false,
                 "children": [
                   {
@@ -496,10 +369,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 97.60066300000001,
-                "y": 107.7234,
-                "width": 80.66775089999999,
-                "height": 62.326800000000006,
+                "x": 97.59408569335938,
+                "y": 107.7218246459961,
+                "width": 80.6769,
+                "height": 62.3237,
                 "clip": false,
                 "children": [
                   {
@@ -508,10 +381,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 69.6943674,
-                "y": 71.6706,
-                "width": 36.50657339999999,
-                "height": 45.41400000000001,
+                "x": 69.6978530883789,
+                "y": 71.66594696044922,
+                "width": 36.5096,
+                "height": 45.4171,
                 "clip": false,
                 "children": [
                   {
@@ -520,10 +393,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 124.4899133,
-                "y": 65.33699999999999,
-                "width": 53.1896849,
-                "height": 37.28820000000001,
+                "x": 124.48909759521484,
+                "y": 65.32909393310547,
+                "width": 53.1856,
+                "height": 37.3028,
                 "clip": false,
                 "children": [
                   {
@@ -532,10 +405,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 76.6887842,
-                "y": 5.3766,
-                "width": 73.69117700000001,
-                "height": 57.106799999999986,
+                "x": 76.69389343261719,
+                "y": 5.3781819343566895,
+                "width": 73.6788,
+                "height": 57.1037,
                 "clip": false,
                 "children": [
                   {
@@ -544,10 +417,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 104.5058653,
-                "y": 0.10439999999999999,
-                "width": 24.248501100000006,
-                "height": 20.305800000000005,
+                "x": 104.50910186767578,
+                "y": 0.09633412957191467,
+                "width": 24.2509,
+                "height": 20.3099,
                 "clip": false,
                 "children": [
                   {
@@ -556,10 +429,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 69.99769669999999,
-                "y": 66.12,
-                "width": 40.28926820000001,
-                "height": 39.0978,
+                "x": 70.00286865234375,
+                "y": 66.12000274658203,
+                "width": 40.2868,
+                "height": 39.106,
                 "clip": false,
                 "children": [
                   {
@@ -574,31 +447,31 @@ export const figmaArt = {
     ]
   },
   "modern": {
-    "x": 113.0,
-    "y": 63.0,
-    "width": 219.0,
-    "height": 209.0,
+    "x": 113,
+    "y": 63,
+    "width": 219,
+    "height": 209,
     "clip": true,
     "children": [
       {
         "x": 0,
-        "y": 7.0,
-        "width": 203.0,
-        "height": 246.0,
+        "y": 7,
+        "width": 203,
+        "height": 246,
         "clip": true,
         "children": [
           {
             "x": 0,
             "y": 0,
-            "width": 270.0,
-            "height": 287.171,
+            "width": 270,
+            "height": 287.1705322265625,
             "clip": true,
             "children": [
               {
-                "x": 166.96800000000002,
-                "y": 144.5618814,
-                "width": 94.52699999999999,
-                "height": 101.62981689999998,
+                "x": 166.97732543945312,
+                "y": 144.5627899169922,
+                "width": 94.5221,
+                "height": 101.627,
                 "clip": false,
                 "children": [
                   {
@@ -607,10 +480,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 8.154,
-                "y": 34.747690999999996,
-                "width": 85.91400000000002,
-                "height": 227.7840372,
+                "x": 8.155540466308594,
+                "y": 34.76203918457031,
+                "width": 85.9088,
+                "height": 227.773,
                 "clip": false,
                 "children": [
                   {
@@ -619,10 +492,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 142.101,
-                "y": 48.962655500000004,
-                "width": 96.363,
-                "height": 218.0489403,
+                "x": 142.09193420410156,
+                "y": 48.9481315612793,
+                "width": 96.364,
+                "height": 218.066,
                 "clip": false,
                 "children": [
                   {
@@ -631,10 +504,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 35.82899999999999,
-                "y": 176.40914529999998,
-                "width": 85.42799999999997,
-                "height": 108.29218410000001,
+                "x": 35.834346771240234,
+                "y": 176.4160614013672,
+                "width": 85.4233,
+                "height": 108.283,
                 "clip": false,
                 "children": [
                   {
@@ -643,10 +516,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 9.315000000000001,
-                "y": 0.4307565,
-                "width": 260.52299999999997,
-                "height": 278.268699,
+                "x": 9.305794715881348,
+                "y": 0.4354838728904724,
+                "width": 260.536,
+                "height": 278.274,
                 "clip": false,
                 "children": [
                   {
@@ -655,10 +528,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 126.117,
-                "y": 176.43786239999997,
-                "width": 93.36599999999997,
-                "height": 110.7331376,
+                "x": 126.11042785644531,
+                "y": 176.4331817626953,
+                "width": 93.3609,
+                "height": 110.737,
                 "clip": false,
                 "children": [
                   {
@@ -667,10 +540,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 0.108,
-                "y": 115.95964980000001,
-                "width": 103.00500000000001,
-                "height": 50.6569644,
+                "x": 0.11385279148817062,
+                "y": 115.963134765625,
+                "width": 102.999,
+                "height": 50.6432,
                 "clip": false,
                 "children": [
                   {
@@ -679,10 +552,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 188.379,
-                "y": 135.4585607,
-                "width": 68.283,
-                "height": 26.534600399999995,
+                "x": 188.3776397705078,
+                "y": 135.4652557373047,
+                "width": 68.2886,
+                "height": 26.5342,
                 "clip": false,
                 "children": [
                   {
@@ -691,10 +564,10 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 78.62400000000001,
-                "y": 19.671213499999997,
-                "width": 103.54499999999999,
-                "height": 90.8034702,
+                "x": 78.63594818115234,
+                "y": 19.669679641723633,
+                "width": 103.521,
+                "height": 90.8188,
                 "clip": false,
                 "children": [
                   {
@@ -703,16 +576,283 @@ export const figmaArt = {
                 ]
               },
               {
-                "x": 79.515,
-                "y": 0.1148684,
-                "width": 40.17600000000001,
-                "height": 32.24930329999999,
+                "x": 79.51402282714844,
+                "y": 0.11771121621131897,
+                "width": 40.1816,
+                "height": 32.2333,
                 "clip": false,
                 "children": [
                   {
                     "asset": "route-modern.img10"
                   }
                 ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "greeting": {
+    "x": 0,
+    "y": 0,
+    "width": 206.50306701660156,
+    "height": 220,
+    "clip": true,
+    "children": [
+      {
+        "x": 131.11317443847656,
+        "y": 114.1097183227539,
+        "width": 75.3094,
+        "height": 73.0617,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img01"
+          }
+        ]
+      },
+      {
+        "x": 0.08240127563476562,
+        "y": 14.65381145477295,
+        "width": 64.7356,
+        "height": 197.441,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img02"
+          }
+        ]
+      },
+      {
+        "x": 102.96231079101562,
+        "y": 31.562400817871094,
+        "width": 85.3971,
+        "height": 173.591,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img03"
+          }
+        ]
+      },
+      {
+        "x": 25.64417266845703,
+        "y": 138.23382568359375,
+        "width": 63.977,
+        "height": 79.6457,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img04"
+          }
+        ]
+      },
+      {
+        "x": 20.442955017089844,
+        "y": 0.5784397125244141,
+        "width": 180.083,
+        "height": 212.672,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img05"
+          }
+        ]
+      },
+      {
+        "x": 91.03697204589844,
+        "y": 139.23321533203125,
+        "width": 72.8544,
+        "height": 80.7668,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img06"
+          }
+        ]
+      },
+      {
+        "x": 35.2403678894043,
+        "y": 90.83406829833984,
+        "width": 31.6659,
+        "height": 50.7027,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img07"
+          }
+        ]
+      },
+      {
+        "x": 120.13571166992188,
+        "y": 101.99824523925781,
+        "width": 18.596,
+        "height": 30.0589,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img08"
+          }
+        ]
+      },
+      {
+        "x": 51.09016036987305,
+        "y": 12.266013145446777,
+        "width": 86.7714,
+        "height": 66.9803,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img09"
+          }
+        ]
+      },
+      {
+        "x": 77.66314697265625,
+        "y": 0.0884084701538086,
+        "width": 30.5797,
+        "height": 26.7132,
+        "clip": false,
+        "children": [
+          {
+            "asset": "zilant-figure.img10"
+          }
+        ]
+      }
+    ]
+  },
+  "imperial": {
+    "x": 41,
+    "y": 63,
+    "width": 384,
+    "height": 246,
+    "clip": true,
+    "children": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 270,
+        "height": 249.0098114013672,
+        "clip": true,
+        "children": [
+          {
+            "x": 0.1237984821,
+            "y": 120.5224914551,
+            "width": 100.85,
+            "height": 87.2375,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img01"
+              }
+            ]
+          },
+          {
+            "x": 70.6031112671,
+            "y": 40.6939888,
+            "width": 72.572,
+            "height": 155.288,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img02"
+              }
+            ]
+          },
+          {
+            "x": 57.4465637207,
+            "y": 159.2956237793,
+            "width": 75.7365,
+            "height": 89.4933,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img04"
+              }
+            ]
+          },
+          {
+            "x": 52.8068733215,
+            "y": 7.512275219,
+            "width": 128.932,
+            "height": 200.896,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img05"
+              }
+            ]
+          },
+          {
+            "x": 128.8574371338,
+            "y": 160.1882171631,
+            "width": 62.787,
+            "height": 81.5303,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img06"
+              }
+            ]
+          },
+          {
+            "x": 97.880279541,
+            "y": 103.1833114624,
+            "width": 61.866,
+            "height": 59.6563,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img07"
+              }
+            ]
+          },
+          {
+            "x": 175.8756103516,
+            "y": 108.7070388794,
+            "width": 7.38868,
+            "height": 22.9788,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img08"
+              }
+            ]
+          },
+          {
+            "x": 111.1112670898,
+            "y": 15.6597795486,
+            "width": 99.7768,
+            "height": 82.0983,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img09"
+              }
+            ]
+          },
+          {
+            "x": 135.8046875,
+            "y": 0.0274838004,
+            "width": 36.7565,
+            "height": 29.6374,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img10"
+              }
+            ]
+          },
+          {
+            "x": 227.265411377,
+            "y": 17.0269298553,
+            "width": 42.687,
+            "height": 94.1672,
+            "clip": false,
+            "children": [
+              {
+                "asset": "route-imperial.img11"
               }
             ]
           }

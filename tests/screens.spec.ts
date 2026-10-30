@@ -33,6 +33,13 @@ test("all nine Figma screens: assets, SVG proportions, layout and screenshots", 
   for (const screen of screens) {
     await page.goto(`/#/${screen}`);
     await expect(page.locator("main[data-figma-node], main.home-page")).toBeVisible();
+    if (screen === "routes") {
+      // In Figma the museum figure is a sibling overlaid on its card. Checking
+      // downloads alone missed the entire figure, so verify each rendered pose.
+      for (const [theme, layers] of [["heart", 10], ["imperial", 10], ["tatar", 10], ["threeHours", 11], ["modern", 10]] as const) {
+        await expect(page.locator(`.theme-${theme} .layered-art img`)).toHaveCount(layers);
+      }
+    }
     if (screen === "map") {
       await expect(page.locator("[data-place-id]")).toHaveCount(20);
       // Lazy MapLibre CSS must not override the absolute map container and

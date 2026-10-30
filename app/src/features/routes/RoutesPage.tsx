@@ -16,7 +16,7 @@ function ThemeCard({ route, number, onOpen }: { route: ThemeRoute; number: numbe
   return <button ref={ref} type="button" className={`theme-card theme-${route.theme}`} aria-label={`${route.title.replace("\n", " ")}, ${route.meta}`} onClick={onOpen} data-figma-node={route.nodeId}>
     <span className="theme-card-design" style={{ transform: `scale(${scale})` }}>
       <span className="theme-title">{route.title}</span><span className="theme-description">{route.description}</span>
-      {route.theme !== "imperial" && <LayeredArt name={route.theme} />}
+      <LayeredArt name={route.theme} />
       <span className="theme-meta">{route.meta}</span>
       <span className="theme-open"><OriginalAsset asset={themeArrows[route.theme]} /></span>
       <span className="theme-number">{String(number).padStart(2, "0")}</span>

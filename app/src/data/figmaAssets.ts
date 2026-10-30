@@ -1,5 +1,55 @@
 // Original Figma exports; native SVG dimensions must remain unchanged.
 export const figmaAssets = {
+  "route-imperial.img01": {
+    "src": "/assets/screens/route-imperial-img01.svg",
+    "width": 100.85,
+    "height": 87.2375
+  },
+  "route-imperial.img02": {
+    "src": "/assets/screens/route-imperial-img02.svg",
+    "width": 72.572,
+    "height": 155.288
+  },
+  "route-imperial.img04": {
+    "src": "/assets/screens/route-imperial-img04.svg",
+    "width": 75.7365,
+    "height": 89.4933
+  },
+  "route-imperial.img05": {
+    "src": "/assets/screens/route-imperial-img05.svg",
+    "width": 128.932,
+    "height": 200.896
+  },
+  "route-imperial.img06": {
+    "src": "/assets/screens/route-imperial-img06.svg",
+    "width": 62.787,
+    "height": 81.5303
+  },
+  "route-imperial.img07": {
+    "src": "/assets/screens/route-imperial-img07.svg",
+    "width": 61.866,
+    "height": 59.6563
+  },
+  "route-imperial.img08": {
+    "src": "/assets/screens/route-imperial-img08.svg",
+    "width": 7.38868,
+    "height": 22.9788
+  },
+  "route-imperial.img09": {
+    "src": "/assets/screens/route-imperial-img09.svg",
+    "width": 99.7768,
+    "height": 82.0983
+  },
+  "route-imperial.img10": {
+    "src": "/assets/screens/route-imperial-img10.svg",
+    "width": 36.7565,
+    "height": 29.6374
+  },
+  "route-imperial.img11": {
+    "src": "/assets/screens/route-imperial-img11.svg",
+    "width": 42.687,
+    "height": 94.1672
+  },
   "map.imgHouse": {
     "src": "/assets/screens/map-imgHouse.svg",
     "width": 28.0,
