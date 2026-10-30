@@ -117,7 +117,6 @@
 .theme-card { position: relative; flex: 0 0 314px; width: 314px; height: 314px; border: 0; border-radius: 30px; padding: 0; overflow: hidden; scroll-snap-align: start; scroll-margin-inline: 18px; background: var(--mint); text-align: left; color: var(--ink); }
 .theme-card-design { position: absolute; left: 0; top: 0; width: 314px; height: 314px; transform-origin: 0 0; }
 .theme-imperial { background: var(--pale); }
-.theme-imperial .layered-art { z-index: 1; }
 .theme-tatar { background: var(--deep); color: white; }
 .theme-threeHours { background: var(--mint); }
 .theme-modern { background: var(--pale); }
