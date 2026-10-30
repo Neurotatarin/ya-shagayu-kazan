@@ -41,7 +41,9 @@ button:disabled, input:disabled { cursor: default; }
 :root[dir="rtl"] .welcome-scene { margin-right: 19px; }
 :root[dir="rtl"] .brand, :root[dir="rtl"] .chat-header > div:not(.chat-avatar),
 :root[dir="rtl"] .traveler-card > span:last-child, :root[dir="rtl"] .chat-composer input { direction: rtl; text-align: right; }
-:root[dir="rtl"] .welcome-scene h2, :root[dir="rtl"] .scene-description { width: 39%; text-align: right; }
+/* Keep the copy against the original left edge: right-aligning its column
+   moves Arabic glyphs underneath Zilant's hand on narrow phones. */
+:root[dir="rtl"] .welcome-scene h2, :root[dir="rtl"] .scene-description { width: 39%; text-align: left; }
 :root[dir="rtl"] .audio-cover > p { width: 39.6%; text-align: right; }
 :root[dir="rtl"] .theme-card-design { direction: rtl; text-align: right; }
 :root[dir="rtl"] .route-copy { direction: rtl; text-align: right; }
