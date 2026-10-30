@@ -45,6 +45,8 @@ class ApiTests(unittest.TestCase):
         status, data = self.request('catalog')
         self.assertEqual(status, 200)
         self.assertEqual(len(data['places']), 20)
+        self.assertEqual(next(p for p in data['places'] if p['id'] == 'kremlin')['audioTracks']['ru']['durationSeconds'], 246)
+        self.assertNotIn('en', next(p for p in data['places'] if p['id'] == 'kremlin')['audioTracks'])
         self.assertGreater(next(p for p in data['places'] if p['id'] == 'kremlin')['coordinates'][1], 55.79)
         self.assertEqual(self.request('progress')[0], 401)
         self.assertEqual(self.request('guest', {}, origin='https://untrusted.example')[0], 403)
@@ -72,6 +74,49 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.request('walking-route', {'placeIds': ['invented-place', 'ushkova']}, token)[0], 400)
         with patch.object(server, 'urlopen', side_effect=URLError('offline')):
             self.assertEqual(self.request('walking-route', {'placeIds': ['petro', 'nmrt']}, token)[0], 503)
+
+    def test_language_positions_are_isolated_and_legacy_clients_keep_them(self):
+        first, second = self.guest(), self.guest()
+        progress = {'favorites': ['kremlin'], 'visited': ['ushkova'], 'positions': {'kremlin': 15}, 'audioPositions': {'kremlin': {'ru': 15, 'en': 40, 'ar': 75}}}
+        self.assertEqual(self.request('progress', progress, first, 'PUT'), (200, progress))
+        self.assertEqual(self.request('progress', token=first)[1], progress)
+        self.assertNotIn('audioPositions', self.request('progress', token=second)[1])
+        legacy = {key: value for key, value in progress.items() if key != 'audioPositions'}
+        legacy['positions'] = {'kremlin': 20}
+        code, saved = self.request('progress', legacy, first, 'PUT')
+        self.assertEqual(code, 200)
+        self.assertEqual(saved['audioPositions']['kremlin'], {'ru': 20, 'en': 40, 'ar': 75})
+        for tracks in [{'kremlin': {'fr': 1}}, {'invented-place': {'en': 1}}, {'kremlin': {'ar': float('inf')}}, {'kremlin': {'en': True}}]:
+            self.assertEqual(self.request('progress', {**progress, 'audioPositions': tracks}, first, 'PUT')[0], 400)
+
+    def test_english_and_arabic_time_constraints_and_checked_route_copy(self):
+        self.assertEqual(server.route_constraints('One hour, 2–3 nearby places'), (3, 60))
+        self.assertEqual(server.route_constraints('لدي ساعة و٢٠ دقيقة، ٢–٣ أماكن'), (3, 80))
+        self.assertEqual(server.route_constraints('half an hour, 2 stops'), (2, 30))
+        answer = {'message': 'placeholder', 'routeTitle': 'Kremlin walk', 'placeIds': ['kremlin', 'ushkova']}
+        with patch.object(server, 'walking_route', return_value={'distanceMeters': 1300, 'durationSeconds': 1080}):
+            en = server.checked_ai_route(answer, 'one hour near the Kremlin', server.catalog()['places'], 'en')
+            ar = server.checked_ai_route(answer, 'لدي ساعة قرب الكرملين', server.catalog()['places'], 'ar')
+        self.assertIn('Kazan Kremlin', en['message'])
+        self.assertIn('1.3 km', en['message'])
+        self.assertIn('كرملين قازان', ar['message'])
+        self.assertIn('18 دقيقة', ar['message'])
+        self.assertTrue(en['fitsBudget'] and ar['fitsBudget'])
+
+    def test_chat_language_is_explicit_and_conversation_history_is_separate(self):
+        token = self.guest()
+        conversation = 'language-conversation-1234'
+        for language, message in [('en', 'Hello, what is the Kremlin?'), ('ar', 'مرحباً، ما هو الكرملين؟')]:
+            answer = {'message': 'Hello' if language == 'en' else 'مرحباً', 'routeTitle': '', 'placeIds': []}
+            response = {'output': [{'content': [{'type': 'output_text', 'text': json.dumps(answer)}]}], 'usage': {'input_tokens': 100, 'output_tokens': 100}}
+            with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-only-not-a-real-key'}), patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(response).encode())) as request:
+                self.assertEqual(self.request('chat', {'message': message, 'conversationId': conversation, 'language': language}, token)[0], 200)
+                payload = json.loads(request.call_args.args[0].data)
+                self.assertEqual(len(payload['input']), 1)
+                self.assertIn('English' if language == 'en' else 'بالعربية الفصحى', payload['instructions'])
+                self.assertIn('Kazan Kremlin' if language == 'en' else 'كرملين قازان', payload['instructions'])
+        for invalid in ['fr', ['en'], None]:
+            self.assertEqual(self.request('chat', {'message': 'Hello', 'conversationId': conversation, 'language': invalid}, token)[0], 400)
 
     def test_chat_validates_catalog_and_persists_context(self):
         answer = {'message': 'Начни с Кремля.', 'routeTitle': 'Кремль и дом Ушковой', 'placeIds': ['kremlin', 'ushkova']}

@@ -1,4 +1,7 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { t, useI18n, type Language } from "../i18n";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { localizeCatalog, localizeHome } from "../i18n/catalog";
+import { LanguageControl } from "../components/LanguageControl";
 import type { Destination, HomeContent, HomeRepository } from "../domain/home";
 import { readScreen, type DemoCatalog, type PlaceId, type Screen, type ThemeRoute, type ZilantAnswer } from "../domain/demo";
 import { localHomeRepository } from "../data/homeRepository";
@@ -14,8 +17,8 @@ import { DetailSheet } from "../components/DetailSheet";
 import { PlacePhoto, hasPlacePhoto } from "../components/PlacePhoto";
 import { OriginalAsset } from "../components/OriginalAsset";
 import { platform } from "../platform/runtime";
-import { acknowledgeProgress, hasPendingProgress, loadLocalProgress, saveLocalProgress } from "../platform/localProgress";
-import { useAudioPlayback } from "../platform/audioPlayback";
+import { acknowledgeProgress, audioPosition, withAudioPosition, hasPendingProgress, loadLocalProgress, saveLocalProgress } from "../platform/localProgress";
+import { clearAudioForLanguageChange, useAudioPlayback } from "../platform/audioPlayback";
 import { backgroundMusic } from "../data/backgroundMusic";
 
 type Sheet = ProfileSheet | "map-filters" | "player-actions";
@@ -23,8 +26,12 @@ const sheetTitles: Record<Sheet, string> = { favorites: "Избранное", of
 const MapPage = lazy(() => import("../features/map/MapPage").then(module => ({ default: module.MapPage })));
 
 export function App({ repository = localHomeRepository }: { repository?: HomeRepository }) {
-  const [content, setContent] = useState<HomeContent>();
-  const [catalog, setCatalog] = useState<DemoCatalog>();
+  const { language } = useI18n();
+  const [sourceContent, setContent] = useState<HomeContent>();
+  const [sourceCatalog, setCatalog] = useState<DemoCatalog>();
+  const content = useMemo(() => sourceContent && localizeHome(sourceContent, language), [sourceContent, language]);
+  const catalog = useMemo(() => sourceCatalog && localizeCatalog(sourceCatalog, language), [sourceCatalog, language]);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [screen, setScreen] = useState<Screen>(() => readScreen(location.hash));
@@ -37,7 +44,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   const [conversation, setConversation] = useState(() => crypto.randomUUID());
   const [turns, setTurns] = useState<{ question: string; answer: string }[]>([]);
   const [routePlaceIds, setRoutePlaceIds] = useState<PlaceId[]>(["kul-sharif", "ushkova"]);
-  const [routeTitle, setRouteTitle] = useState("Кремль и Кремлёвская улица");
+  const [routeTitle, setRouteTitle] = useState(t("Кремль и Кремлёвская улица"));
   const [progressReady, setProgressReady] = useState(false);
   const [sheet, setSheet] = useState<Sheet>();
   const [notice, setNotice] = useState("");
@@ -61,40 +68,46 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   useEffect(() => { if (screen !== "waiting") pendingRequest.current?.abort(); }, [screen]);
   useEffect(() => {
     let active = true;
-    getServerProgress().then(remote => { if (active && !dirtyProgress.current) { const local = loadLocalProgress(); const value = hasPendingProgress() || (!remote.favorites.length && !remote.visited?.length && Object.keys(remote.positions).length === 0) ? local : remote; setProgress(value); saveLocalProgress(value, false); } }).catch(() => { if (active) showNotice("Нет связи с сервером прогресса. Изменения пока сохраняются на устройстве."); }).finally(() => { if (active) setProgressReady(true); });
+    getServerProgress().then(remote => { if (active && !dirtyProgress.current) { const local = loadLocalProgress(); const value = hasPendingProgress() || (!remote.favorites.length && !remote.visited?.length && Object.keys(remote.positions).length === 0) ? local : remote; setProgress(value); saveLocalProgress(value, false); } }).catch(() => { if (active) showNotice(t("Нет связи с сервером прогресса. Изменения пока сохраняются на устройстве.")); }).finally(() => { if (active) setProgressReady(true); });
     return () => { active = false; };
   }, []);
   useEffect(() => {
     if (!progressReady) return;
-    const timeout = setTimeout(() => { syncQueue.current = syncQueue.current.catch(() => {}).then(async () => { await putServerProgress(progress); acknowledgeProgress(progress); }).catch(() => showNotice("Не удалось сохранить прогресс на сервере. Копия осталась на этом устройстве.")); }, 900);
+    const timeout = setTimeout(() => { syncQueue.current = syncQueue.current.catch(() => {}).then(async () => { await putServerProgress(progress); acknowledgeProgress(progress); }).catch(() => showNotice(t("Не удалось сохранить прогресс на сервере. Копия осталась на этом устройстве."))); }, 900);
     return () => clearTimeout(timeout);
   }, [progress, progressReady]);
   useEffect(() => {
     if (!playback.placeId) return;
     dirtyProgress.current = true;
-    setProgress(previous => { const next = { ...previous, positions: { ...previous.positions, [playback.placeId]: playback.position } }; saveLocalProgress(next); return next; });
-  }, [playback.placeId, Math.floor(playback.position / 5), playback.playing]);
+    setProgress(previous => { const next = withAudioPosition(previous, playback.placeId, playback.language, playback.position); saveLocalProgress(next); return next; });
+  }, [playback.placeId, playback.language, Math.floor(playback.position / 5), playback.playing]);
+  useEffect(() => { if (playback.placeId && playback.language !== language) void clearAudioForLanguageChange(); }, [language, playback.placeId, playback.language]);
 
   function showNotice(message: string) { clearTimeout(noticeTimeout.current); setNotice(message); noticeTimeout.current = setTimeout(() => setNotice(""), 6500); }
   function go(target: Screen, id?: PlaceId) {
     if (target !== "waiting") pendingRequest.current?.abort();
     if (id) setPlaceId(id);
-    setNotice(""); setSheet(undefined);
+    setNotice(""); setSheet(undefined); setLanguageOpen(false);
     location.hash = `/${target}${id ? `/${id}` : ""}`;
     setScreen(target);
     if (target === screen) window.scrollTo({ top: 0, behavior: "auto" });
   }
   function navigate(destination: Destination) { go(destination); }
   function openPlace(id: PlaceId) { go("place", id); }
-  function chooseRoute(route: ThemeRoute) { if (!route.placeIds?.length) return showNotice("Остановки этой прогулки ещё проверяются."); setRoutePlaceIds(route.placeIds); setRouteTitle(route.title.replace(/\n/g, " ")); setMapSelection(route.placeIds[0]!); go("map"); }
-  function updateProgress(next: typeof progress) { dirtyProgress.current = true; setProgress(next); if (!saveLocalProgress(next)) showNotice("Браузер не разрешил сохранение. Изменения доступны до закрытия страницы."); }
+  function chooseRoute(route: ThemeRoute) { if (!route.placeIds?.length) return showNotice(t("Остановки этой прогулки ещё проверяются.")); setRoutePlaceIds(route.placeIds); setRouteTitle(sourceCatalog?.routes.find(item => item.id === route.id)?.title ?? route.title); setMapSelection(route.placeIds[0]!); go("map"); }
+  function updateProgress(next: typeof progress) { dirtyProgress.current = true; setProgress(next); if (!saveLocalProgress(next)) showNotice(t("Браузер не разрешил сохранение. Изменения доступны до закрытия страницы.")); }
+  function changeLanguage(_next: Language) {
+    if (playback.placeId) updateProgress(withAudioPosition(progress, playback.placeId, playback.language, playback.position));
+    void clearAudioForLanguageChange();
+    if (screen === "waiting") { pendingRequest.current?.abort(); setChatError("Язык изменён. Отправь вопрос ещё раз."); go("dialog"); }
+  }
   async function sendQuestion(text: string) {
     pendingRequest.current?.abort();
     if (answer) setTurns(previous => [...previous, { question, answer: answer.message }].slice(-7));
     setQuestion(text); setAnswer(undefined); setChatError(""); go("waiting");
     const controller = new AbortController(); pendingRequest.current = controller;
-    try { const result = await askZilant(text, conversation, controller.signal); if (!controller.signal.aborted) { setAnswer(result); go("dialog"); } }
-    catch (error) { if (!controller.signal.aborted) { setChatError(error instanceof Error ? error.message : "Нет связи с Зилантом. Попробуй ещё раз."); go("dialog"); } }
+    try { const result = await askZilant(text, conversation, controller.signal, language); if (!controller.signal.aborted) { setAnswer(result); go("dialog"); } }
+    catch (error) { if (!controller.signal.aborted) { setChatError(error instanceof Error ? error.message : t("Нет связи с Зилантом. Попробуй ещё раз.")); go("dialog"); } }
   }
 
   const place = catalog?.places.find(p => p.id === placeId) ?? catalog?.places[0];
@@ -105,23 +118,24 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   return <div className={`app-shell platform-${platform} screen-${screen} ${screen === "home" ? "" : "additional-screen"}`}>
     {content && catalog && place ? <>
       {screen === "home" && <HomePage content={content} onNavigate={navigate} />}
-      {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>Загружаем карту…</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={routeTitle} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} /></Suspense>}
+      {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>{t("Загружаем карту…")}</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={t(routeTitle).replace(/\n/g, " ")} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} /></Suspense>}
       {screen === "place" && <PlacePage place={place} visited={progress.visited?.includes(place.id) ?? false} onVisit={() => updateProgress({ ...progress, visited: progress.visited?.includes(place.id) ? progress.visited.filter(id => id !== place.id) : [...(progress.visited ?? []), place.id] })} favorite={progress.favorites.includes(place.id)} onFavorite={() => updateProgress({ ...progress, favorites: progress.favorites.includes(place.id) ? progress.favorites.filter(id => id !== place.id) : [...progress.favorites, place.id] })} onBack={() => { setMapSelection(place.id); go("map"); }} onListen={() => go("player", place.id)} />}
-      {screen === "player" && <PlayerPage key={place.id} place={place} position={progress.positions[place.id] ?? 0} onPosition={seconds => updateProgress({ ...progress, positions: { ...progress.positions, [place.id]: seconds } })} onBack={() => go("place", place.id)} onMap={() => { setMapSelection(place.id); go("map"); }} onMore={() => setSheet("player-actions")} notice={showNotice} />}
+      {screen === "player" && <PlayerPage key={place.id} place={place} position={audioPosition(progress, place.id, language)} onPosition={seconds => updateProgress(withAudioPosition(progress, place.id, language, seconds))} onBack={() => go("place", place.id)} onMap={() => { setMapSelection(place.id); go("map"); }} onMore={() => setSheet("player-actions")} notice={showNotice} />}
       {screen === "routes" && <RoutesPage routes={catalog.routes} onSelect={chooseRoute} onZilant={() => go("zilant")} />}
       {screen === "profile" && <ProfilePage onOpen={setSheet} />}
-      {chat && <ZilantPage key={screen} mode={screen as "zilant" | "dialog" | "waiting"} question={question} answer={answer} routePlace={catalog.places.find(p => answer?.placeIds.includes(p.id) && hasPlacePhoto(p))} error={chatError} turns={turns} onSend={sendQuestion} onNew={() => { setQuestion(""); setAnswer(undefined); setTurns([]); setChatError(""); setConversation(crypto.randomUUID()); go("zilant"); }} onStop={() => { pendingRequest.current?.abort(); go("zilant"); showNotice("Ожидание ответа остановлено."); }} onMap={() => { if (!answer?.placeIds.length) return; setRoutePlaceIds(answer.placeIds); setRouteTitle(answer.routeTitle); setMapSelection(answer.placeIds[0]!); go("map"); }} onAlternative={() => go("routes")} />}
-    </> : <main className="content-state" aria-busy={!failed}><h1>{failed ? "Не получилось загрузить приложение" : "Загружаем Казань…"}</h1>{failed && <><p>Попробуй ещё раз.</p><button type="button" onClick={() => setAttempt(value => value + 1)}>Повторить</button></>}</main>}
+      {chat && <ZilantPage key={screen} mode={screen as "zilant" | "dialog" | "waiting"} question={question} answer={answer} routePlace={catalog.places.find(p => answer?.placeIds.includes(p.id) && hasPlacePhoto(p))} error={chatError} turns={turns} onSend={sendQuestion} onNew={() => { setQuestion(""); setAnswer(undefined); setTurns([]); setChatError(""); setConversation(crypto.randomUUID()); go("zilant"); }} onStop={() => { pendingRequest.current?.abort(); go("zilant"); showNotice(t("Ожидание ответа остановлено.")); }} onMap={() => { if (!answer?.placeIds.length) return; setRoutePlaceIds(answer.placeIds); setRouteTitle(answer.routeTitle); setMapSelection(answer.placeIds[0]!); go("map"); }} onAlternative={() => go("routes")} />}
+    </> : <main className="content-state" aria-busy={!failed}><h1>{failed ? t("Не получилось загрузить приложение") : t("Загружаем Казань…")}</h1>{failed && <><p>{t("Попробуй ещё раз.")}</p><button type="button" onClick={() => setAttempt(value => value + 1)}>{t("Повторить")}</button></>}</main>}
     {withNavigation && <><div className="navigation-gap" aria-hidden="true" /><BottomNavigation current={current} onNavigate={navigate} /></>}
-    <div className="notice-region" role="status" aria-live="polite" aria-atomic="true">{notice && <div className="notice"><span>{notice}</span><button type="button" aria-label="Закрыть сообщение" onClick={() => setNotice("")}>×</button></div>}</div>
-    {sheet && catalog && place && <DetailSheet title={sheetTitles[sheet]} onClose={() => setSheet(undefined)}>
-      {sheet === "favorites" ? <>{catalog.places.filter(p => progress.favorites.includes(p.id)).map(p => <button className="saved-place-row" key={p.id} type="button" onClick={() => openPlace(p.id)}>{hasPlacePhoto(p) && <PlacePhoto place={p} />}<span>{p.title}</span><OriginalAsset asset="profile.imgArrowRight" /></button>)}{!progress.favorites.length && <p>Пока ничего нет. Сохрани понравившееся место с помощью закладки.</p>}</>
-        : sheet === "map-filters" ? <><p>В каталоге {catalog.places.length} мест. Выбери место, чтобы открыть его карточку.</p>{catalog.places.map(p => <button key={p.id} type="button" className="sheet-option" onClick={() => openPlace(p.id)}>{p.title}</button>)}</>
-        : sheet === "player-actions" ? <><button className="sheet-option" type="button" onClick={() => openPlace(place.id)}>Открыть место</button><p>{place.audioUrl ? "Готовая аудиоистория. Позиция сохраняется, пока ты гуляешь по Казани." : "Готовая аудиозапись для этого места ещё не загружена."}</p><p>Музыкальный фон включается кнопкой «Фон» и играет только вместе с рассказом.</p><p className="music-credit">«{backgroundMusic.title}» — {backgroundMusic.author} (<a href={backgroundMusic.sourceUrl} target="_blank" rel="noreferrer">incompetech.com</a>). Лицензия <a href={backgroundMusic.licenseUrl} target="_blank" rel="noreferrer">{backgroundMusic.license}</a>. Оригинальная запись; при воспроизведении уменьшена громкость и включён повтор.</p></>
-        : sheet === "awards" ? <><div className="sheet-medal"><OriginalAsset asset="profile.imgFrame" /></div><p>Ты отметил посещение {progress.visited?.length ?? 0} мест.</p>{catalog.places.filter(p => progress.visited?.includes(p.id)).map(p => <p key={p.id}>{p.title}</p>)}<p>Правила выдачи наград ещё согласуются.</p></>
-        : sheet === "offline" ? <><p>Скачанных маршрутов пока нет.</p><p>Полноценная загрузка карты, текстов, фотографий и аудио ещё не подключена.</p><button className="primary-action" type="button" onClick={() => go("routes")}>Выбрать маршрут</button></>
-        : sheet === "account" ? <><p>Ты знакомишься с Казанью как гость.</p><p>Избранное, посещения и позиция истории сохраняются на устройстве и сервере для этой гостевой сессии. Вход по email и объединение устройств ещё не подключены.</p></>
-        : <><p>Казань · Русский язык</p><p>Рабочая демоверсия: интерактивная карта и Зилант через OpenAI.</p><button className="sheet-option" type="button" onClick={() => setSheet("account")}>Аккаунт и синхронизация</button></>}
+    <LanguageControl open={languageOpen} onOpen={() => { setSheet(undefined); setLanguageOpen(true); }} onClose={() => setLanguageOpen(false)} onChange={changeLanguage} />
+    <div className="notice-region" role="status" aria-live="polite" aria-atomic="true">{notice && <div className="notice"><span>{t(notice)}</span><button type="button" aria-label={t("Закрыть сообщение")} onClick={() => setNotice("")}>×</button></div>}</div>
+    {sheet && catalog && place && <DetailSheet title={t(sheetTitles[sheet])} onClose={() => setSheet(undefined)}>
+      {sheet === "favorites" ? <>{catalog.places.filter(p => progress.favorites.includes(p.id)).map(p => <button className="saved-place-row" key={p.id} type="button" onClick={() => openPlace(p.id)}>{hasPlacePhoto(p) && <PlacePhoto place={p} />}<span>{p.title}</span><OriginalAsset asset="profile.imgArrowRight" /></button>)}{!progress.favorites.length && <p>{t("Пока ничего нет. Сохрани понравившееся место с помощью закладки.")}</p>}</>
+        : sheet === "map-filters" ? <><p>{t("В каталоге {0} мест. Выбери место, чтобы открыть его карточку.", {0: catalog.places.length})}</p>{catalog.places.map(p => <button key={p.id} type="button" className="sheet-option" onClick={() => openPlace(p.id)}>{p.title}</button>)}</>
+        : sheet === "player-actions" ? <><button className="sheet-option" type="button" onClick={() => openPlace(place.id)}>{t("Открыть место")}</button><p>{place.audioUrl ? t("Готовая аудиоистория. Позиция сохраняется, пока ты гуляешь по Казани.") : t("Готовая аудиозапись для этого места ещё не загружена.")}</p><p>{t("Музыкальный фон включается кнопкой «Фон» и играет только вместе с рассказом.")}</p><p className="music-credit">«{backgroundMusic.title}» — {backgroundMusic.author} (<a href={backgroundMusic.sourceUrl} target="_blank" rel="noreferrer">incompetech.com</a>{t("). Лицензия")} <a href={backgroundMusic.licenseUrl} target="_blank" rel="noreferrer">{backgroundMusic.license}</a>{t(". Оригинальная запись; при воспроизведении уменьшена громкость и включён повтор.")}</p></>
+        : sheet === "awards" ? <><div className="sheet-medal"><OriginalAsset asset="profile.imgFrame" /></div><p>{t("Ты отметил посещение {0} мест.", {0: progress.visited?.length ?? 0})}</p>{catalog.places.filter(p => progress.visited?.includes(p.id)).map(p => <p key={p.id}>{p.title}</p>)}<p>{t("Правила выдачи наград ещё согласуются.")}</p></>
+        : sheet === "offline" ? <><p>{t("Скачанных маршрутов пока нет.")}</p><p>{t("Полноценная загрузка карты, текстов, фотографий и аудио ещё не подключена.")}</p><button className="primary-action" type="button" onClick={() => go("routes")}>{t("Выбрать маршрут")}</button></>
+        : sheet === "account" ? <><p>{t("Ты знакомишься с Казанью как гость.")}</p><p>{t("Избранное, посещения и позиция истории сохраняются на устройстве и сервере для этой гостевой сессии. Вход по email и объединение устройств ещё не подключены.")}</p></>
+        : <><p>{t("Казань · Русский язык")}</p><p>{t("Рабочая демоверсия: интерактивная карта и Зилант через OpenAI.")}</p><button className="sheet-option" type="button" onClick={() => setSheet("account")}>{t("Аккаунт и синхронизация")}</button></>}
     </DetailSheet>}
   </div>;
 }

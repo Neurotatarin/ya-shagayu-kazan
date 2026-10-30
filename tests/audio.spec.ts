@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("original MP3s play, seek, pause, keep position and survive screen changes", async ({ page }, info) => {
-  test.setTimeout(60000);
+  test.setTimeout(90000);
   test.skip(!["phone-402", "iphone-xr-webkit"].includes(info.project.name), "Audio engines are checked in Chromium and iPhone WebKit.");
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -23,12 +23,15 @@ test("original MP3s play, seek, pause, keep position and survive screen changes"
   await page.getByRole("button", { name: /Слушать историю/ }).click();
   await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Пауза", exact: true }).click();
+  const positionSaved = page.waitForResponse(response => response.url().endsWith("/api/progress") && response.request().method() === "PUT" && response.request().postDataJSON().positions?.ushkova === 91 && response.ok());
   await slider.fill("91");
-  await page.waitForResponse(response => response.url().endsWith("/api/progress") && response.request().method() === "PUT" && response.ok());
+  await positionSaved;
   await page.reload();
   await expect(slider).toHaveValue("91");
   await page.getByRole("button", { name: "Воспроизвести историю" }).click();
-  await expect.poll(async () => Number(await slider.inputValue()), { timeout: 15000 }).toBeGreaterThan(92);
+  // Real HTTP byte-range reloads can take longer in Windows WebKit's native
+  // media pipeline while the gallery inventory is downloading in parallel.
+  await expect.poll(async () => Number(await slider.inputValue()), { timeout: 30000 }).toBeGreaterThan(92);
   await page.getByRole("button", { name: "Пауза", exact: true }).click();
   await page.goto("/#/player/kremlin");
   await expect(page.locator(".player-times")).toContainText("4:06");

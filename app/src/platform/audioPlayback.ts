@@ -3,26 +3,30 @@ import { Capacitor, registerPlugin, type PluginListenerHandle } from "@capacitor
 import type { Place } from "../domain/demo";
 import { mediaUrl } from "../data/api";
 import { backgroundMusic } from "../data/backgroundMusic";
+import { getLanguage, isLanguage, t, type Language } from "../i18n";
 
-interface AudioState { placeId: string; position: number; duration: number; playing: boolean; loading: boolean; speed: number; error: string; backgroundEnabled: boolean; backgroundPlaying: boolean; backgroundError: string }
+interface AudioState { placeId: string; language: Language; position: number; duration: number; playing: boolean; loading: boolean; speed: number; error: string; backgroundEnabled: boolean; backgroundPlaying: boolean; backgroundError: string }
+type NativeState = Omit<AudioState, "language">;
 interface NativeAudio {
-  loadTrack(options: { id: string; url: string; title: string; position: number; duration: number; speed: number }): Promise<AudioState>;
-  play(): Promise<AudioState>; pause(): Promise<AudioState>; seek(options: { seconds: number }): Promise<AudioState>;
-  setSpeed(options: { speed: number }): Promise<AudioState>; getState(): Promise<AudioState>;
-  setBackground(options: { enabled: boolean; url: string; volume: number }): Promise<AudioState>;
-  addListener(event: "stateChange", listener: (state: AudioState) => void): Promise<PluginListenerHandle>;
+  loadTrack(options: { id: string; url: string; title: string; artist: string; album: string; position: number; duration: number; speed: number }): Promise<NativeState>;
+  play(): Promise<NativeState>; pause(): Promise<NativeState>; clearTrack(): Promise<NativeState>; seek(options: { seconds: number }): Promise<NativeState>;
+  setSpeed(options: { speed: number }): Promise<NativeState>; getState(): Promise<NativeState>;
+  setBackground(options: { enabled: boolean; url: string; volume: number }): Promise<NativeState>;
+  addListener(event: "stateChange", listener: (state: NativeState) => void): Promise<PluginListenerHandle>;
 }
 const native = Capacitor.getPlatform() === "ios" && Capacitor.isNativePlatform();
 const nativePlayer = registerPlugin<NativeAudio>("KazanAudio");
 const audio = native ? undefined : new Audio();
 if (audio) audio.preload = "metadata";
-let state: AudioState = { placeId: "", position: 0, duration: 0, playing: false, loading: false, speed: 1, error: "", backgroundEnabled: false, backgroundPlaying: false, backgroundError: "" };
+let state: AudioState = { placeId: "", language: getLanguage(), position: 0, duration: 0, playing: false, loading: false, speed: 1, error: "", backgroundEnabled: false, backgroundPlaying: false, backgroundError: "" };
+let trackVersion = 0, loadedSource = "";
 let music: HTMLAudioElement | undefined, musicContext: AudioContext | undefined, musicGain: GainNode | undefined;
 let musicPriming = false, musicAttempt = 0;
 let browserAudible = false, lastBrowserTime = 0;
 let restorePosition: number | undefined;
 const listeners = new Set<() => void>();
 const update = (change: Partial<AudioState>) => { state = { ...state, ...change }; for (const listener of listeners) listener(); };
+const updateNative = (snapshot: NativeState) => { const [placeId, language] = snapshot.placeId.split("@"); update({ ...snapshot, placeId, language: isLanguage(language) ? language : "ru" }); };
 const failure = () => update({ error: "Не удалось загрузить аудио. Проверь подключение и попробуй ещё раз.", loading: false, playing: false });
 const backgroundFailure = () => {
   musicPriming = false; musicAttempt++; music?.pause();
@@ -96,17 +100,18 @@ if (audio) {
   audio.addEventListener("error", () => { browserAudible = false; failure(); syncBackground(false); });
 }
 
-const nativeReady = native ? nativePlayer.addListener("stateChange", snapshot => update(snapshot)).then(async () => update(await nativePlayer.getState())).catch(failure) : Promise.resolve();
-document.addEventListener("visibilitychange", () => { if (native && document.visibilityState === "visible") void nativePlayer.getState().then(update).catch(failure); });
+const nativeReady = native ? nativePlayer.addListener("stateChange", updateNative).then(async () => updateNative(await nativePlayer.getState())).catch(failure) : Promise.resolve();
+document.addEventListener("visibilitychange", () => { if (native && document.visibilityState === "visible") void nativePlayer.getState().then(updateNative).catch(failure); });
 
 function prepareBrowser(place: Place, position: number, speed: number) {
   if (!audio || !place.audioUrl) return;
-  if (state.placeId !== place.id || audio.error) {
+  if (state.placeId !== place.id || state.language !== (place.audioLanguage ?? "ru") || loadedSource !== place.audioUrl || audio.error) {
     audio.pause(); browserAudible = false; lastBrowserTime = 0; restorePosition = Math.min(position, place.durationSeconds);
-    update({ placeId: place.id, position: restorePosition, duration: place.durationSeconds, playing: false, loading: false, speed, error: "" });
+    update({ placeId: place.id, language: place.audioLanguage ?? "ru", position: restorePosition, duration: place.durationSeconds, playing: false, loading: false, speed, error: "" });
+    loadedSource = place.audioUrl;
     audio.src = mediaUrl(place.audioUrl); audio.playbackRate = speed;
     if ("mediaSession" in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: place.title, artist: "Зилант", album: "Я шагаю по Казани" });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: place.title, artist: t("Зилант"), album: t("Я шагаю по Казани") });
       for (const [name, handler] of Object.entries({ play: () => { primeBackgroundFromGesture(); void audio.play().catch(failure); }, pause: () => audio.pause(), seekbackward: () => seekAudio(audio.currentTime - 15), seekforward: () => seekAudio(audio.currentTime + 15) })) {
         try { navigator.mediaSession.setActionHandler(name as MediaSessionAction, handler); } catch { /* Optional action. */ }
       }
@@ -119,23 +124,42 @@ function prepareBrowser(place: Place, position: number, speed: number) {
 // Safari user gesture. The iPhone shell uses AVPlayer and AVAudioSession instead.
 export async function toggleAudio(place: Place, position: number, speed = 1): Promise<boolean> {
   if (!place.audioUrl) return false;
+  const version = trackVersion;
   if (native) {
     await nativeReady;
-    update(await nativePlayer.loadTrack({ id: place.id, url: mediaUrl(place.audioUrl), title: place.title, duration: place.durationSeconds, position, speed }));
-    update(await (state.playing ? nativePlayer.pause() : nativePlayer.play()));
+    if (version !== trackVersion) return false;
+    updateNative(await nativePlayer.loadTrack({ id: place.id + "@" + (place.audioLanguage ?? "ru"), url: mediaUrl(place.audioUrl), title: place.title, artist: t("Зилант"), album: t("Я шагаю по Казани"), duration: place.durationSeconds, position, speed }));
+    if (version !== trackVersion) return false;
+    updateNative(await (state.playing ? nativePlayer.pause() : nativePlayer.play()));
   } else if (audio) {
     prepareBrowser(place, position, speed);
     audio.preload = "auto";
     audio.playbackRate = speed;
-    if (audio.paused) { update({ loading: true, error: "" }); primeBackgroundFromGesture(); await audio.play(); } else audio.pause();
+    if (audio.paused) { update({ loading: true, error: "" }); primeBackgroundFromGesture(); try { await audio.play(); } catch (error) { if (version === trackVersion) throw error; } } else audio.pause();
   }
   return true;
+}
+export async function clearAudioForLanguageChange() {
+  trackVersion++;
+  if (native) {
+    await nativeReady;
+    updateNative(await nativePlayer.clearTrack());
+  } else if (audio) {
+    audio.pause(); music?.pause(); browserAudible = false; restorePosition = undefined; loadedSource = "";
+    audio.removeAttribute("src"); audio.load();
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = "none";
+      for (const action of ["play", "pause", "seekbackward", "seekforward", "seekto"] as MediaSessionAction[]) try { navigator.mediaSession.setActionHandler(action, null); } catch { /* Optional browser action. */ }
+      try { navigator.mediaSession.setPositionState(); } catch { /* Optional browser support. */ }
+    }
+    update({ placeId: "", language: getLanguage(), position: 0, duration: 0, playing: false, loading: false, error: "", backgroundPlaying: false, backgroundError: "" });
+  }
 }
 export async function setBackgroundEnabled(enabled: boolean) {
   update({ backgroundError: "" });
   if (native) {
     await nativeReady;
-    try { update(await nativePlayer.setBackground({ enabled, url: mediaUrl(backgroundMusic.url), volume: backgroundMusic.volume })); }
+    try { updateNative(await nativePlayer.setBackground({ enabled, url: mediaUrl(backgroundMusic.url), volume: backgroundMusic.volume })); }
     catch { backgroundFailure(); }
   } else {
     try {
@@ -152,12 +176,12 @@ export async function setBackgroundEnabled(enabled: boolean) {
 export function seekAudio(seconds: number) {
   const position = Math.max(0, Math.min(seconds, state.duration));
   update({ position });
-  if (native) void nativePlayer.seek({ seconds: position }).then(update).catch(failure);
+  if (native) void nativePlayer.seek({ seconds: position }).then(updateNative).catch(failure);
   else if (audio) { if (restorePosition !== undefined) restorePosition = position; else audio.currentTime = position; browserState(); }
 }
 export function setAudioSpeed(speed: number) {
   update({ speed });
-  if (native) void nativePlayer.setSpeed({ speed }).then(update).catch(failure);
+  if (native) void nativePlayer.setSpeed({ speed }).then(updateNative).catch(failure);
   else if (audio) audio.playbackRate = speed;
 }
 export function useAudioPlayback() { return useSyncExternalStore(listener => { listeners.add(listener); return () => listeners.delete(listener); }, () => state); }

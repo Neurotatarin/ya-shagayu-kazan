@@ -17,6 +17,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "loadTrack", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "play", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "pause", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "clearTrack", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "seek", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSpeed", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setBackground", returnType: CAPPluginReturnPromise),
@@ -34,6 +35,8 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     private var tokens: [NSObjectProtocol] = []
     private var placeId = ""
     private var title = ""
+    private var artist = "Зилант"
+    private var album = "Я шагаю по Казани"
     private var source = ""
     private var position = 0.0
     private var duration = 0.0
@@ -57,6 +60,8 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         if let saved = UserDefaults.standard.dictionary(forKey: storageKey) {
             placeId = saved["placeId"] as? String ?? ""
             title = saved["title"] as? String ?? ""
+            artist = saved["artist"] as? String ?? "Зилант"
+            album = saved["album"] as? String ?? "Я шагаю по Казани"
             source = saved["url"] as? String ?? ""
             position = saved["position"] as? Double ?? 0
             duration = saved["duration"] as? Double ?? 0
@@ -120,6 +125,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             if let observer = self.timeObserver { self.player?.removeTimeObserver(observer) }
             self.itemObserver?.invalidate(); self.playbackObserver?.invalidate()
             self.placeId = id; self.title = call.getString("title") ?? "История Казани"; self.source = raw
+            self.artist = call.getString("artist") ?? "Зилант"; self.album = call.getString("album") ?? "Я шагаю по Казани"
             self.duration = max(0, call.getDouble("duration") ?? 0)
             self.position = max(0, min(call.getDouble("position") ?? 0, self.duration))
             self.speed = max(1, min(call.getDouble("speed") ?? 1, 2))
@@ -167,7 +173,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         position = max(0, min(seconds, duration)); pendingSeek = position
         guard let player = player else { pendingSeek = nil; save(); emit(); return }
         player.seek(to: CMTime(seconds: position, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
-            DispatchQueue.main.async { guard let self = self else { return }; self.pendingSeek = nil; if self.wantsPlay { self.player?.playImmediately(atRate: Float(self.speed)) }; self.save(); self.emit() }
+            DispatchQueue.main.async { guard let self = self, self.player === player else { return }; self.pendingSeek = nil; if self.wantsPlay { self.player?.playImmediately(atRate: Float(self.speed)) }; self.save(); self.emit() }
         }
         save(); emit()
     }
@@ -178,7 +184,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     private func save() {
         guard !placeId.isEmpty else { return }
         _ = snapshot()
-        UserDefaults.standard.set(["placeId": placeId, "title": title, "url": source, "position": position, "duration": duration, "speed": speed], forKey: storageKey)
+        UserDefaults.standard.set(["placeId": placeId, "title": title, "artist": artist, "album": album, "url": source, "position": position, "duration": duration, "speed": speed], forKey: storageKey)
         lastSaved = position
     }
     private func emit() {
@@ -190,14 +196,27 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let data = snapshot()
         if abs(position - lastSaved) >= 5 { save() }
         if !placeId.isEmpty {
-            var info: [String: Any] = [MPMediaItemPropertyTitle: title, MPMediaItemPropertyArtist: "Зилант", MPMediaItemPropertyAlbumTitle: "Я шагаю по Казани", MPMediaItemPropertyPlaybackDuration: duration, MPNowPlayingInfoPropertyElapsedPlaybackTime: position, MPNowPlayingInfoPropertyPlaybackRate: wantsPlay ? speed : 0]
+            var info: [String: Any] = [MPMediaItemPropertyTitle: title, MPMediaItemPropertyArtist: artist, MPMediaItemPropertyAlbumTitle: album, MPMediaItemPropertyPlaybackDuration: duration, MPNowPlayingInfoPropertyElapsedPlaybackTime: position, MPNowPlayingInfoPropertyPlaybackRate: wantsPlay ? speed : 0]
             if let artwork = artwork { info[MPMediaItemPropertyArtwork] = artwork }
             MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        }
+        } else { MPNowPlayingInfoCenter.default().nowPlayingInfo = nil }
         if UIApplication.shared.applicationState == .active { notifyListeners("stateChange", data: data) }
     }
     @objc func play(_ call: CAPPluginCall) { DispatchQueue.main.async { do { try self.start(); call.resolve(self.snapshot()) } catch { call.reject("Не удалось включить аудио.") } } }
     @objc func pause(_ call: CAPPluginCall) { DispatchQueue.main.async { self.stop(); call.resolve(self.snapshot()) } }
+    @objc func clearTrack(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.stop()
+            if let observer = self.timeObserver { self.player?.removeTimeObserver(observer); self.timeObserver = nil }
+            self.itemObserver?.invalidate(); self.itemObserver = nil
+            self.playbackObserver?.invalidate(); self.playbackObserver = nil
+            self.player?.replaceCurrentItem(with: nil); self.player = nil
+            self.pendingSeek = nil; self.placeId = ""; self.title = ""; self.source = ""
+            self.position = 0; self.duration = 0; self.failure = ""; self.resumeAfterInterruption = false
+            UserDefaults.standard.removeObject(forKey: self.storageKey)
+            self.emit(); call.resolve(self.snapshot())
+        }
+    }
     @objc func seek(_ call: CAPPluginCall) { DispatchQueue.main.async { self.move(to: call.getDouble("seconds") ?? 0); call.resolve(self.snapshot()) } }
     @objc func setSpeed(_ call: CAPPluginCall) { DispatchQueue.main.async { self.speed = max(1, min(call.getDouble("speed") ?? 1, 2)); if self.wantsPlay { self.player?.rate = Float(self.speed) }; self.save(); self.emit(); call.resolve(self.snapshot()) } }
     @objc func getState(_ call: CAPPluginCall) { DispatchQueue.main.async { call.resolve(self.snapshot()) } }

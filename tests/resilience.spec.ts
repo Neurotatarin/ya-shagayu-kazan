@@ -3,7 +3,7 @@ import { deterministicServices } from "./services";
 
 test("unacknowledged progress survives reload and replaces an expired guest session", async ({ page }, info) => {
   test.skip(info.project.name !== "phone-402", "One service resilience check is sufficient.");
-  await deterministicServices(page);
+  await deterministicServices(page, { keepAudio: true });
   await page.addInitScript(() => {
     localStorage.setItem("kazan:guest:token:v1", "expired-test-token");
     localStorage.setItem("kazan:design-preview:progress:v1", JSON.stringify({ favorites: ["ushkova"], visited: ["ushkova"], positions: { ushkova: 37 } }));

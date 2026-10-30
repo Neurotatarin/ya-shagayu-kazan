@@ -8,6 +8,7 @@ import { App } from "./app/DemoApp";
 import "./styles/tokens.css";
 import "./styles/home.css";
 import "./styles/screens.css";
+import "./styles/i18n.css";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode><App /></React.StrictMode>,

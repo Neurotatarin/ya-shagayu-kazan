@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Place, PlaceImage } from "../domain/demo";
 import { mediaUrl } from "../data/api";
 import { OriginalAsset } from "./OriginalAsset";
@@ -11,5 +12,5 @@ export function PlacePhoto({ place, className, alt = place.title }: { place: Pla
 }
 
 export function PhotoCredit({ image, className = "" }: { image: PlaceImage; className?: string }) {
-  return <span className={`photo-credit ${className}`}><a href={image.sourceUrl} target="_blank" rel="noreferrer">Фото: {image.author}</a><span> · </span><a href={image.licenseUrl || image.sourceUrl} target="_blank" rel="noreferrer">{image.license}</a></span>;
+  return <span className={`photo-credit ${className}`}><a href={image.sourceUrl} target="_blank" rel="noreferrer">{t("Фото:")} {image.author === "Автор не указан" ? t("Автор не указан") : image.author}</a><span> · </span><a href={image.licenseUrl || image.sourceUrl} target="_blank" rel="noreferrer">{image.license}</a></span>;
 }

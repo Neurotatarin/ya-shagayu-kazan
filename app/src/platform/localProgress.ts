@@ -1,4 +1,5 @@
 import type { LocalProgress, PlaceId } from "../domain/demo";
+import { isLanguage, type Language } from "../i18n";
 
 const storageKey = "kazan:design-preview:progress:v1";
 const pendingKey = "kazan:progress:pending:v1";
@@ -16,8 +17,21 @@ export function loadLocalProgress(): LocalProgress {
       const seconds = saved.positions?.[id];
       if (typeof seconds === "number" && Number.isFinite(seconds)) positions[id] = Math.max(0, Math.min(seconds, 86400));
     }
-    return { favorites, positions, visited: Array.isArray(saved.visited) ? saved.visited.filter(validId) : [] };
+    const audioPositions: NonNullable<LocalProgress["audioPositions"]> = {};
+    for (const [id, tracks] of Object.entries(saved.audioPositions ?? {})) {
+      if (!validId(id) || !tracks || typeof tracks !== "object") continue;
+      for (const [language, seconds] of Object.entries(tracks)) if (isLanguage(language) && typeof seconds === "number" && Number.isFinite(seconds) && seconds >= 0 && seconds <= 86400) audioPositions[id] = { ...audioPositions[id], [language]: seconds };
+    }
+    return { favorites, positions, visited: Array.isArray(saved.visited) ? saved.visited.filter(validId) : [], ...(Object.keys(audioPositions).length ? { audioPositions } : {}) };
   } catch { return initial(); }
+}
+
+export function audioPosition(progress: LocalProgress, place: PlaceId, language: Language) {
+  return progress.audioPositions?.[place]?.[language] ?? (language === "ru" ? progress.positions[place] ?? 0 : 0);
+}
+export function withAudioPosition(progress: LocalProgress, place: PlaceId, language: Language, seconds: number): LocalProgress {
+  const position = Math.max(0, Math.min(Number.isFinite(seconds) ? seconds : 0, 86400));
+  return { ...progress, positions: language === "ru" ? { ...progress.positions, [place]: position } : progress.positions, audioPositions: { ...progress.audioPositions, [place]: { ...progress.audioPositions?.[place], [language]: position } } };
 }
 
 export function saveLocalProgress(progress: LocalProgress, pending = true): boolean {

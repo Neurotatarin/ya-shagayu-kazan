@@ -1,0 +1,50 @@
+@import "/fonts/arabic/font.css";
+
+/* The new control uses the existing pale/green button tokens from Figma. */
+.language-control { position: fixed; z-index: 8; top: calc(20px + var(--safe-top) + var(--app-offset, 0px)); left: 50%; width: min(460px, 100%); transform: translateX(-50%); pointer-events: none; direction: ltr; }
+.language-trigger { position: absolute; right: 84px; display: grid; place-items: center; width: 56px; height: 44px; padding: 6px 0; border: 0; border-radius: 22px; color: var(--green); background: transparent; pointer-events: auto; font: 500 12px/16px "Onest", sans-serif; }
+.language-trigger > span { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 16px; background: var(--pale); }
+.screen-profile .language-trigger, .screen-routes .language-trigger { right: 18px; }
+:root[dir="rtl"] .screen-profile .language-trigger, :root[dir="rtl"] .screen-routes .language-trigger { right: auto; left: 18px; }
+.screen-map .language-control { top: calc(85px + var(--safe-top) + var(--app-offset, 0px)); }
+.screen-map .language-trigger { right: 18px; }
+.language-options { display: grid; gap: 10px; }
+.language-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: ltr; width: 100%; min-height: 52px; padding: 12px 18px; border: 0; border-radius: 26px; background: var(--white); color: var(--ink); font: 500 15px/22px var(--font-body); text-align: start; }
+.language-option[aria-pressed="true"] { background: var(--pale); }
+.language-option [lang="ar"] { font-family: "Noto Sans Arabic", sans-serif; }
+.language-option [lang="ru"], .language-option [lang="en"] { font-family: "Onest", sans-serif; }
+.language-code { color: var(--green); font: 500 12px/16px "Onest", sans-serif; }
+.sheet-panel > .language-note { margin: 20px 0 0; font-size: 12px; color: var(--muted); }
+.audio-unavailable .play-action { background: var(--pale); box-shadow: none; }
+.audio-unavailable .play-action img, .audio-unavailable .skip-action, .audio-unavailable .playback-speed { opacity: .35; }
+button:disabled, input:disabled { cursor: default; }
+.audio-availability-note { margin: 10px 24px 0; color: var(--muted); font: 400 12px/18px var(--font-body); }
+.listen-story.audio-pending { background: var(--pale); color: var(--green); }
+.gallery-source-caption { margin-top: 12px; color: var(--muted); font: 400 12px/18px var(--font-body); }
+.photo-credit { direction: ltr; text-align: start; }
+.player-times, .cover-chapter, .expanded-gallery-navigation > span { direction: ltr; unicode-bidi: isolate; }
+.gallery-photo-caption { unicode-bidi: plaintext; }
+
+/* Arabic text reads right-to-left. Artwork, map gestures, media timelines and
+   the established positions of navigation/control icons keep their geometry. */
+:root[lang="ar"] { --font-body: "Noto Sans Arabic", "Onest", sans-serif; --font-display: "Noto Sans Arabic", "Tenor Sans", sans-serif; }
+:root[dir="rtl"] .home-header, :root[dir="rtl"] .bottom-navigation,
+:root[dir="rtl"] .player-header, :root[dir="rtl"] .playback-controls,
+:root[dir="rtl"] .player-extra-actions, :root[dir="rtl"] .place-top-actions,
+:root[dir="rtl"] .themes-gallery, :root[dir="rtl"] .themes-footer,
+:root[dir="rtl"] .route-card, :root[dir="rtl"] .map-top-controls,
+:root[dir="rtl"] .chat-header, :root[dir="rtl"] .chat-composer,
+:root[dir="rtl"] .player-progress, :root[dir="rtl"] .traveler-card { direction: ltr; }
+:root[dir="rtl"] .featured-heading, :root[dir="rtl"] .start-walk, :root[dir="rtl"] .primary-action { direction: ltr; }
+:root[dir="rtl"] .brand, :root[dir="rtl"] .chat-header > div:not(.chat-avatar),
+:root[dir="rtl"] .traveler-card > span:last-child, :root[dir="rtl"] .chat-composer input { direction: rtl; text-align: right; }
+:root[dir="rtl"] .welcome-scene h2, :root[dir="rtl"] .scene-description { width: 39%; text-align: right; }
+:root[dir="rtl"] .audio-cover > p { width: 39.6%; text-align: right; }
+:root[dir="rtl"] .theme-card-design { direction: rtl; text-align: right; }
+:root[dir="rtl"] .route-copy { direction: rtl; text-align: right; }
+:root[dir="rtl"] .route-meta { direction: ltr; }
+:root[dir="rtl"] .route-meta > span { direction: rtl; }
+:root[dir="rtl"] .audio-cover > p, :root[dir="rtl"] .welcome-scene h2 { letter-spacing: 0; }
+:root[dir="rtl"] .theme-meta { direction: rtl; }
+@media (max-width: 359px) { .player-header p { transform: translateX(-22px); font-size: 10px; } }
+@media (min-width: 768px) { .app-shell { --app-offset: 24px; } .language-control { width: 402px; } }

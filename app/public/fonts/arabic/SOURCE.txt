@@ -1,0 +1,4 @@
+Noto Sans Arabic, unmodified Google Fonts WOFF2 files.
+CSS source: https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600&display=swap
+Font project: https://github.com/google/fonts/tree/main/ofl/notosansarabic
+License: SIL OFL 1.1 (included).

@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import { t, getLanguage, type Language } from "../i18n";
 import type { CatalogRepository, DemoCatalog, LocalProgress, PlaceId, WalkingRoute, ZilantAnswer } from "../domain/demo";
 
 const base = Capacitor.isNativePlatform() ? "https://kazan-demo.38-180-191-162.sslip.io" : "";
@@ -11,15 +12,15 @@ export async function api<T>(path: string, options: RequestInit = {}, authentica
   const token = authenticated ? await guestToken() : "";
   let response: Response;
   try { response = await fetch(`${base}/api/${path}`, { ...options, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers } }); }
-  catch (error) { if (options.signal?.aborted) throw error; throw new Error("Нет связи с сервером. Проверь интернет и попробуй ещё раз."); }
+  catch (error) { if (options.signal?.aborted) throw error; throw new Error(t("Нет связи с сервером. Проверь интернет и попробуй ещё раз.")); }
   if (response.status === 401 && authenticated && !retried) {
     memoryToken = ""; sessionPromise = undefined;
     try { localStorage.removeItem(sessionKey); } catch { /* In-memory replacement works. */ }
     return api<T>(path, options, true, true);
   }
   let result;
-  try { result = await response.json(); } catch { throw new Error("Сервис временно недоступен. Попробуй ещё раз."); }
-  if (!response.ok) throw new Error(result.error || "Сервис временно недоступен. Попробуй ещё раз.");
+  try { result = await response.json(); } catch { throw new Error(t("Сервис временно недоступен. Попробуй ещё раз.")); }
+  if (!response.ok) throw new Error(t(result.error || "Сервис временно недоступен. Попробуй ещё раз."));
   return result as T;
 }
 
@@ -52,5 +53,5 @@ export const apiCatalogRepository: CatalogRepository = {
 export const getServerProgress = () => api<LocalProgress>("progress");
 export const putServerProgress = (progress: LocalProgress) => api<LocalProgress>("progress", { method: "PUT", body: JSON.stringify(progress) });
 export const calculateWalkingRoute = (placeIds: PlaceId[], signal: AbortSignal, start?: [number, number]) => api<WalkingRoute>("walking-route", { method: "POST", signal, body: JSON.stringify({ placeIds, ...(start ? { start } : {}) }) });
-export const askZilant = (message: string, conversationId: string, signal: AbortSignal) => api<ZilantAnswer>("chat", { method: "POST", signal, body: JSON.stringify({ message, conversationId }) });
+export const askZilant = (message: string, conversationId: string, signal: AbortSignal, language: Language = getLanguage()) => api<ZilantAnswer>("chat", { method: "POST", signal, body: JSON.stringify({ message, conversationId, language }) });
 export const mediaUrl = (url: string) => url.startsWith("/") ? `${base}${url}` : url;
