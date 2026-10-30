@@ -41,7 +41,7 @@
       "title": "Казанский Кремль",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Казанский Кремль",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1061691,
         55.7990218
@@ -52,20 +52,42 @@
       "photo": "dialog.imgKremlinJpg",
       "audioUrl": "/media/kremlin-06681b66c5a9.mp3",
       "audioOriginalDurationSeconds": 245.551,
-      "galleryUrl": "/media/gallery-kremlin-7cb15a47ae6c314b.json"
+      "galleryUrl": "/media/gallery-kremlin-7cb15a47ae6c314b.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/kremlin-06681b66c5a9.mp3",
+          "durationSeconds": 246
+        },
+        "ar": {
+          "url": "/media/kremlin-ar-ab007249b29d9963.mp3",
+          "durationSeconds": 276
+        },
+        "en": {
+          "url": "/media/kremlin-en-46cc5228abe38a4f.mp3",
+          "durationSeconds": 239
+        }
+      },
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "suyumbike",
       "title": "Башня Сююмбике",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Казанский Кремль",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1051829,
         55.8004715
       ],
       "category": "history",
-      "durationSeconds": 0,
+      "durationSeconds": 199,
       "coordinateSource": "https://www.openstreetmap.org/way/228963085",
       "image": {
         "url": "/media/photo-0819cbead02cf27f.jpg",
@@ -79,20 +101,44 @@
         "caption": "Башня Сююмбике",
         "position": "50% 15%"
       },
-      "galleryUrl": "/media/gallery-suyumbike-311752883f073fb3.json"
+      "galleryUrl": "/media/gallery-suyumbike-311752883f073fb3.json",
+      "audioTracks": {
+        "ar": {
+          "url": "/media/suyumbike-ar-10bd30ae197ab9ee.mp3",
+          "durationSeconds": 308
+        },
+        "en": {
+          "url": "/media/suyumbike-en-169aca7dacbab64e.mp3",
+          "durationSeconds": 235
+        },
+        "ru": {
+          "url": "/media/suyumbike-ru-79db0570e4213e4d.mp3",
+          "durationSeconds": 199
+        }
+      },
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      },
+      "audioUrl": "/media/suyumbike-ru-79db0570e4213e4d.mp3",
+      "audioOriginalDurationSeconds": 199.471
     },
     {
       "id": "blago",
       "title": "Благовещенский собор",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Казанский Кремль",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1060246,
         55.7998493
       ],
       "category": "church",
-      "durationSeconds": 0,
+      "durationSeconds": 178,
       "coordinateSource": "https://www.openstreetmap.org/way/259988409",
       "image": {
         "url": "/media/photo-6e5648de6dc1bbd6.jpg",
@@ -105,20 +151,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
         "caption": "Благовещенский собор"
       },
-      "galleryUrl": "/media/gallery-blago-4a37b82e519f991b.json"
+      "galleryUrl": "/media/gallery-blago-4a37b82e519f991b.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/blago-ru-3c1a6647abc5c7a8.mp3",
+          "durationSeconds": 178
+        }
+      },
+      "audioUrl": "/media/blago-ru-3c1a6647abc5c7a8.mp3",
+      "audioOriginalDurationSeconds": 178.442438,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "nmrt",
       "title": "Национальный музей РТ",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Кремлёвская улица, 2",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1096731,
         55.7958566
       ],
       "category": "museum",
-      "durationSeconds": 0,
+      "durationSeconds": 182,
       "coordinateSource": "https://www.openstreetmap.org/node/1348003477",
       "image": {
         "url": "/media/photo-c6c52b0e0049d776.jpg",
@@ -131,20 +193,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
         "caption": "Национальный музей Республики Татарстан"
       },
-      "galleryUrl": "/media/gallery-nmrt-c1cda9e4a1522afd.json"
+      "galleryUrl": "/media/gallery-nmrt-c1cda9e4a1522afd.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/nmrt-ru-2bd0aca3d361d10c.mp3",
+          "durationSeconds": 182
+        }
+      },
+      "audioUrl": "/media/nmrt-ru-2bd0aca3d361d10c.mp3",
+      "audioOriginalDurationSeconds": 181.551,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "bauman",
       "title": "Улица Баумана",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Улица Баумана",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.111398,
         55.79242
       ],
       "category": "walk",
-      "durationSeconds": 0,
+      "durationSeconds": 180,
       "coordinateSource": "https://www.openstreetmap.org/way/386031039",
       "image": {
         "url": "/media/photo-1f6eddf52cc8857f.jpg",
@@ -157,20 +235,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
         "caption": "Пешеходная улица Баумана"
       },
-      "galleryUrl": "/media/gallery-bauman-bc63745313fdb33f.json"
+      "galleryUrl": "/media/gallery-bauman-bc63745313fdb33f.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/bauman-ru-285e3ec3ab001c1f.mp3",
+          "durationSeconds": 180
+        }
+      },
+      "audioUrl": "/media/bauman-ru-285e3ec3ab001c1f.mp3",
+      "audioOriginalDurationSeconds": 179.879125,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "epiphany",
       "title": "Богоявленская колокольня",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Улица Баумана",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1194279,
         55.7882489
       ],
       "category": "history",
-      "durationSeconds": 0,
+      "durationSeconds": 169,
       "coordinateSource": "https://www.openstreetmap.org/way/99325935",
       "image": {
         "url": "/media/photo-c8307226d9b044fe.jpg",
@@ -184,20 +278,36 @@
         "caption": "Богоявленская колокольня",
         "position": "50% 15%"
       },
-      "galleryUrl": "/media/gallery-epiphany-142145b319fbcead.json"
+      "galleryUrl": "/media/gallery-epiphany-142145b319fbcead.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/epiphany-ru-9ae8a3fea959d523.mp3",
+          "durationSeconds": 169
+        }
+      },
+      "audioUrl": "/media/epiphany-ru-9ae8a3fea959d523.mp3",
+      "audioOriginalDurationSeconds": 168.90775,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "petro",
       "title": "Петропавловский собор",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Улица Мусы Джалиля",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1131348,
         55.793525
       ],
       "category": "church",
-      "durationSeconds": 0,
+      "durationSeconds": 179,
       "coordinateSource": "https://www.openstreetmap.org/way/90178098",
       "image": {
         "url": "/media/photo-da3607d0cabc1364.jpg",
@@ -211,20 +321,36 @@
         "caption": "Петропавловский собор",
         "position": "50% 15%"
       },
-      "galleryUrl": "/media/gallery-petro-5a19d640fb94349b.json"
+      "galleryUrl": "/media/gallery-petro-5a19d640fb94349b.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/petro-ru-0585ed20f83dc9e6.mp3",
+          "durationSeconds": 179
+        }
+      },
+      "audioUrl": "/media/petro-ru-0585ed20f83dc9e6.mp3",
+      "audioOriginalDurationSeconds": 178.6775,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "nab",
       "title": "Кремлёвская набережная",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Кремлёвская набережная",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.0955946,
         55.7979379
       ],
       "category": "walk",
-      "durationSeconds": 0,
+      "durationSeconds": 159,
       "coordinateSource": "https://www.openstreetmap.org/way/1413511481",
       "image": {
         "url": "/media/photo-8d1f98ea4a1cfbd0.jpg",
@@ -237,20 +363,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
         "caption": "Кремлёвская набережная"
       },
-      "galleryUrl": "/media/gallery-nab-9a226cd84c340a9c.json"
+      "galleryUrl": "/media/gallery-nab-9a226cd84c340a9c.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/nab-ru-4fd8c2f56d44ae75.mp3",
+          "durationSeconds": 159
+        }
+      },
+      "audioUrl": "/media/nab-ru-4fd8c2f56d44ae75.mp3",
+      "audioOriginalDurationSeconds": 159.320813,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "mardjani",
       "title": "Мечеть аль-Марджани",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Старо-Татарская слобода",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1180451,
         55.7797549
       ],
       "category": "mosque",
-      "durationSeconds": 0,
+      "durationSeconds": 185,
       "coordinateSource": "https://www.openstreetmap.org/way/133264462",
       "image": {
         "url": "/media/photo-ccbe9280e4493d6c.jpg",
@@ -263,20 +405,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
         "caption": "Мечеть аль-Марджани"
       },
-      "galleryUrl": "/media/gallery-mardjani-4c1c39516bfce98a.json"
+      "galleryUrl": "/media/gallery-mardjani-4c1c39516bfce98a.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/mardjani-ru-122d2972328973b4.mp3",
+          "durationSeconds": 185
+        }
+      },
+      "audioUrl": "/media/mardjani-ru-122d2972328973b4.mp3",
+      "audioOriginalDurationSeconds": 185.23425,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "sloboda",
       "title": "Старо-Татарская слобода",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Старо-Татарская слобода",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1177588,
         55.7781129
       ],
       "category": "history",
-      "durationSeconds": 0,
+      "durationSeconds": 197,
       "coordinateSource": "https://www.openstreetmap.org/node/3688565521",
       "image": {
         "url": "/media/photo-ce6eb9cf9a06b6db.jpg",
@@ -289,20 +447,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
         "caption": "Старо-Татарская слобода"
       },
-      "galleryUrl": "/media/gallery-sloboda-1a803d7c418b60ab.json"
+      "galleryUrl": "/media/gallery-sloboda-1a803d7c418b60ab.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/sloboda-ru-27971232248735d9.mp3",
+          "durationSeconds": 197
+        }
+      },
+      "audioUrl": "/media/sloboda-ru-27971232248735d9.mp3",
+      "audioOriginalDurationSeconds": 196.5975,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "kaban",
       "title": "Набережная озера Кабан",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Северный берег Нижнего Кабана",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1197391,
         55.7841996
       ],
       "category": "walk",
-      "durationSeconds": 0,
+      "durationSeconds": 160,
       "coordinateSource": "https://www.openstreetmap.org/node/3639818539",
       "image": {
         "url": "/media/photo-379c8f9dd8515720.jpg",
@@ -315,20 +489,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
         "caption": "Набережная озера Кабан"
       },
-      "galleryUrl": "/media/gallery-kaban-56caca4288a5ae40.json"
+      "galleryUrl": "/media/gallery-kaban-56caca4288a5ae40.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/kaban-ru-bfdd8d9d0d523009.mp3",
+          "durationSeconds": 160
+        }
+      },
+      "audioUrl": "/media/kaban-ru-bfdd8d9d0d523009.mp3",
+      "audioOriginalDurationSeconds": 160.444063,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "tukay",
       "title": "Памятник Габдулле Тукаю",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Сквер имени Габдуллы Тукая",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1200446,
         55.7852342
       ],
       "category": "history",
-      "durationSeconds": 0,
+      "durationSeconds": 188,
       "coordinateSource": "https://www.openstreetmap.org/node/1185938872",
       "image": {
         "url": "/media/photo-e86d186404dbccae.jpg",
@@ -342,20 +532,36 @@
         "caption": "Памятник Габдулле Тукаю в сквере на улице Пушкина",
         "position": "50% 0%"
       },
-      "galleryUrl": "/media/gallery-tukay-68abaabdd84869dc.json"
+      "galleryUrl": "/media/gallery-tukay-68abaabdd84869dc.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/tukay-ru-81a53d0bd0f15e75.mp3",
+          "durationSeconds": 188
+        }
+      },
+      "audioUrl": "/media/tukay-ru-81a53d0bd0f15e75.mp3",
+      "audioOriginalDurationSeconds": 188.10775,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "tinchurin",
       "title": "Театр имени Карима Тинчурина",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Улица Татарстан, 1",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1172848,
         55.7827924
       ],
       "category": "theatre",
-      "durationSeconds": 0,
+      "durationSeconds": 222,
       "coordinateSource": "https://www.openstreetmap.org/node/695065756",
       "image": {
         "url": "/media/photo-80aaf37b65fc4252.jpg",
@@ -368,20 +574,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
         "caption": "Здание театра на улице Татарстан, 1; с 2025 года — театр Тинчурина"
       },
-      "galleryUrl": "/media/gallery-tinchurin-04c0ad36be99e0d1.json"
+      "galleryUrl": "/media/gallery-tinchurin-04c0ad36be99e0d1.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/tinchurin-ru-dd55839226f68e32.mp3",
+          "durationSeconds": 222
+        }
+      },
+      "audioUrl": "/media/tinchurin-ru-dd55839226f68e32.mp3",
+      "audioOriginalDurationSeconds": 221.570563,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "dvorec",
       "title": "Дворец земледельцев",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Федосеевская улица",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1120822,
         55.8004563
       ],
       "category": "architecture",
-      "durationSeconds": 0,
+      "durationSeconds": 166,
       "coordinateSource": "https://www.openstreetmap.org/way/90251771",
       "image": {
         "url": "/media/photo-cf637c7216d7e9ec.jpg",
@@ -394,20 +616,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
         "caption": "Дворец земледельцев"
       },
-      "galleryUrl": "/media/gallery-dvorec-2894e4f4349750fb.json"
+      "galleryUrl": "/media/gallery-dvorec-2894e4f4349750fb.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/dvorec-ru-5578a24492b0218c.mp3",
+          "durationSeconds": 166
+        }
+      },
+      "audioUrl": "/media/dvorec-ru-5578a24492b0218c.mp3",
+      "audioOriginalDurationSeconds": 166.03425,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "chasha",
       "title": "Центр семьи «Казан»",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Правый берег Казанки",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1103295,
         55.8125785
       ],
       "category": "architecture",
-      "durationSeconds": 0,
+      "durationSeconds": 168,
       "coordinateSource": "https://www.openstreetmap.org/node/12729344872",
       "image": {
         "url": "/media/photo-5d9901ce09532d58.jpg",
@@ -420,20 +658,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
         "caption": "Центр семьи «Казан»"
       },
-      "galleryUrl": "/media/gallery-chasha-9e8f8154f28ce7b3.json"
+      "galleryUrl": "/media/gallery-chasha-9e8f8154f28ce7b3.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/chasha-ru-a9590e4d41846416.mp3",
+          "durationSeconds": 168
+        }
+      },
+      "audioUrl": "/media/chasha-ru-a9590e4d41846416.mp3",
+      "audioOriginalDurationSeconds": 168.124063,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "temple",
       "title": "Храм всех религий",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Старое Аракчино",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         48.9750141,
         55.8008213
       ],
       "category": "architecture",
-      "durationSeconds": 0,
+      "durationSeconds": 234,
       "coordinateSource": "https://www.openstreetmap.org/way/69921955",
       "image": {
         "url": "/media/photo-4d184848a272a730.jpg",
@@ -446,20 +700,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
         "caption": "Храм всех религий"
       },
-      "galleryUrl": "/media/gallery-temple-578ca7c36bef7aa7.json"
+      "galleryUrl": "/media/gallery-temple-578ca7c36bef7aa7.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/temple-ru-b1511f8c8f0ce484.mp3",
+          "durationSeconds": 234
+        }
+      },
+      "audioUrl": "/media/temple-ru-b1511f8c8f0ce484.mp3",
+      "audioOriginalDurationSeconds": 234.109375,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "ekiyat",
       "title": "Театр кукол «Экият»",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Петербургская улица",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1381204,
         55.7799368
       ],
       "category": "theatre",
-      "durationSeconds": 0,
+      "durationSeconds": 219,
       "coordinateSource": "https://www.openstreetmap.org/way/102719244",
       "image": {
         "url": "/media/photo-90d7ea56f37ccc16.jpg",
@@ -472,20 +742,36 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
         "caption": "Театр кукол «Экият»"
       },
-      "galleryUrl": "/media/gallery-ekiyat-27ae80a96c336c65.json"
+      "galleryUrl": "/media/gallery-ekiyat-27ae80a96c336c65.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/ekiyat-ru-ea5f281ed3840179.mp3",
+          "durationSeconds": 219
+        }
+      },
+      "audioUrl": "/media/ekiyat-ru-ea5f281ed3840179.mp3",
+      "audioOriginalDurationSeconds": 218.671,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     },
     {
       "id": "univ",
       "title": "Казанский университет",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Кремлёвская улица",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Открой историю этого места вместе с Зилантом. Листай фотографии и слушай рассказ на доступном языке.",
       "coordinates": [
         49.1207062,
         55.7903716
       ],
       "category": "history",
-      "durationSeconds": 0,
+      "durationSeconds": 258,
       "coordinateSource": "https://www.openstreetmap.org/relation/14238623",
       "image": {
         "url": "/media/photo-563a13fc32908c90.jpg",
@@ -498,7 +784,23 @@
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
         "caption": "Главное здание Казанского университета"
       },
-      "galleryUrl": "/media/gallery-univ-97555ec88e1d741d.json"
+      "galleryUrl": "/media/gallery-univ-97555ec88e1d741d.json",
+      "audioTracks": {
+        "ru": {
+          "url": "/media/univ-ru-637f5f90acd10e51.mp3",
+          "durationSeconds": 258
+        }
+      },
+      "audioUrl": "/media/univ-ru-637f5f90acd10e51.mp3",
+      "audioOriginalDurationSeconds": 257.802438,
+      "translations": {
+        "en": {
+          "description": "Explore this place with Zilant. Browse the photos and listen to the story in an available language."
+        },
+        "ar": {
+          "description": "اكتشف هذا المكان مع زيلانت، وتصفّح الصور واستمع إلى الحكاية بإحدى اللغات المتاحة."
+        }
+      }
     }
   ],
   "routes": [
