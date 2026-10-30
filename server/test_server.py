@@ -101,6 +101,9 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(result['fitsBudget'])
         self.assertNotIn('Успеешь', result['message'])
         self.assertIn('1,3 км', result['message'])
+        with patch.object(server, 'walking_route', return_value={'distanceMeters': 1300, 'durationSeconds': 1080}):
+            result = server.checked_ai_route({**answer, 'placeIds': ['ushkova', 'kremlin']}, 'Я у Кремля, хочу Дом Ушковой, есть час.', places)
+        self.assertEqual(result['placeIds'], ['kremlin', 'ushkova'])
 
     def test_ai_does_not_promise_an_impossible_or_unchecked_walk(self):
         answer = {'message': 'Успеешь!', 'routeTitle': 'Прогулка', 'placeIds': ['kremlin', 'ushkova']}

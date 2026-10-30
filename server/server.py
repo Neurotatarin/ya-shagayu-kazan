@@ -180,14 +180,16 @@ def checked_ai_route(answer, message, places):
     text = message.lower().replace('ё', 'е')
     aliases = {'ushkova': 'ушков', 'kremlin': 'кремл', 'kul-sharif': 'шариф', 'suyumbike': 'сююмбике', 'bauman': 'бауман', 'temple': 'храм всех религий'}
     required = {i for i in ids if aliases.get(i) and aliases[i] in text and not re.search(r'(?:без|кроме)\s+[^.!?]{0,18}' + aliases[i], text)}
+    starts = [(match.start(), i) for i in ids if aliases.get(i) for match in [re.search(r'\b(?:у|от|рядом с|начни с|начать с)\s+(?:дома?\s+)?' + aliases[i], text)] if match]
+    anchor = min(starts)[1] if starts else ids[0]
 
     def distance(a, b):
         x, y = points[a]['coordinates'], points[b]['coordinates']
         return math.hypot((x[0] - y[0]) * math.cos(math.radians((x[1] + y[1]) / 2)), x[1] - y[1])
 
     def ordered(selected):
-        start = selected[0]
-        rest = min(permutations(selected[1:]), key=lambda order: sum(distance(a, b) for a, b in zip((start,) + order, order)))
+        start = anchor if anchor in selected else selected[0]
+        rest = min(permutations([i for i in selected if i != start]), key=lambda order: sum(distance(a, b) for a, b in zip((start,) + order, order)))
         return [start, *rest]
 
     ids = ordered(ids)
@@ -219,7 +221,7 @@ def checked_ai_route(answer, message, places):
     timing = f'Путь по улицам — {km} км, около {walking} мин пешком; время осмотра добавляется отдельно.'
     if budget:
         timing += f' В твои {budget} мин помещается ходьба и примерно по 8 мин у каждой остановки.' if fits else f' С осмотром по 8 мин у каждой остановки прогулка не помещается в {budget} мин. Выбери меньше мест или больше времени.'
-    return {**answer, 'placeIds': ids, 'message': f'Предлагаю прогулку: {titles}. {timing}', 'routeDistanceMeters': path['distanceMeters'], 'walkingSeconds': path['durationSeconds'], 'fitsBudget': fits}
+    return {**answer, 'routeTitle': 'Твоя прогулка по Казани' if len(ids) != len(answer['placeIds']) else answer['routeTitle'][:80], 'placeIds': ids, 'message': f'Предлагаю прогулку: {titles}. {timing}', 'routeDistanceMeters': path['distanceMeters'], 'walkingSeconds': path['durationSeconds'], 'fitsBudget': fits}
 
 
 def zilant(body, guest, ip):

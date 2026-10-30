@@ -199,7 +199,7 @@
 .search-results-heading button { width: 32px; height: 32px; padding: 0; border: 0; background: transparent; color: var(--green); font-size: 24px; }
 .map-search-results > button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 0; border: 0; background: transparent; color: var(--ink); text-align: left; font: 500 14px/20px var(--font-body); }
 .map-search-results > p { margin: 12px 0; font: 400 14px/20px var(--font-body); }
-.real-map { position: absolute; inset: 0; }
+.map-page .real-map { position: absolute; inset: 0; }
 .real-map-marker { width: 44px; height: 44px; border: 2px solid white; }
 .real-map-marker.selected-marker { background: var(--deep); border-color: var(--lime, #d8f59a); }
 .real-map-marker img { object-fit: contain; }

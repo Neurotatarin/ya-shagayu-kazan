@@ -33,7 +33,16 @@ test("all nine Figma screens: assets, SVG proportions, layout and screenshots", 
   for (const screen of screens) {
     await page.goto(`/#/${screen}`);
     await expect(page.locator("main[data-figma-node], main.home-page")).toBeVisible();
-    if (screen === "map") await expect(page.locator("[data-place-id]")).toHaveCount(20);
+    if (screen === "map") {
+      await expect(page.locator("[data-place-id]")).toHaveCount(20);
+      // Lazy MapLibre CSS must not override the absolute map container and
+      // collapse it to zero height while API/marker readiness still succeeds.
+      const map = (await page.locator(".real-map").boundingBox())!;
+      const canvas = (await page.locator(".maplibregl-canvas").boundingBox())!;
+      expect(map.height).toBeGreaterThan(500);
+      expect(canvas.height).toBeGreaterThan(500);
+      expect(Math.abs(canvas.height - map.height)).toBeLessThan(2);
+    }
     await page.evaluate(async () => { await document.fonts.ready; await Promise.all(Array.from(document.images).map(image => image.decode())); });
     const result = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth > innerWidth,
