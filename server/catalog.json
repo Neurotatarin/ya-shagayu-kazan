@@ -337,7 +337,8 @@
         "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tukay_yard,_Kazan_(2021-04-05)_03.jpg",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "caption": "Памятник Габдулле Тукаю в сквере на улице Пушкина"
+        "caption": "Памятник Габдулле Тукаю в сквере на улице Пушкина",
+        "position": "50% 0%"
       },
       "galleryUrl": "/media/gallery-tukay-68abaabdd84869dc.json"
     },
