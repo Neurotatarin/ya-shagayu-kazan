@@ -9,6 +9,7 @@ from pathlib import Path
 p = Path('ios/App/App/Info.plist')
 info = plistlib.loads(p.read_bytes())
 info['UIUserInterfaceStyle'] = 'Light'
+info['NSLocationWhenInUseUsageDescription'] = 'Показать твоё местоположение и пешеходный путь к достопримечательностям Казани.'
 p.write_bytes(plistlib.dumps(info))
 PY
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath work/ios-build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' IPHONEOS_DEPLOYMENT_TARGET=15.0 TARGETED_DEVICE_FAMILY=1 build -quiet

@@ -1,0 +1,364 @@
+{
+  "places": [
+    {
+      "id": "ushkova",
+      "title": "Дом Ушковой",
+      "eyebrow": "ДОМ, КОТОРЫЙ УМЕЕТ УДИВЛЯТЬ",
+      "address": "Кремлёвская улица, 33",
+      "description": "Один фасад — и целый мир внутри.\nПрисмотрись к деталям, пока Зилант\nрассказывает историю этого дома.",
+      "coordinates": [
+        49.1208124,
+        55.7918589
+      ],
+      "category": "house",
+      "durationSeconds": 260,
+      "coordinateSource": "https://www.openstreetmap.org/way/87009792",
+      "photo": "place.imgUshkovaJpg"
+    },
+    {
+      "id": "kul-sharif",
+      "title": "Мечеть Кул-Шариф",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Казанский Кремль",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1051597,
+        55.7983486
+      ],
+      "category": "mosque",
+      "durationSeconds": 240,
+      "coordinateSource": "https://www.openstreetmap.org/way/230132591",
+      "photo": "map.imgKulSharifJpg"
+    },
+    {
+      "id": "kremlin",
+      "title": "Казанский Кремль",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Казанский Кремль",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1061691,
+        55.7990218
+      ],
+      "category": "history",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/relation/14454789",
+      "photo": "dialog.imgKremlinJpg"
+    },
+    {
+      "id": "suyumbike",
+      "title": "Башня Сююмбике",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Казанский Кремль",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1051829,
+        55.8004715
+      ],
+      "category": "history",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/228963085"
+    },
+    {
+      "id": "blago",
+      "title": "Благовещенский собор",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Казанский Кремль",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1060246,
+        55.7998493
+      ],
+      "category": "church",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/259988409"
+    },
+    {
+      "id": "nmrt",
+      "title": "Национальный музей РТ",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Кремлёвская улица, 2",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1096731,
+        55.7958566
+      ],
+      "category": "museum",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/node/1348003477"
+    },
+    {
+      "id": "bauman",
+      "title": "Улица Баумана",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Улица Баумана",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.111398,
+        55.79242
+      ],
+      "category": "walk",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/386031039"
+    },
+    {
+      "id": "epiphany",
+      "title": "Богоявленская колокольня",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Улица Баумана",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1194279,
+        55.7882489
+      ],
+      "category": "history",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/99325935"
+    },
+    {
+      "id": "petro",
+      "title": "Петропавловский собор",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Улица Мусы Джалиля",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1131348,
+        55.793525
+      ],
+      "category": "church",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/90178098"
+    },
+    {
+      "id": "nab",
+      "title": "Кремлёвская набережная",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Кремлёвская набережная",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.0955946,
+        55.7979379
+      ],
+      "category": "walk",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/1413511481"
+    },
+    {
+      "id": "mardjani",
+      "title": "Мечеть аль-Марджани",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Старо-Татарская слобода",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1180451,
+        55.7797549
+      ],
+      "category": "mosque",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/133264462"
+    },
+    {
+      "id": "sloboda",
+      "title": "Старо-Татарская слобода",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Старо-Татарская слобода",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1177588,
+        55.7781129
+      ],
+      "category": "history",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/node/3688565521"
+    },
+    {
+      "id": "kaban",
+      "title": "Набережная озера Кабан",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Северный берег Нижнего Кабана",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1197391,
+        55.7841996
+      ],
+      "category": "walk",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/node/3639818539"
+    },
+    {
+      "id": "tukay",
+      "title": "Памятник Габдулле Тукаю",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Сквер имени Габдуллы Тукая",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1200446,
+        55.7852342
+      ],
+      "category": "history",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/node/1185938872"
+    },
+    {
+      "id": "tinchurin",
+      "title": "Театр имени Карима Тинчурина",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Улица Татарстан, 1",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1172848,
+        55.7827924
+      ],
+      "category": "theatre",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/node/695065756"
+    },
+    {
+      "id": "dvorec",
+      "title": "Дворец земледельцев",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Федосеевская улица",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1120822,
+        55.8004563
+      ],
+      "category": "architecture",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/90251771"
+    },
+    {
+      "id": "chasha",
+      "title": "Центр семьи «Казан»",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Правый берег Казанки",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1103295,
+        55.8125785
+      ],
+      "category": "architecture",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/node/12729344872"
+    },
+    {
+      "id": "temple",
+      "title": "Храм всех религий",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Старое Аракчино",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        48.9750141,
+        55.8008213
+      ],
+      "category": "architecture",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/69921955"
+    },
+    {
+      "id": "ekiyat",
+      "title": "Театр кукол «Экият»",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Петербургская улица",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1381204,
+        55.7799368
+      ],
+      "category": "theatre",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/way/102719244"
+    },
+    {
+      "id": "univ",
+      "title": "Казанский университет",
+      "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
+      "address": "Кремлёвская улица",
+      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "coordinates": [
+        49.1207062,
+        55.7903716
+      ],
+      "category": "history",
+      "durationSeconds": 0,
+      "coordinateSource": "https://www.openstreetmap.org/relation/14238623"
+    }
+  ],
+  "routes": [
+    {
+      "id": "heart",
+      "title": "Сердце\nКазани",
+      "description": "Кремль и\nглавные символы",
+      "theme": "heart",
+      "nodeId": "11:8942",
+      "placeIds": [
+        "kremlin",
+        "kul-sharif",
+        "suyumbike",
+        "blago",
+        "nmrt",
+        "bauman"
+      ],
+      "meta": "6 мест · рассчитать путь"
+    },
+    {
+      "id": "imperial",
+      "title": "Имперская\nКазань",
+      "description": "Барокко и\nкупеческий\nгород",
+      "theme": "imperial",
+      "nodeId": "11:9283",
+      "placeIds": [
+        "bauman",
+        "epiphany",
+        "ushkova",
+        "petro",
+        "nmrt"
+      ],
+      "meta": "5 мест · рассчитать путь"
+    },
+    {
+      "id": "tatar",
+      "title": "Татарская\nКазань",
+      "description": "Слобода, мечети\nи озеро Кабан",
+      "theme": "tatar",
+      "nodeId": "11:9709",
+      "placeIds": [
+        "tukay",
+        "sloboda",
+        "mardjani",
+        "kaban",
+        "tinchurin"
+      ],
+      "meta": "5 мест · рассчитать путь"
+    },
+    {
+      "id": "three-hours",
+      "title": "Казань\nза 3 часа",
+      "description": "Главные места\nза три часа",
+      "theme": "threeHours",
+      "nodeId": "11:10139",
+      "placeIds": [
+        "kremlin",
+        "kul-sharif",
+        "bauman",
+        "tukay",
+        "sloboda"
+      ],
+      "meta": "5 мест · рассчитать путь"
+    },
+    {
+      "id": "modern",
+      "title": "Новая\nКазань",
+      "description": "Архитектура\nнового города",
+      "theme": "modern",
+      "nodeId": "11:10644",
+      "placeIds": [
+        "dvorec",
+        "nab",
+        "chasha",
+        "temple"
+      ],
+      "meta": "4 места · рассчитать путь"
+    }
+  ]
+}

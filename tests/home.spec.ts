@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+import { deterministicServices } from "./services";
+test.beforeEach(async ({ page }) => deterministicServices(page));
 
 test("original assets, readable layout, navigation and no animation", async ({ page, context, browserName }, info) => {
   const errors: string[] = [];

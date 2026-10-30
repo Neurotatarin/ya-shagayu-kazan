@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+import { deterministicServices } from "./services";
+test.beforeEach(async ({ page }) => deterministicServices(page));
 
 const screens = ["home", "map", "place/ushkova", "player/ushkova", "zilant", "dialog", "waiting", "profile", "routes"];
 const geometry: Record<string, [string, number][]> = {
@@ -7,7 +9,6 @@ const geometry: Record<string, [string, number][]> = {
   "place/ushkova": [[".place-sheet", 315], [".place-sheet h1", 380]],
   "player/ushkova": [[".audio-cover", 136], [".player-caption", 503]],
   zilant: [[".chat-header", 61], [".greeting-figure", 128], [".greeting-title", 364], [".chat-composer", 680]],
-  dialog: [[".question-bubble", 175], [".answer-row", 279], [".chat-route-card", 440], [".chat-composer", 680]],
   waiting: [[".question-bubble", 153], [".waiting-figure", 275], [".waiting-status", 551], [".stop-request", 628], [".chat-composer", 680]],
   profile: [[".traveler-card", 163], [".awards-card", 280], [".profile-sections", 500]],
   routes: [[".themes-gallery", 227], [".route-zilant-cta", 610]],
@@ -64,23 +65,25 @@ test("all nine Figma screens: assets, SVG proportions, layout and screenshots", 
   expect(errors).toEqual([]);
 });
 
-test("linked flows, favorite and position persistence, cancelled demo request and sheets", async ({ page }) => {
+test("server-backed favorites and visits, saved position, cancelled request and route card", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Начать прогулку", exact: true }).click();
   await expect(page.getByLabel("Поиск места")).toBeVisible();
   await page.getByLabel("Поиск места").fill("Ушковой");
   await page.locator(".map-search-results").getByRole("button", { name: "Дом Ушковой" }).click();
   await expect(page.getByRole("heading", { name: "Дом Ушковой" })).toBeVisible();
-  await page.getByRole("button", { name: "Убрать из избранного" }).click();
-  await page.reload();
-  await expect(page.getByRole("button", { name: "Добавить в избранное" })).toBeVisible();
   await page.getByRole("button", { name: "Добавить в избранное" }).click();
-  await page.getByRole("button", { name: "Слушать историю · 4:20" }).click();
-  await expect(page.getByRole("slider", { name: "Позиция аудиоистории" })).toHaveValue("78");
-  await page.getByRole("button", { name: "Вперёд на 15 секунд" }).click();
+  await page.getByRole("button", { name: "Я здесь", exact: true }).click();
+  await page.waitForResponse(r => r.url().endsWith("/api/progress") && r.request().method() === "PUT" && r.ok());
   await page.reload();
-  await expect(page.getByRole("slider", { name: "Позиция аудиоистории" })).toHaveValue("93");
-  await page.getByRole("button", { name: "Пауза", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Убрать из избранного" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Посещение отмечено" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Аудио скоро · открыть плеер" }).click();
+  await expect(page.getByRole("slider", { name: "Позиция аудиоистории" })).toHaveValue("0");
+  await page.getByRole("button", { name: "Вперёд на 15 секунд" }).click();
+  await page.waitForResponse(r => r.url().endsWith("/api/progress") && r.request().method() === "PUT" && r.ok());
+  await page.reload();
+  await expect(page.getByRole("slider", { name: "Позиция аудиоистории" })).toHaveValue("15");
   await page.getByRole("button", { name: "Воспроизвести историю" }).click();
   await expect(page.getByRole("status")).toContainText("аудиозапись ещё не добавлена");
   await page.goto("/#/profile");
@@ -95,8 +98,10 @@ test("linked flows, favorite and position persistence, cancelled demo request an
   await expect(page.locator(".greeting-title")).toBeVisible();
   await page.getByRole("button", { name: "Куда пойти на час?" }).click();
   await expect(page.locator(".chat-route-card")).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("OpenAI ещё не подключён");
-  await page.getByRole("button", { name: "Другой вариант" }).click();
+  await expect(page.locator(".answer-bubble")).toContainText("Дому Ушковой");
+  await page.getByRole("button", { name: "На карте", exact: true }).click();
+  await expect(page.locator("main.map-page")).toHaveAttribute("data-route-source", "foot");
+  await page.goto("/#/routes");
   await expect(page.getByRole("heading", { name: "Маршруты", exact: true })).toBeVisible();
   for (let i = 0; i < 5; i++) await page.getByRole("button", { name: "Следующая тема прогулки" }).click();
   await page.getByRole("button", { name: "Подобрать с Зилантом" }).click();

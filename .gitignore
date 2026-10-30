@@ -11,3 +11,6 @@ playwright-report/
 ios/App/App/public/
 ios/App/Pods/
 ios/App/build/
+server/state/
+__pycache__/
+*.sqlite3*

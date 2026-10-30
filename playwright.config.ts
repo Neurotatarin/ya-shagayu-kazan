@@ -13,5 +13,8 @@ export default defineConfig({
     { name: "iphone-xr-webkit", use: { ...devices["iPhone XR"], browserName: "webkit" } },
     { name: "desktop", use: { browserName: "chromium", viewport: { width: 1440, height: 1000 } } },
   ],
-  webServer: deployed ? undefined : { command: "pnpm preview", url: "http://127.0.0.1:4173", reuseExistingServer: !process.env.CI },
+  webServer: deployed ? undefined : [
+    { command: "python server/server.py", url: "http://127.0.0.1:8792/api/health", env: { KAZAN_STATE: "work/e2e-server-state" }, reuseExistingServer: !process.env.CI },
+    { command: "pnpm preview", url: "http://127.0.0.1:4173", reuseExistingServer: !process.env.CI },
+  ],
 });

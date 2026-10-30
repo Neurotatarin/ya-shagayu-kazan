@@ -1,9 +1,9 @@
 import { OriginalAsset } from "../../components/OriginalAsset";
 import type { Place } from "../../domain/demo";
 
-export function PlacePage({ place, favorite, onFavorite, onBack, onListen }: { place: Place; favorite: boolean; onFavorite: () => void; onBack: () => void; onListen: () => void }) {
+export function PlacePage({ place, favorite, visited, onVisit, onFavorite, onBack, onListen }: { place: Place; favorite: boolean; visited: boolean; onVisit: () => void; onFavorite: () => void; onBack: () => void; onListen: () => void }) {
   return <main className="place-page" data-figma-node="6:1101">
-    <div className="place-hero"><OriginalAsset asset={place.photo} alt={place.title} /><div className="native-status-background" />
+    <div className="place-hero">{place.photo ? <OriginalAsset asset={place.photo} alt={place.title} /> : <div className="photo-pending">Фотография места скоро появится</div>}<div className="native-status-background" />
       <div className="place-top-actions">
         <button className="round-action white-action" type="button" aria-label="Назад к карте" onClick={onBack}><OriginalAsset asset="place.imgArrowLeft" /></button>
         <button className="round-action white-action" type="button" aria-label={favorite ? "Убрать из избранного" : "Добавить в избранное"} aria-pressed={favorite} onClick={onFavorite}><span className={favorite ? "" : "unselected-bookmark"}><OriginalAsset asset="place.imgBookmarkSimple" /></span></button>
@@ -17,10 +17,11 @@ export function PlacePage({ place, favorite, onFavorite, onBack, onListen }: { p
       <p className="place-description">{place.description}</p>
       <aside className="zilant-place-tip">
         <div className="tip-portrait"><OriginalAsset asset="place.imgZilantThinkPng" /></div>
-        <div><p>Посмотри на окна.</p><small>Замечаешь, какие они разные?</small></div>
+        <div><p>{place.id === "ushkova" ? "Посмотри на окна." : "У каждого места — своя история."}</p><small>{place.id === "ushkova" ? "Замечаешь, какие они разные?" : "Спроси меня о нём в чате."}</small></div>
       </aside>
       <p className="audio-eyebrow">АУДИОИСТОРИЯ</p>
-      <button className="primary-action listen-story" type="button" onClick={onListen}><OriginalAsset asset="place.imgPlay" /><span>Слушать историю · {Math.floor(place.durationSeconds / 60)}:{String(place.durationSeconds % 60).padStart(2, "0")}</span></button>
+      <button className="primary-action listen-story" type="button" onClick={onListen}><OriginalAsset asset="place.imgPlay" /><span>{place.audioUrl ? `Слушать историю · ${Math.floor(place.durationSeconds / 60)}:${String(place.durationSeconds % 60).padStart(2, "0")}` : "Аудио скоро · открыть плеер"}</span></button>
+      <button className="visit-place" type="button" aria-pressed={visited} onClick={onVisit}><OriginalAsset asset="place.imgMapPin" />{visited ? "Посещение отмечено" : "Я здесь"}</button>
     </section>
   </main>;
 }
