@@ -24,6 +24,7 @@ export interface ZilantAnswer { message: string; routeTitle: string; placeIds: P
 export interface DemoCatalog { places: readonly Place[]; routes: readonly ThemeRoute[] }
 export interface CatalogRepository { getCatalog(signal: AbortSignal): Promise<DemoCatalog> }
 export type ShowNotice = (message: string) => void;
+export const countPlaces = (count: number) => `${count} ${{ one: "место", few: "места", many: "мест", other: "мест" }[new Intl.PluralRules("ru").select(count) as "one" | "few" | "many" | "other"]}`;
 
 export function readScreen(hash: string): Screen {
   const value = hash.replace(/^#\/?/, "").split("/")[0];

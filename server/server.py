@@ -77,7 +77,9 @@ def published_catalog():
                 path = json.loads(row["body"])
                 km = f'{path["distanceMeters"] / 1000:.1f}'.replace('.', ',')
                 minutes = math.ceil(path["durationSeconds"] / 60)
-                route["meta"] = f'{len(coordinates)} мест · {km} км · {minutes} мин пешком'
+                count = len(coordinates)
+                noun = 'места' if 2 <= count <= 4 else 'мест'
+                route["meta"] = f'{count} {noun} · {km} км · {minutes} мин пешком'
                 route["distanceMeters"] = path["distanceMeters"]
                 route["walkingDurationSeconds"] = path["durationSeconds"]
     return data
