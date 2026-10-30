@@ -41,7 +41,7 @@ test("15+ gallery photos swipe and enlarge while real audio keeps playing", asyn
     await expect.poll(async () => Number(await gallery.getAttribute("data-photo-count"))).toBeGreaterThanOrEqual(15);
     const captionY = (await page.locator(".player-caption").boundingBox())!.y;
     const slider = page.getByRole("slider", { name: "Позиция аудиоистории" });
-    await page.getByRole("button", { name: "Воспроизвести историю" }).click();
+    await page.locator(".player-page").getByRole("button", { name: "Воспроизвести историю" }).click();
     await expect.poll(async () => Number(await slider.inputValue()), { timeout: 15000 }).toBeGreaterThan(1);
     await page.getByRole("button", { name: "Следующее фото", exact: true }).click();
     await expect(page.locator(".cover-chapter")).toHaveAttribute("aria-label", /Кадр 2 из/);
@@ -49,7 +49,7 @@ test("15+ gallery photos swipe and enlarge while real audio keeps playing", asyn
     await gallery.dispatchEvent("pointerdown", { pointerId: 1, pointerType: "touch", clientX: bounds.x + bounds.width - 70, clientY: bounds.y + bounds.height / 2 });
     await gallery.dispatchEvent("pointerup", { pointerId: 1, pointerType: "touch", clientX: bounds.x + 70, clientY: bounds.y + bounds.height / 2 });
     await expect(page.locator(".cover-chapter")).toHaveAttribute("aria-label", /Кадр 3 из/);
-    await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
+    await expect(page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
     expect((await page.locator(".player-caption").boundingBox())!.y).toBe(captionY);
     const before = Number(await slider.inputValue());
     await page.getByRole("button", { name: /^Открыть фото:/ }).click();
@@ -59,8 +59,8 @@ test("15+ gallery photos swipe and enlarge while real audio keeps playing", asyn
     await expect(dialog.locator(".photo-credit a").first()).toHaveAttribute("href", /^https:\/\/commons\.wikimedia\.org\//);
     await expect.poll(async () => Number(await slider.inputValue()), { timeout: 10000 }).toBeGreaterThan(before);
     await page.getByRole("button", { name: "Закрыть окно" }).click();
-    await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Пауза", exact: true }).click();
+    await expect(page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
+    await page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true }).click();
   }
 });
 
@@ -71,7 +71,7 @@ test("gallery load failure keeps audio and cover available, and retry recovers",
   await page.goto("/#/player/ushkova");
   const retry = page.getByRole("button", { name: "Повторить загрузку фото" });
   await expect(retry).toBeVisible();
-  await expect(page.getByRole("button", { name: "Воспроизвести историю" })).toBeVisible();
+  await expect(page.locator(".player-page").getByRole("button", { name: "Воспроизвести историю" })).toBeVisible();
   await expect(page.locator(".cover-zilant-window img")).toBeVisible();
   fail = false;
   await retry.click();

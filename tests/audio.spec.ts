@@ -8,36 +8,36 @@ test("original MP3s play, seek, pause, keep position and survive screen changes"
   await page.goto("/#/player/ushkova");
   const slider = page.getByRole("slider", { name: "Позиция аудиоистории" });
   await expect(page.locator(".player-times")).toContainText("4:15");
-  await page.getByRole("button", { name: "Воспроизвести историю" }).click();
-  await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
+  await page.locator(".player-page").getByRole("button", { name: "Воспроизвести историю" }).click();
+  await expect(page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
   await expect.poll(async () => Number(await slider.inputValue()), { timeout: 15000 }).toBeGreaterThan(1);
-  await page.getByRole("button", { name: "Пауза", exact: true }).click();
+  await page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true }).click();
   await slider.fill("65");
   await expect(slider).toHaveValue("65");
   await page.getByRole("button", { name: "Скорость воспроизведения 1", exact: true }).click();
   await expect(page.getByRole("button", { name: "Скорость воспроизведения 1.25", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Воспроизвести историю" }).click();
+  await page.locator(".player-page").getByRole("button", { name: "Воспроизвести историю" }).click();
   await expect.poll(async () => Number(await slider.inputValue()), { timeout: 15000 }).toBeGreaterThan(66);
   await page.getByRole("button", { name: "Назад к месту" }).click();
   await expect(page.getByRole("heading", { name: "Дом Ушковой" })).toBeVisible();
   await page.getByRole("button", { name: /Слушать историю/ }).click();
-  await expect(page.getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Пауза", exact: true }).click();
+  await expect(page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true })).toBeVisible();
+  await page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true }).click();
   const positionSaved = page.waitForResponse(response => response.url().endsWith("/api/progress") && response.request().method() === "PUT" && response.request().postDataJSON().positions?.ushkova === 91 && response.ok());
   await slider.fill("91");
   await positionSaved;
   await page.reload();
   await expect(slider).toHaveValue("91");
-  await page.getByRole("button", { name: "Воспроизвести историю" }).click();
+  await page.locator(".player-page").getByRole("button", { name: "Воспроизвести историю" }).click();
   // Real HTTP byte-range reloads can take longer in Windows WebKit's native
   // media pipeline while the gallery inventory is downloading in parallel.
   await expect.poll(async () => Number(await slider.inputValue()), { timeout: 30000 }).toBeGreaterThan(92);
-  await page.getByRole("button", { name: "Пауза", exact: true }).click();
+  await page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true }).click();
   await page.goto("/#/player/kremlin");
   await expect(page.locator(".player-times")).toContainText("4:06");
-  await page.getByRole("button", { name: "Воспроизвести историю" }).click();
+  await page.locator(".player-page").getByRole("button", { name: "Воспроизвести историю" }).click();
   await expect.poll(async () => Number(await slider.inputValue()), { timeout: 15000 }).toBeGreaterThan(1);
-  await page.getByRole("button", { name: "Пауза", exact: true }).click();
+  await page.locator(".player-page").getByRole("button", { name: "Пауза", exact: true }).click();
   // Windows WebKit's native media pipeline does not expose MP3 responses through
   // page.on('response'). Check byte ranges independently of that browser detail.
   const chunk = await page.request.get("/media/kremlin-06681b66c5a9.mp3", { headers: { Range: "bytes=0-1023" } });
