@@ -23,15 +23,17 @@
       "title": "Мечеть Кул-Шариф",
       "eyebrow": "ОТКРОЙ СВОЮ КАЗАНЬ",
       "address": "Казанский Кремль",
-      "description": "Место в Казани для твоей прогулки. Полная история и готовая аудиозапись появятся после подготовки материалов.",
+      "description": "Слушай историю мечети Кул-Шариф от Зиланта и листай фотографии во время рассказа.",
       "coordinates": [
         49.1051597,
         55.7983486
       ],
       "category": "mosque",
-      "durationSeconds": 240,
+      "durationSeconds": 190,
       "coordinateSource": "https://www.openstreetmap.org/way/230132591",
       "photo": "map.imgKulSharifJpg",
+      "audioUrl": "/media/kul-sharif-c29c7eb1546e.mp3",
+      "audioOriginalDurationSeconds": 190.432625,
       "galleryUrl": "/media/gallery-kul-sharif-5a5601a10f08f82c.json"
     },
     {
