@@ -20,7 +20,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: python -m unittest discover -s server -p test_server.py
@@ -51,7 +50,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm exec cap add ios
