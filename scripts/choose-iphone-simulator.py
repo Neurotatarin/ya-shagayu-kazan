@@ -1,6 +1,7 @@
 """Prefer the XR/11 display class; touch only the disposable CI simulator."""
 from pathlib import Path
 import json
+import platform
 import subprocess
 
 def sim_list(kind):
@@ -24,5 +25,5 @@ if preferred is None:
             pass
 runtime, device = preferred or candidates[0]
 stage = Path('work/native-checks'); stage.mkdir(parents=True, exist_ok=True)
-(stage / 'environment.json').write_text(json.dumps({'device': device['name'], 'runtime': runtime, 'createdForThisCheck': created}, indent=2))
+(stage / 'environment.json').write_text(json.dumps({'device': device['name'], 'runtime': runtime, 'hostArchitecture': platform.machine(), 'createdForThisCheck': created}, indent=2))
 print(device['udid'])
