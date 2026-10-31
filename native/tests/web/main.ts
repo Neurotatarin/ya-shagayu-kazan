@@ -9,7 +9,7 @@ import { cancelOffline, downloadOffline, initializeOffline, localMediaURL, offli
 import { offlineMapStyle, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
 import type { DemoCatalog, PlaceImage, WalkingRoute } from "../../../app/src/domain/demo";
 
-declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) => void) => Promise<Record<string, unknown>>; kazanSmokeStage?: string; kazanSmokeResult?: Record<string, unknown>; Capacitor: { nativePromise: (plugin: string, method: string, options?: unknown) => Promise<Record<string, unknown>> } } }
+declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) => void) => Promise<Record<string, unknown>>; kazanSmokeStage?: string; kazanSmokeResult?: Record<string, unknown>; kazanSmokeDiagnostics?: Record<string, unknown>; Capacitor: { nativePromise: (plugin: string, method: string, options?: unknown) => Promise<Record<string, unknown>> } } }
 registerOfflineMapProtocol();
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const assert = (condition: unknown, code: string) => { if (!condition) throw new Error(code); };
@@ -57,10 +57,22 @@ window.kazanOfflineSmoke = async stage => {
   assert(maxCoordinateDelta < 1e-9, "offline-walking-coordinates");
   const fetchOnline = window.fetch.bind(window);
   let blockedNetworkRequests = 0;
+  const diagnostics = { basicWorker: false, workerOrigin: "", webgl2: false, renderer: "", pixelRatio: devicePixelRatio, viewport: [innerWidth, innerHeight], requests: {} as Record<string, number>, signatures: {} as Record<string, string>, firstTileBytes: 0, firstTileMagic: "", contextLost: 0, errors: [] as string[] };
+  window.kazanSmokeDiagnostics = diagnostics;
+  const mapFiles = new globalThis.Map(pack.assets.filter(asset => asset.kind === "map").map(asset => [localMediaURL(asset.url), asset] as const));
   window.fetch = ((resource: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof resource === "string" ? resource : resource instanceof URL ? resource.href : resource.url;
     if (/^https?:/.test(url)) { blockedNetworkRequests++; return Promise.reject(new Error("offline-network-fallback")); }
-    return fetchOnline(resource, init);
+    return fetchOnline(resource, init).then(async response => {
+      const asset = mapFiles.get(url);
+      if (asset) {
+        const kind = asset.tile ? "tile" : asset.url.includes("/fonts/") ? "glyph" : asset.url.endsWith(".json") ? "spriteJson" : "spriteImage";
+        diagnostics.requests[kind] = (diagnostics.requests[kind] ?? 0) + 1;
+        const data = new Uint8Array(await response.clone().arrayBuffer());
+        diagnostics.signatures[kind] ??= [...data.subarray(0, 4)].map(value => value.toString(16).padStart(2, "0")).join("");
+      }
+      return response;
+    });
   }) as typeof fetch;
   let photoCount = 0, renderedFeatures = 0;
   let map: Map | undefined;
@@ -76,7 +88,29 @@ window.kazanOfflineSmoke = async stage => {
       assert(local && !/^https?:/.test(local), "offline-photo-not-local");
       const image = new Image(); image.src = local!; await bounded(image.decode(), 20000, "offline-photo-decode-timeout");
       assert(image.naturalWidth > 0, "offline-photo-decode"); photoCount++;
+      image.removeAttribute("src");
     }
+    stage("offline-tile-format");
+    const tile = pack.assets.find(asset => asset.tile)!;
+    const tileBytes = new Uint8Array(await (await fetch(localMediaURL(tile.url)!)).arrayBuffer());
+    diagnostics.firstTileBytes = tileBytes.length;
+    diagnostics.firstTileMagic = [...tileBytes.subarray(0, 4)].map(value => value.toString(16).padStart(2, "0")).join("");
+    assert(!(tileBytes[0] === 0x1f && tileBytes[1] === 0x8b), "offline-tile-still-gzip");
+    assert(tileBytes[0] !== 0x3c && tileBytes[0] !== 0x7b, "offline-tile-not-protobuf");
+    stage("offline-worker-probe");
+    const probeURL = URL.createObjectURL(new Blob(["self.postMessage({ok:true,origin:self.location.origin});"], { type: "text/javascript" }));
+    const probe = new Worker(probeURL);
+    try {
+      const result = await bounded(new Promise<{ok: boolean; origin: string}>((resolve, reject) => { probe.onmessage = event => resolve(event.data); probe.onerror = () => reject(new Error("offline-basic-worker-error")); }), 10000, "offline-basic-worker-timeout");
+      diagnostics.basicWorker = result.ok; diagnostics.workerOrigin = result.origin;
+      assert(result.ok, "offline-basic-worker-invalid");
+    } finally { probe.terminate(); URL.revokeObjectURL(probeURL); }
+    stage("offline-webgl-probe");
+    const canvas = document.createElement("canvas"), gl = canvas.getContext("webgl2");
+    diagnostics.webgl2 = !!gl;
+    assert(gl, "offline-webgl2-unavailable");
+    diagnostics.renderer = String(gl!.getParameter(gl!.RENDERER));
+    gl!.getExtension("WEBGL_lose_context")?.loseContext();
     stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
     await bounded(prepareMapWorker(), 20000, "offline-worker-timeout");
     map = new Map({ container: "map", style: offlineMapStyle(pack), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
@@ -86,7 +120,8 @@ window.kazanOfflineSmoke = async stage => {
     });
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("offline-map-timeout")), 60000);
-      map!.on("error", () => { clearTimeout(timeout); reject(new Error("offline-map-resource")); });
+      map!.on("error", event => { const message = event.error?.message ?? ""; const kind = /worker/i.test(message) ? "worker" : /pbf|protobuf|varint/i.test(message) ? "protobuf" : /glyph|font/i.test(message) ? "glyph" : /webgl|gpu|context/i.test(message) ? "graphics" : "resource"; diagnostics.errors.push(kind); clearTimeout(timeout); reject(new Error("offline-map-" + kind)); });
+      map!.getCanvas().addEventListener("webglcontextlost", () => { diagnostics.contextLost++; });
       map!.once("idle", () => { renderedFeatures = map!.queryRenderedFeatures().length; clearTimeout(timeout); resolve(); });
     });
     assert(renderedFeatures > 10, "offline-map-empty");

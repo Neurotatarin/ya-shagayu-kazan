@@ -18,7 +18,7 @@ delegate.write_text(source)
 # it does not create guest sessions or call OpenAI.
 PY
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath work/ios-simulator CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' IPHONEOS_DEPLOYMENT_TARGET=15.0 TARGETED_DEVICE_FAMILY=1 build -quiet
-DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for devices in d["devices"].values() for x in devices if x["isAvailable"] and "iPhone" in x["name"]))')
+DEVICE=$(python3 scripts/choose-iphone-simulator.py)
 xcrun simctl boot "$DEVICE" || test "$(xcrun simctl list devices -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["state"] for a in d["devices"].values() for x in a if x["udid"] == sys.argv[1]))' "$DEVICE")" = Booted
 xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl install "$DEVICE" work/ios-simulator/Build/Products/Debug-iphonesimulator/App.app
@@ -31,12 +31,16 @@ for _ in $(seq 1 600); do
     if test -f "$DATA/Documents/kazan-audio-progress.json"; then cp "$DATA/Documents/kazan-audio-progress.json" work/native-checks/progress.json; fi
     if test -f "$DATA/Documents/kazan-offline-map.png"; then cp "$DATA/Documents/kazan-offline-map.png" work/native-checks/offline-map.png; fi
     xcrun simctl io "$DEVICE" screenshot work/native-checks/simulator.png
-    python3 -c 'import json; r=json.load(open("work/native-checks/result.json")); print(json.dumps(r,sort_keys=True)); assert r["ok"], "Native simulator audio check failed"'
+    if ! python3 -c 'import json; r=json.load(open("work/native-checks/result.json")); print(json.dumps(r,sort_keys=True)); assert r["ok"], "Native simulator audio check failed"'; then
+      python3 scripts/collect-iphone-diagnostics.py "$DEVICE"
+      exit 1
+    fi
     exit 0
   fi
   sleep 1
 done
 if test -f "$DATA/Documents/kazan-audio-progress.json"; then cp "$DATA/Documents/kazan-audio-progress.json" work/native-checks/progress.json; fi
 xcrun simctl io "$DEVICE" screenshot work/native-checks/simulator.png || true
+python3 scripts/collect-iphone-diagnostics.py "$DEVICE"
 printf 'Native simulator audio check timed out.\n' >&2
 exit 1

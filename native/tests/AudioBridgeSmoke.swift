@@ -11,6 +11,7 @@ enum KazanAudioSmoke {
     private static var evaluating = false
     private static var finished = false
     private static var stages: [String] = []
+    private static var lastMapDiagnostics: [String: Any]?
 
     static func start() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in probe() }
@@ -38,7 +39,7 @@ enum KazanAudioSmoke {
         }
         guard let webView = controller.webView, webView.url?.scheme == "capacitor", !webView.isLoading, scene.activationState == .foregroundActive else { return }
         evaluating = true
-        webView.evaluateJavaScript("JSON.stringify({stage:window.kazanSmokeStage || 'starting', moduleReady:typeof window.kazanOfflineSmoke === 'function', result:window.kazanSmokeResult || null})") { value, _ in
+        webView.evaluateJavaScript("JSON.stringify({stage:window.kazanSmokeStage || 'starting', moduleReady:typeof window.kazanOfflineSmoke === 'function', diagnostics:window.kazanSmokeDiagnostics || null, result:window.kazanSmokeResult || null})") { value, _ in
             evaluating = false
             guard let text = value as? String, let data = text.data(using: .utf8),
                   let status = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
@@ -46,6 +47,8 @@ enum KazanAudioSmoke {
             let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             if let stage = status["stage"] as? String, stages.last != stage { stages.append(stage) }
             var progress = status; progress["history"] = Array(stages.suffix(40))
+            if let diagnostics = status["diagnostics"] as? [String: Any] { lastMapDiagnostics = diagnostics }
+            if let diagnostics = lastMapDiagnostics { progress["lastMapDiagnostics"] = diagnostics }
             if let progressData = try? JSONSerialization.data(withJSONObject: progress, options: [.sortedKeys]) {
                 try? progressData.write(to: directory.appendingPathComponent("kazan-audio-progress.json"), options: .atomic)
             }
