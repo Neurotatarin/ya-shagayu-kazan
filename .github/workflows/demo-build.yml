@@ -22,6 +22,7 @@ jobs:
           node-version: "24"
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+        id: web_build
       - run: python -m unittest discover -s scripts -p test_configure_iphone.py
       - run: python -m unittest discover -s server -p test_server.py
       - run: pnpm exec playwright install --with-deps chromium
@@ -52,6 +53,7 @@ jobs:
           node-version: "24"
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+        id: native_web_build
       - run: pnpm exec cap add ios
       - run: pnpm exec cap sync ios
       - run: bash scripts/build-iphone.sh
@@ -73,7 +75,9 @@ jobs:
       # GStreamer. Keep the complete WebKit suite on this existing Mac runner;
       # no retries, weakened assertions or mocked audio are introduced.
       - run: pnpm exec playwright install webkit
+        if: ${{ always() && !cancelled() && steps.native_web_build.outcome == 'success' }}
       - run: pnpm test:e2e --project=iphone-xr-webkit
+        if: ${{ always() && !cancelled() && steps.native_web_build.outcome == 'success' }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

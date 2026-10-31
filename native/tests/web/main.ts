@@ -4,11 +4,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import catalog from "../../../server/catalog.json";
 import walkingRoute from "../../../tests/fixtures/walking-route.json";
 import { backgroundMusic } from "../../../app/src/data/backgroundMusic";
+import { audioSmoke } from "./audioSmoke";
 import { cancelOffline, downloadOffline, initializeOffline, localMediaURL, offlineSnapshot, prepareOffline, removeOffline } from "../../../app/src/platform/offlineStore";
 import { offlineMapStyle, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
 import type { DemoCatalog, PlaceImage, WalkingRoute } from "../../../app/src/domain/demo";
 
-declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) => void) => Promise<Record<string, unknown>>; Capacitor: { nativePromise: (plugin: string, method: string, options?: unknown) => Promise<Record<string, unknown>> } } }
+declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) => void) => Promise<Record<string, unknown>>; kazanSmokeStage?: string; kazanSmokeResult?: Record<string, unknown>; Capacitor: { nativePromise: (plugin: string, method: string, options?: unknown) => Promise<Record<string, unknown>> } } }
 setWorkerUrl(workerURL); registerOfflineMapProtocol();
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const assert = (condition: unknown, code: string) => { if (!condition) throw new Error(code); };
@@ -20,15 +21,20 @@ async function bounded<T>(operation: Promise<T>, milliseconds: number, code: str
 window.kazanOfflineSmoke = async stage => {
   const status = document.getElementById("status")!;
   await initializeOffline();
+  // Only our isolated CI package is removed. This makes cancellation a test
+  // of an actual pending download rather than an already cached instant save.
+  for (const pack of offlineSnapshot().packages.filter(pack => pack.id.startsWith("native-offline-check-"))) await removeOffline(pack.id);
   stage("offline-prepare"); status.textContent = "Preparing native offline package";
   const input = { id: "native-offline-check", title: "Native offline check", language: "ru" as const, placeIds: walkingRoute.placeIds, route: walkingRoute as unknown as WalkingRoute, catalog: catalog as unknown as DemoCatalog };
   const prepared = await bounded(prepareOffline(input), 120000, "offline-prepare-timeout");
   assert(prepared.enoughSpace, "offline-storage");
   stage("offline-cancel");
   const pending = downloadOffline(prepared.plan).then(() => "saved", error => (error as {code?: string}).code);
-  await sleep(50);
+  const nativeState = await window.Capacitor.nativePromise("KazanOffline", "getState");
+  assert((nativeState.transfer as { id?: string })?.id === prepared.plan.id, "offline-download-not-pending");
   await cancelOffline();
-  assert(await pending === "OFFLINE_CANCELLED", "offline-cancellation");
+  const cancellation = await pending;
+  assert(cancellation === "OFFLINE_CANCELLED", `offline-cancellation-${cancellation}`);
   assert(!offlineSnapshot().packages.some(pack => pack.id === prepared.plan.id), "partial-package-published");
   stage("offline-download"); status.textContent = "Downloading actual files";
   const retry = await bounded(prepareOffline(input), 120000, "offline-retry-timeout");
@@ -112,3 +118,12 @@ window.kazanOfflineSmoke = async stage => {
     return { ok: true, actualNativeDownload: true, cancellation: true, savedWalkingLine: true, maxCoordinateDelta, photosDecoded: photoCount, renderedFeatures, blockedNetworkRequests, localAVPlayerAdvanced: true, backgroundPlaying, removal: true };
   } finally { map?.remove(); window.fetch = fetchOnline; }
 };
+
+// Run once from the final document itself. Native code only observes results;
+// it never injects a second async scenario into a changing WKWebView document.
+const stage = (name: string) => { window.kazanSmokeStage = name; };
+stage("page-module-ready");
+void audioSmoke(stage, () => window.kazanOfflineSmoke(stage)).then(result => { window.kazanSmokeResult = result; }).catch(error => {
+  const category = String(error?.code || error?.message || "");
+  window.kazanSmokeResult = { ok: false, check: window.kazanSmokeStage, reason: /^[A-Za-z0-9_-]{1,90}$/.test(category) ? category : "unclassified" };
+});
