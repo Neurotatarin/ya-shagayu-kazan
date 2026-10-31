@@ -31,7 +31,7 @@ enum KazanAudioSmoke {
         }
         guard let webView = controller.webView, !webView.isLoading, scene.activationState == .foregroundActive else { return }
         started = true
-        webView.callAsyncJavaScript(script, arguments: [:], in: nil, contentWorld: .page) { result in
+        webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
             switch result {
             case .success(let value):
                 finish(value as? [String: Any] ?? ["ok": false, "check": "invalid-result"])
