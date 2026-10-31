@@ -11,9 +11,19 @@ assert re.fullmatch(r'https://kazan-demo\.38-180-191-162\.sslip\.io/downloads/Ya
 package='ru.yashagayu.kazan.demo'
 def adb(*args):return subprocess.check_output(['adb',*args],text=True,stderr=subprocess.STDOUT,timeout=60)
 def snapshot():
-    adb('shell','uiautomator','dump','/sdcard/kazan-release-ui.xml')
-    raw=adb('exec-out','cat','/sdcard/kazan-release-ui.xml');(root/'ui.xml').write_text(raw)
-    return ET.fromstring(raw)
+    for attempt in range(8):
+        try:
+            adb('shell','rm','-f','/sdcard/kazan-release-ui.xml')
+            adb('shell','uiautomator','dump','/sdcard/kazan-release-ui.xml')
+            raw=adb('exec-out','cat','/sdcard/kazan-release-ui.xml');(root/'ui.xml').write_text(raw)
+            return ET.fromstring(raw)
+        except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ET.ParseError) as error:
+            # Android 16's shell UiAutomation can lose its Binder connection
+            # during WebView startup. Record and restart only that reader;
+            # never restart the tested app or dismiss an application ANR.
+            with (root/'accessibility-retries.txt').open('a') as log:log.write(type(error).__name__+' attempt '+str(attempt+1)+'\n')
+            time.sleep(2)
+    raise RuntimeError('Release accessibility reader unavailable')
 def find(label,timeout=60):
     start=time.monotonic()
     while time.monotonic()-start<timeout:
@@ -44,9 +54,10 @@ elif sys.argv[1]=='install':
         subprocess.run([sys.executable,'scripts/prepare-android-emulator.py'],check=True)
         assert 'Success' in adb('install','-r',str(root/'app.apk'))
         status=adb('shell','am','start','-W','-n',package+'/.MainActivity');assert 'Status: ok' in status
+        initial_pid=adb('shell','pidof',package).strip();assert initial_pid
+        time.sleep(5)
         find('Начать прогулку');screen('release-home');tap('Начать прогулку')
-        find('Поиск места');screen('release-map');tap('Поиск места');tap('Дом Ушковой')
-        tap('Слушать историю · 4:15')
+        find('Выбрать Кул-Шариф');screen('release-map');tap('Выбрать Кул-Шариф');tap('Слушать')
         for _ in range(4):
             try:find('Воспроизвести историю',timeout=6);break
             except RuntimeError:adb('shell','input','swipe','530','1850','530','900','350')
@@ -56,7 +67,8 @@ elif sys.argv[1]=='install':
         assert playing(),'Signed release lost playback in background'
         adb('shell','input','keyevent','224');adb('shell','wm','dismiss-keyguard');screen('release-locked-media')
         crash=adb('logcat','-d','-b','crash');(root/'crashes.txt').write_text(crash)
-        assert 'FATAL EXCEPTION' not in crash and 'Fatal signal' not in crash
+        assert 'Process: '+package not in crash and '>>> '+package+' <<<' not in crash
+        assert adb('shell','pidof',package).strip()==initial_pid,'Release application process restarted'
         (root/'result.json').write_text(json.dumps({'ok':True,'signedAPKInstalled':True,'exactSHA256':release['sha256'],'releaseUI':True,'nativeMediaSession':True,'background':True,'androidAPI':36},indent=2))
     finally:
         if Path('work/emulator-startup').is_dir():shutil.copytree('work/emulator-startup',root/'emulator-startup',dirs_exist_ok=True)

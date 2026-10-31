@@ -107,6 +107,16 @@ public final class NativeCheck {
             assertNotNull("Native scenario timed out at "+stage,result);output("result-"+phase+".json",result.toString(2));assertTrue(result.toString(),result.optBoolean("ok"));
             UiDevice device=UiDevice.getInstance(instrumentation);device.takeScreenshot(new File(instrumentation.getTargetContext().getExternalFilesDir(null),"screen-"+phase+".png"));
             if("offline".equals(phase)){
+                // The Android location provider must still supply a real fix
+                // while the emulator has no network. Coordinates are injected
+                // into that provider, never into the application or its map.
+                instrumentation.getUiAutomation().grantRuntimePermission("ru.yashagayu.kazan.demo","android.permission.ACCESS_COARSE_LOCATION");
+                instrumentation.getUiAutomation().grantRuntimePermission("ru.yashagayu.kazan.demo","android.permission.ACCESS_FINE_LOCATION");
+                javascript(scenario,"window.offlineGPS=null;navigator.geolocation.getCurrentPosition(p=>window.offlineGPS={lat:p.coords.latitude,lon:p.coords.longitude},e=>window.offlineGPS={error:e.code},{enableHighAccuracy:true,maximumAge:0,timeout:20000});true");
+                until(scenario,"window.offlineGPS!==null");
+                String rawGPS=javascript(scenario,"JSON.stringify(window.offlineGPS)");JSONObject gps=new JSONObject((String)new JSONTokener(rawGPS).nextValue());
+                assertFalse("Offline GPS failed",gps.has("error"));assertEquals(55.75,gps.getDouble("lat"),.02);assertEquals(37.62,gps.getDouble("lon"),.02);
+                output("offline-gps.json",new JSONObject().put("networkDisabled",true).put("androidLocationProvider",true).put("coordinatesMatchEmulator",true).toString());
                 Context context=instrumentation.getTargetContext();AtomicReference<ListenableFuture<MediaController>> pending=new AtomicReference<>();
                 instrumentation.runOnMainSync(()->pending.set(new MediaController.Builder(context,new SessionToken(context,new ComponentName(context,KazanPlaybackService.class))).buildAsync()));
                 MediaController controller=pending.get().get(15,TimeUnit.SECONDS);AtomicLong before=new AtomicLong(),after=new AtomicLong();

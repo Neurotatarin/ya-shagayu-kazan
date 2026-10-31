@@ -15,6 +15,8 @@ adb shell am force-stop ru.yashagayu.kazan.demo
 adb shell svc wifi disable
 adb shell svc data disable
 adb shell cmd connectivity airplane-mode enable
+adb shell settings put secure location_mode 3
+adb emu geo fix 37.62 55.75
 sleep 3
 run_phase offline || failed=1
 adb shell am force-stop ru.yashagayu.kazan.demo

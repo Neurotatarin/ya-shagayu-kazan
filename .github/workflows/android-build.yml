@@ -2,7 +2,7 @@ name: Android APK and native checks
 on:
   push:
     branches: [feat/android-demo]
-    paths-ignore: [deployment/android-release.json]
+    paths-ignore: [deployment/android-release.json, scripts/check-android-release.py, README.md]
   workflow_dispatch:
 permissions:
   contents: read
