@@ -2,6 +2,7 @@ import type { DemoCatalog, PlaceId, PlaceImage, WalkingRoute } from "../domain/d
 import type { OfflineAsset, OfflineMap, OfflinePlan } from "../domain/offline";
 import { offlineLimits } from "../domain/offline";
 import type { Language } from "../i18n";
+import { offlineCity } from "../data/offlineCity";
 import { backgroundMusic } from "../data/backgroundMusic";
 
 const origin = "https://kazan-demo.38-180-191-162.sslip.io";
@@ -32,21 +33,14 @@ export function mapTiles(bounds: OfflineMap["bounds"], minZoom: number, maxZoom:
   return result;
 }
 
-export async function makeOfflinePlan(input: { id: string; title: string; language: Language; placeIds: PlaceId[]; catalog: DemoCatalog; route?: WalkingRoute }, read: JsonReader): Promise<OfflinePlan> {
+export async function makeOfflinePlan(input: { id: string; title: string; language: Language; placeIds: PlaceId[]; catalog: DemoCatalog; route?: WalkingRoute; map?: OfflineMap }, read: JsonReader): Promise<OfflinePlan> {
   if (!/^[a-z][a-z0-9-]{0,60}$/.test(input.id)) throw new Error("OFFLINE_ID_INVALID");
   const ids = [...new Set(input.placeIds)];
   const places = ids.map(id => input.catalog.places.find(p => p.id === id));
   if (!ids.length || ids.length > 20 || places.some(p => !p?.coordinates)) throw new Error("OFFLINE_PLACES_INVALID");
   if (ids.length > 1 && (!input.route || input.route.placeIds.join(",") !== ids.join(","))) throw new Error("OFFLINE_ROUTE_REQUIRED");
-  const points = input.route?.geometry.coordinates ?? places.map(p => p!.coordinates!);
-  const bounds = mapBounds(points);
-  const assets = new Map<string, OfflineAsset>();
-  const add = (url: string, kind: OfflineAsset["kind"], tile = false) => {
-    const normalized = absolute(url);
-    const parsed = new URL(normalized);
-    if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.port || !(parsed.hostname === "tiles.openfreemap.org" || (parsed.origin === origin && parsed.pathname.startsWith("/media/")))) throw new Error("OFFLINE_ASSET_REJECTED");
-    assets.set(normalized, { url: normalized, kind, ...(tile ? { tile } : {}) });
-  };
+
+  const { assets, add } = assetCollector();
   const galleries: Record<string, unknown> = {};
   let narrationCount = 0;
   for (const place of places) {
@@ -64,10 +58,29 @@ export async function makeOfflinePlan(input: { id: string; title: string; langua
   }
   // Shared files are downloaded once by the native URL-keyed file store.
   if (narrationCount) add(backgroundMusic.url, "media");
+  const map = input.map ?? (await makeCityMapPlan(input.catalog, read)).map;
+  return { schema: 1, ...input, kind: "content", mapId: offlineCity.id, id: input.id + "-" + input.language, placeIds: ids, galleries, map, assets: [...assets.values()] };
+}
+
+function assetCollector() {
+  const assets = new Map<string, OfflineAsset>();
+  const add = (url: string, kind: OfflineAsset["kind"], tile = false) => {
+    const normalized = absolute(url);
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.port || !(parsed.hostname === "tiles.openfreemap.org" || (parsed.origin === origin && parsed.pathname.startsWith("/media/")))) throw new Error("OFFLINE_ASSET_REJECTED");
+    assets.set(normalized, { url: normalized, kind, ...(tile ? { tile } : {}) });
+  };
+  return { assets, add };
+}
+
+export async function makeCityMapPlan(catalog: DemoCatalog, read: JsonReader): Promise<OfflinePlan> {
+  const { assets, add } = assetCollector();
+  const bounds = [...offlineCity.bounds] as OfflineMap["bounds"];
+  if (catalog.places.some(p => p.coordinates && (p.coordinates[0] < bounds[0] || p.coordinates[0] > bounds[2] || p.coordinates[1] < bounds[1] || p.coordinates[1] > bounds[3]))) throw new Error("OFFLINE_AREA_INVALID");
   const style = await read(styleURL) as Record<string, unknown> & { version: number; sources: Record<string, Record<string, unknown>>; layers: Record<string, unknown>[]; glyphs?: string; sprite?: string };
   if (style.version !== 8 || !style.sources || !Array.isArray(style.layers)) throw new Error("OFFLINE_STYLE_INVALID");
   const sources: OfflineMap["sources"] = {};
-  let tileCount = 0, minZoom = 9, maxZoom = 14;
+  let tileCount = 0, minZoom: number = offlineCity.minZoom, maxZoom: number = offlineCity.maxZoom;
   for (const [name, source] of Object.entries(style.sources)) {
     // The source's Natural Earth raster is only used at zoom <=6; the offline
     // route region starts at zoom 9 and retains the same detailed vector style.
@@ -101,5 +114,7 @@ export async function makeOfflinePlan(input: { id: string; title: string; langua
     // Latin, Cyrillic, Arabic and punctuation for the three supported languages.
     for (const font of fonts) for (const start of [0, 256, 512, 768, 1024, 1280, 1536, 1792, 8192, 8448, 65024, 65280]) add(style.glyphs.replace("{fontstack}", encodeURIComponent(font)).replace("{range}", `${start}-${start + 255}`), "map");
   }
-  return { schema: 1, ...input, id: input.id + "-" + input.language, placeIds: ids, galleries, map: { style, bounds, minZoom, maxZoom, sources, tileCount }, assets: [...assets.values()] };
+  const hash = globalThis.crypto?.subtle ? [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode([...assets.keys()].sort().join("\n"))))].map(byte => byte.toString(16).padStart(2, "0")).join("") : "";
+  const estimatedBytes = hash === offlineCity.assetsSHA256 ? offlineCity.knownBytes : undefined;
+  return { schema: 1, kind: "city-map", id: offlineCity.id, title: "Карта Казани", language: "ru", placeIds: catalog.places.map(p => p.id), catalog, galleries: {}, map: { style, bounds, minZoom, maxZoom, sources, tileCount, estimatedBytes }, assets: [...assets.values()] };
 }

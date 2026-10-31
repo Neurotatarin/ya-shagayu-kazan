@@ -121,11 +121,12 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     void closeAudio().catch(() => showNotice(t("Не удалось закрыть экскурсию. Попробуй ещё раз.")));
   }
   function openDownloaded(pack: OfflinePackage) {
-    if (pack.route) { setRoutePlaceIds(pack.placeIds); setRouteTitle(pack.title); setMapSelection(undefined); go("map"); }
+    if (pack.kind === "city-map") { setRoutePlaceIds([]); setRouteTitle(""); setMapSelection(undefined); go("map"); }
+    else if (pack.route) { setRoutePlaceIds(pack.placeIds); setRouteTitle(pack.title); setMapSelection(undefined); go("map"); }
     else { setRoutePlaceIds([]); go("player", pack.placeIds[0]); }
   }
   async function removeDownloaded(pack: OfflinePackage) {
-    if (pack.language === playback.language && pack.placeIds.includes(playback.placeId)) {
+    if (pack.kind !== "city-map" && pack.language === playback.language && pack.placeIds.includes(playback.placeId)) {
       updateProgress(withAudioPosition(progress, playback.placeId, playback.language, playback.position));
       await closeAudio();
     }
@@ -173,7 +174,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
         : sheet === "map-filters" ? <><p>{t("В каталоге {0} мест. Выбери место, чтобы открыть его карточку.", {0: catalog.places.length})}</p>{catalog.places.map(p => <button key={p.id} type="button" className="sheet-option" onClick={() => openPlace(p.id)}>{p.title}</button>)}</>
         : sheet === "player-actions" ? <><button className="sheet-option" type="button" onClick={() => openPlace(place.id)}>{t("Открыть место")}</button><p>{place.audioUrl ? t("Готовая аудиоистория. Позиция сохраняется, пока ты гуляешь по Казани.") : t("Готовая аудиозапись для этого места ещё не загружена.")}</p><p>{t("Музыкальный фон включается кнопкой «Фон» и играет только вместе с рассказом.")}</p><p className="music-credit">«{backgroundMusic.title}» — {backgroundMusic.author} (<a href={backgroundMusic.sourceUrl} target="_blank" rel="noreferrer">incompetech.com</a>{t("). Лицензия")} <a href={backgroundMusic.licenseUrl} target="_blank" rel="noreferrer">{backgroundMusic.license}</a>{t(". Оригинальная запись; при воспроизведении уменьшена громкость и включён повтор.")}</p></>
         : sheet === "awards" ? <><div className="sheet-medal"><OriginalAsset asset="profile.imgFrame" /></div><p>{t("Ты отметил посещение {0} мест.", {0: progress.visited?.length ?? 0})}</p>{catalog.places.filter(p => progress.visited?.includes(p.id)).map(p => <p key={p.id}>{p.title}</p>)}<p>{t("Правила выдачи наград ещё согласуются.")}</p></>
-        : sheet === "offline" ? <OfflineSavedPackages onOpen={openDownloaded} onRemove={removeDownloaded} onChoose={() => go("routes")} />
+        : sheet === "offline" ? <OfflineSavedPackages onOpen={openDownloaded} onRemove={removeDownloaded} onChoose={() => go("routes")} onCity={() => { if (sourceCatalog) { setSheet(undefined); setOfflineContext({ id: "kazan-city-map", title: t("Карта Казани"), language, placeIds: sourceCatalog.places.map(place => place.id), catalog: sourceCatalog, cityOnly: true }); } }} />
         : sheet === "account" ? <><p>{t("Ты знакомишься с Казанью как гость.")}</p><p>{t("Избранное, посещения и позиция истории сохраняются на устройстве и сервере для этой гостевой сессии. Вход по email и объединение устройств ещё не подключены.")}</p></>
         : <><p>{t("Казань · Русский язык")}</p><p>{t("Рабочая демоверсия: интерактивная карта и Зилант через OpenAI.")}</p><button className="sheet-option" type="button" onClick={() => setSheet("account")}>{t("Аккаунт и синхронизация")}</button></>}
     </DetailSheet>}

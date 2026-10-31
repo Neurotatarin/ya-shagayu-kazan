@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import type { DemoCatalog, WalkingRoute } from "../app/src/domain/demo";
-import { makeOfflinePlan, mapBounds, mapTiles } from "../app/src/platform/offlinePlan";
+import { makeCityMapPlan, makeOfflinePlan, mapBounds, mapTiles } from "../app/src/platform/offlinePlan";
 
 const catalog = JSON.parse(readFileSync(new URL("../server/catalog.json", import.meta.url), "utf8")) as DemoCatalog;
 const route = JSON.parse(readFileSync(new URL("./fixtures/walking-route.json", import.meta.url), "utf8")) as WalkingRoute;
@@ -22,7 +22,22 @@ test("a route pack preserves its street geometry, selected-language audio, photo
   expect(plan.id).toBe("route-test-en");
   expect(plan.map.tileCount).toBeGreaterThan(0);
   expect(plan.map.tileCount).toBeLessThanOrEqual(3000);
-  expect(plan.assets.filter(a => a.tile).length).toBe(plan.map.tileCount);
+  expect(plan.kind).toBe("content");
+  expect(plan.mapId).toBe("kazan-city-map");
+  expect(plan.assets.every(a => a.kind === "media" && !a.tile)).toBe(true);
+  const city = await makeCityMapPlan(catalog, metadata);
+  expect(city.kind).toBe("city-map");
+  expect(city.id).toBe("kazan-city-map");
+  expect(city.assets.filter(a => a.tile).length).toBe(1135);
+  expect(city.map.minZoom).toBe(8);
+  expect(city.map.maxZoom).toBe(14);
+  for (const place of catalog.places) {
+    expect(place.coordinates![0]).toBeGreaterThan(city.map.bounds[0]);
+    expect(place.coordinates![0]).toBeLessThan(city.map.bounds[2]);
+    expect(place.coordinates![1]).toBeGreaterThan(city.map.bounds[1]);
+    expect(place.coordinates![1]).toBeLessThan(city.map.bounds[3]);
+  }
+  expect(city.assets.every(a => a.kind === "map")).toBe(true);
   expect(new Set(plan.assets.map(a => a.url)).size).toBe(plan.assets.length);
   const krem = catalog.places.find(p => p.id === "kremlin")!;
   expect(plan.assets.some(a => a.url.endsWith(krem.audioTracks!.en!.url))).toBe(true);
@@ -31,8 +46,8 @@ test("a route pack preserves its street geometry, selected-language audio, photo
   expect(plan.assets.filter(a => a.url.endsWith("offline-test-photo.jpg"))).toHaveLength(1);
   expect((plan.map.style.layers as { source?: string }[]).some(layer => layer.source === "raster")).toBe(false);
   expect(plan.map.sources.vector!.attribution).toContain("© OpenStreetMap");
-  expect(plan.assets.some(a => a.url.includes("1536-1791.pbf"))).toBe(true);
-  expect(plan.assets.some(a => a.url.endsWith("@2x.png"))).toBe(true);
+  expect(city.assets.some(a => a.url.includes("1536-1791.pbf"))).toBe(true);
+  expect(city.assets.some(a => a.url.endsWith("@2x.png"))).toBe(true);
 });
 
 test("missing foreign narration never downloads Russian fallback; excessive areas and unapproved hosts fail", async () => {

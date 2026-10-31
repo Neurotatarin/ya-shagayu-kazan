@@ -27,9 +27,12 @@ async function fixture(page: Page, native = true) {
     const save = () => localStorage.setItem("offline-ui-packages", JSON.stringify(state.packages));
     win.offlineContract = {
       enoughSpace: true,
+      pendingId: () => pending?.plan.id,
+      plans: [] as RecordValue[],
       progress: () => events.transferChange?.({ id: pending!.plan.id, phase: "downloading", completed: 7, total: pending!.plan.assets.length, bytes: 2_000_000 }),
       complete: () => {
         const { plan, resolve } = pending!;
+        state.packages = state.packages.filter((item: RecordValue) => item.id !== plan.id);
         state.packages.push({ ...plan, bytes: 12_000_000, downloadedAt: new Date().toISOString(), files: Object.fromEntries(plan.assets.map((asset: RecordValue, index: number) => [asset.url, `file:///offline/${index}`])) });
         save(); pending = undefined; delete state.transfer;
         events.packagesChange?.({}); events.transferChange?.({ finished: true }); resolve({ saved: true });
@@ -48,8 +51,9 @@ async function fixture(page: Page, native = true) {
           if (options.url.endsWith("/planet")) return { value: { tiles: ["https://tiles.openfreemap.org/test/{z}/{x}/{y}.pbf"], minzoom: 0, maxzoom: 14 } };
           return { value: { items: [{ url: "/media/test-photo.webp", author: "Test author", license: "CC BY-SA 4.0", sourceUrl: "https://commons.wikimedia.org/wiki/Test" }] } };
         }
-        if (method === "estimate") return { upperBytes: 70_000_000, availableBytes: state.availableBytes, enoughSpace: win.offlineContract.enoughSpace };
+        if (method === "estimate") return { upperBytes: options.plan.kind === "city-map" ? 50_000_000 : 20_000_000, availableBytes: state.availableBytes, enoughSpace: win.offlineContract.enoughSpace };
         if (method === "download") {
+          win.offlineContract.plans.push(options.plan);
           state.transfer = { id: options.plan.id, phase: "downloading", completed: 0, total: options.plan.assets.length, bytes: 0 };
           return new Promise((resolve, reject) => { pending = { plan: options.plan, resolve, reject }; });
         }
@@ -60,7 +64,8 @@ async function fixture(page: Page, native = true) {
     };
   });
 }
-const card = (page: Page) => page.locator(".offline-package-card");
+const card = (page: Page) => page.locator(".offline-download-sheet .offline-package-card");
+const profileCards = (page: Page) => page.locator(".offline-package-list .offline-package-card");
 async function openDownload(page: Page) {
   await page.goto("/#/player/ushkova");
   await page.locator(".offline-action").click();
@@ -70,6 +75,15 @@ async function contract(page: Page, method: "progress" | "complete" | "fail", va
   await page.evaluate(({ method, value }) => (window as any).offlineContract[method](value), { method, value });
 }
 
+async function finishBundle(page: Page) {
+  const first = await page.evaluate(() => (window as any).offlineContract.pendingId());
+  await contract(page, "complete");
+  if (first === "kazan-city-map") {
+    await expect.poll(() => page.evaluate(() => (window as any).offlineContract.pendingId())).not.toBeUndefined();
+    await contract(page, "complete");
+  }
+}
+
 test("browser offline download is disabled in player and profile", async ({ page }) => {
   await fixture(page, false);
   await page.goto("/#/player/ushkova");
@@ -77,8 +91,8 @@ test("browser offline download is disabled in player and profile", async ({ page
   await expect(page.locator(".offline-action")).toHaveAttribute("title", /установленном приложении iPhone/);
   await page.goto("/#/profile");
   await page.getByRole("button", { name: "Офлайн-маршруты", exact: true }).click();
-  await expect(card(page)).toHaveAttribute("data-state", "BrowserDisabled");
-  await expect(card(page).getByRole("button")).toBeDisabled();
+  await expect(page.locator(".offline-package-card")).toHaveAttribute("data-state", "BrowserDisabled");
+  await expect(page.locator(".offline-package-card").getByRole("button")).toBeDisabled();
 });
 
 test("native UI cancellation, retry, persistent listing and removal never publish a partial package", async ({ page }, info) => {
@@ -99,12 +113,14 @@ test("native UI cancellation, retry, persistent listing and removal never publis
   await card(page).getByRole("button", { name: "Повторить" }).click();
   await expect(card(page)).toHaveAttribute("data-state", "Available");
   await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
-  await contract(page, "complete");
+  await finishBundle(page);
   await expect(card(page)).toHaveAttribute("data-state", "Saved");
   await page.goto("/#/profile");
   await page.getByRole("button", { name: "Офлайн-маршруты", exact: true }).click();
-  await expect(card(page)).toHaveAttribute("data-state", "Saved");
-  await card(page).getByRole("button", { name: "Удалить с iPhone" }).click();
+  await expect(profileCards(page)).toHaveCount(2);
+  await profileCards(page).filter({ hasText: "Дом Ушковой" }).getByRole("button", { name: "Удалить с iPhone" }).click();
+  await expect(profileCards(page)).toHaveCount(1);
+  await expect(profileCards(page)).toContainText("Карта Казани");
   await expect(page.getByText("Скачанных маршрутов пока нет.")).toBeVisible();
 });
 
@@ -141,8 +157,8 @@ test("whole-route download preserves exact stops and walking geometry", async ({
   await page.getByRole("button", { name: "Скачать маршрут на iPhone" }).click();
   await expect(card(page)).toHaveAttribute("data-state", "Available");
   await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
-  await contract(page, "complete");
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("offline-ui-packages")!)[0]);
+  await finishBundle(page);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("offline-ui-packages")!).find((pack: any) => pack.kind === "content"));
   expect(saved.placeIds.length).toBe(5);
   expect(saved.route.placeIds).toEqual(saved.placeIds);
   expect(saved.route.geometry).toEqual(walking.geometry);
@@ -152,7 +168,7 @@ test("native saved catalog survives a cold reload without browser catalog cache;
   test.skip(!["phone-402", "iphone-xr-webkit"].includes(info.project.name));
   await fixture(page); await openDownload(page);
   await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
-  await contract(page, "complete");
+  await finishBundle(page);
   await expect(card(page)).toHaveAttribute("data-state", "Saved");
   await page.evaluate(() => { localStorage.removeItem("kazan:catalog:v1"); (window as any).offlineContract.network(false); });
   const requests: string[] = [];
@@ -173,7 +189,7 @@ test("offline map keeps actual GPS and explains areas that have not been downloa
   test.skip(info.project.name !== "phone-402");
   await fixture(page); await openDownload(page);
   await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
-  await contract(page, "complete");
+  await finishBundle(page);
   await expect(card(page)).toHaveAttribute("data-state", "Saved");
   await page.route("**/offline-ui-file/**", route => route.fulfill({ contentType: "application/octet-stream", body: Buffer.alloc(0) }));
   await page.evaluate(() => (window as any).offlineContract.network(false));
@@ -186,9 +202,75 @@ test("offline map keeps actual GPS and explains areas that have not been downloa
   await expect(page.locator(".real-user-position")).toBeAttached();
   await expect(page.locator(".notice-region")).toContainText("вне Казани");
   await page.locator('[data-place-id="temple"]').dispatchEvent("click");
-  await expect(page.locator(".map-load-state")).toContainText("Эта область не скачана");
+  await expect(page.locator(".map-load-state")).toHaveCount(0);
   await page.getByRole("button", { name: "Идти к этому месту" }).click();
   await expect(page.locator(".notice-region")).toContainText("Новые пути рассчитываются онлайн");
   await page.locator('[data-place-id="ushkova"]').dispatchEvent("click");
   await expect(page.locator(".map-load-state")).toHaveCount(0);
+});
+
+test("shared city map survives a content failure, is reused across languages, and can be removed without deleting tours", async ({ page }, info) => {
+  test.skip(!["phone-402", "iphone-xr-webkit"].includes(info.project.name));
+  await fixture(page); await openDownload(page);
+  await expect(card(page)).toContainText("Карта Казани · до 50 МБ");
+  await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
+  await contract(page, "complete");
+  await expect.poll(() => page.evaluate(() => (window as any).offlineContract.pendingId())).toBe("place-ushkova-ru");
+  await contract(page, "fail");
+  await expect(card(page)).toHaveAttribute("data-state", "Error");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("offline-ui-packages")!).map((p: any) => p.kind))).toEqual(["city-map"]);
+  await card(page).getByRole("button", { name: "Повторить" }).click();
+  await expect(card(page)).toContainText("Карта Казани · уже на iPhone");
+  await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
+  await finishBundle(page);
+  await expect(card(page)).toHaveAttribute("data-state", "Saved");
+  const maps = await page.evaluate(() => (window as any).offlineContract.plans.filter((p: any) => p.kind === "city-map").length);
+  expect(maps).toBe(1);
+  await page.evaluate(() => localStorage.setItem("kazan:language:v1", "en"));
+  await page.reload();
+  await page.locator(".offline-action").click();
+  await expect(card(page)).toContainText("Kazan map · already on iPhone");
+  await card(page).getByRole("button", { name: "Download to iPhone" }).click();
+  await finishBundle(page);
+  expect(await page.evaluate(() => (window as any).offlineContract.plans.filter((p: any) => p.kind === "city-map").length)).toBe(0);
+  await page.evaluate(() => localStorage.setItem("kazan:language:v1", "ru"));
+  await page.goto("/#/profile"); await page.reload();
+  await page.getByRole("button", { name: "Офлайн-маршруты", exact: true }).click();
+  const mapCard = profileCards(page).filter({ has: page.locator(".offline-card-heading", { hasText: "Карта Казани" }) });
+  await mapCard.getByRole("button", { name: "Удалить карту", exact: true }).click();
+  await expect(profileCards(page).first()).toContainText("Аудио, фотографии и описания сохранятся");
+  await profileCards(page).first().getByRole("button", { name: "Оставить карту" }).click();
+  await mapCard.getByRole("button", { name: "Удалить карту", exact: true }).click();
+  await profileCards(page).first().getByRole("button", { name: "Удалить карту", exact: true }).click();
+  await expect(profileCards(page)).toHaveCount(3);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("offline-ui-packages")!).map((p: any) => p.kind))).toEqual(["content", "content"]);
+  await expect(profileCards(page).first()).toContainText("пока не скачана");
+});
+
+test("legacy combined package upgrades in place and failed map updates retain the saved version", async ({ page }, info) => {
+  test.skip(info.project.name !== "phone-402");
+  await fixture(page); await openDownload(page);
+  await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
+  await finishBundle(page); await expect(card(page)).toHaveAttribute("data-state", "Saved");
+  await page.evaluate(() => {
+    const packs = JSON.parse(localStorage.getItem("offline-ui-packages")!);
+    const content = packs.find((p: any) => p.kind === "content"), city = packs.find((p: any) => p.kind === "city-map");
+    delete content.kind; delete content.mapId;
+    content.assets.push(...city.assets); Object.assign(content.files, city.files);
+    localStorage.setItem("offline-ui-packages", JSON.stringify([content]));
+  });
+  await page.reload(); await page.locator(".offline-action").click();
+  await expect(card(page)).toHaveAttribute("data-state", "Available");
+  await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
+  await finishBundle(page); await expect(card(page)).toHaveAttribute("data-state", "Saved");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("offline-ui-packages")!).filter((p: any) => p.id === "place-ushkova-ru").length)).toBe(1);
+  await page.goto("/#/profile");
+  await page.getByRole("button", { name: "Офлайн-маршруты", exact: true }).click();
+  await profileCards(page).getByRole("button", { name: "Проверить обновление" }).click();
+  await expect(card(page)).toHaveAttribute("data-state", "Available");
+  const before = await page.evaluate(() => localStorage.getItem("offline-ui-packages"));
+  await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
+  await contract(page, "fail");
+  await expect(card(page)).toHaveAttribute("data-state", "Error");
+  expect(await page.evaluate(() => localStorage.getItem("offline-ui-packages"))).toBe(before);
 });

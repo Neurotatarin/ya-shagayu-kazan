@@ -19,6 +19,8 @@
 .offline-card-action { width: 100%; min-height: var(--offline-control-height); padding: 8px; border: 0; border-radius: var(--offline-radius); background: var(--green); color: var(--white); font: 600 14px/20px var(--font-body); }
 .offline-card-action:disabled { opacity: .45; cursor: default; }
 .offline-package-card[data-state="Saved"] .offline-card-action { background: var(--mint); color: var(--green); }
+.offline-package-card .offline-card-secondary { background: var(--mint); color: var(--green); }
+.offline-package-card:has(.offline-card-secondary) .offline-card-action:not(.offline-card-secondary) { background: var(--green); color: var(--white); }
 .offline-package-list { display: flex; flex-direction: column; gap: 16px; }
 .player-extra-actions .offline-action:disabled { opacity: .45; cursor: default; }
 .player-extra-actions .offline-saved { background: var(--mint); }

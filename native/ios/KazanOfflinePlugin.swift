@@ -132,7 +132,13 @@ public final class KazanOfflinePlugin: CAPPlugin, CAPBridgedPlugin {
               let places = plan["placeIds"] as? [String], !places.isEmpty, places.count <= 20,
               let list = plan["assets"] as? [[String: Any]], !list.isEmpty, list.count <= 4000,
               let map = plan["map"] as? [String: Any], let count = map["tileCount"] as? Int, count > 0, count <= 3000,
-              count == list.filter({ $0["tile"] as? Bool == true }).count else { throw NSError(domain: "Offline", code: 1) }
+              ((plan["kind"] as? String == "content" && plan["mapId"] as? String == "kazan-city-map" && list.allSatisfy { $0["kind"] as? String == "media" && $0["tile"] as? Bool != true }) || (plan["kind"] as? String != "content" && count == list.filter({ $0["tile"] as? Bool == true }).count)) else { throw NSError(domain: "Offline", code: 1) }
+        if let kind = plan["kind"] as? String {
+            guard ["city-map", "content"].contains(kind) else { throw NSError(domain: "Offline", code: 1) }
+            if kind == "city-map" {
+                guard id == "kazan-city-map", list.allSatisfy({ $0["kind"] as? String == "map" }) else { throw NSError(domain: "Offline", code: 1) }
+            }
+        }
         var seen = Set<String>()
         for asset in list {
             guard let raw = asset["url"] as? String, KazanOfflineStore.allowed(raw) != nil, let kind = asset["kind"] as? String, ["map", "media"].contains(kind), seen.insert(raw).inserted else { throw NSError(domain: "Offline", code: 1) }
@@ -152,25 +158,26 @@ public final class KazanOfflinePlugin: CAPPlugin, CAPBridgedPlugin {
                 let assets = try self.assets(plan)
                 let media = assets.filter { $0["kind"] as? String == "media" }
                 let signature = try self.signature(plan)
-                self.estimateMedia(media, index: 0, bytes: 0, signature: signature, call: call)
+                let missingMap = assets.contains { $0["kind"] as? String == "map" && ($0["url"] as? String).flatMap({ KazanOfflineStore.size(KazanOfflineStore.file($0)) }) == nil }
+                self.estimateMedia(media, index: 0, bytes: 0, mapUpper: missingMap ? KazanOfflineStore.mapLimit : 0, signature: signature, call: call)
             } catch { call.reject("Не удалось подготовить пакет.", "OFFLINE_PLAN") }
         }
     }
-    private func estimateMedia(_ assets: [[String: Any]], index: Int, bytes: Int64, signature: String, call: CAPPluginCall) {
+    private func estimateMedia(_ assets: [[String: Any]], index: Int, bytes: Int64, mapUpper: Int64, signature: String, call: CAPPluginCall) {
         if index == assets.count {
-            let upper = min(KazanOfflineStore.packageLimit, bytes + KazanOfflineStore.mapLimit)
+            let upper = min(KazanOfflineStore.packageLimit, bytes + mapUpper)
             estimates[signature] = upper
             call.resolve(["upperBytes": upper, "availableBytes": KazanOfflineStore.availableBytes(), "enoughSpace": KazanOfflineStore.availableBytes() >= upper + KazanOfflineStore.reserve]); return
         }
         guard let raw = assets[index]["url"] as? String, let url = KazanOfflineStore.allowed(raw) else { call.reject("Некорректный пакет.", "OFFLINE_PLAN"); return }
-        if KazanOfflineStore.size(KazanOfflineStore.file(raw)) != nil { estimateMedia(assets, index: index + 1, bytes: bytes, signature: signature, call: call); return }
+        if KazanOfflineStore.size(KazanOfflineStore.file(raw)) != nil { estimateMedia(assets, index: index + 1, bytes: bytes, mapUpper: mapUpper, signature: signature, call: call); return }
         var request = URLRequest(url: url); request.httpMethod = "HEAD"
         metadataSession.dataTask(with: request) { _, response, error in
             self.queue.async {
                 guard error == nil, let response = response as? HTTPURLResponse, response.statusCode == 200, response.expectedContentLength >= 0 else { call.reject("Не удалось определить размер пакета.", "OFFLINE_NETWORK"); return }
                 let next = bytes + response.expectedContentLength
-                guard next + KazanOfflineStore.mapLimit <= KazanOfflineStore.packageLimit else { call.reject("Пакет слишком большой.", "OFFLINE_LIMIT"); return }
-                self.estimateMedia(assets, index: index + 1, bytes: next, signature: signature, call: call)
+                guard next + mapUpper <= KazanOfflineStore.packageLimit else { call.reject("Пакет слишком большой.", "OFFLINE_LIMIT"); return }
+                self.estimateMedia(assets, index: index + 1, bytes: next, mapUpper: mapUpper, signature: signature, call: call)
             }
         }.resume()
     }
@@ -182,6 +189,9 @@ public final class KazanOfflinePlugin: CAPPlugin, CAPBridgedPlugin {
             do {
                 try KazanOfflineStore.prepare()
                 let assets = try self.assets(plan)
+                if plan["kind"] as? String == "content", !self.packages().contains(where: { $0["id"] as? String == "kazan-city-map" }) {
+                    call.reject("Сначала скачай карту Казани.", "OFFLINE_PREPARE"); return
+                }
                 let signature = try self.signature(plan)
                 guard let upper = self.estimates[signature] else { call.reject("Сначала проверь состав и размер пакета.", "OFFLINE_PREPARE"); return }
                 guard KazanOfflineStore.availableBytes() >= upper + KazanOfflineStore.reserve else { call.reject("Недостаточно свободного места на iPhone.", "OFFLINE_STORAGE"); return }
@@ -189,7 +199,7 @@ public final class KazanOfflinePlugin: CAPPlugin, CAPBridgedPlugin {
                     guard let self = self else { return }
                     self.job = nil
                     if let code = code { try? self.collectUnusedFiles(); call.reject(code == "OFFLINE_CANCELLED" ? "Загрузка отменена." : "Не удалось скачать пакет.", code) }
-                    else { self.event("packagesChange", [:]); call.resolve(["saved": true]) }
+                    else { try? self.collectUnusedFiles(); self.event("packagesChange", [:]); call.resolve(["saved": true]) }
                     self.event("transferChange", ["finished": true])
                 })
                 self.job = download; download.start()

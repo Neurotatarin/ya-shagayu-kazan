@@ -19,6 +19,8 @@ delegate.write_text(source)
 PY
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath work/ios-simulator CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' IPHONEOS_DEPLOYMENT_TARGET=15.0 TARGETED_DEVICE_FAMILY=1 build -quiet
 DEVICE=$(python3 scripts/choose-iphone-simulator.py)
+# The disposable runner must release its simulator GPU before Safari checks.
+trap 'xcrun simctl shutdown "$DEVICE" >/dev/null 2>&1 || true' EXIT
 xcrun simctl boot "$DEVICE" || test "$(xcrun simctl list devices -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["state"] for a in d["devices"].values() for x in a if x["udid"] == sys.argv[1]))' "$DEVICE")" = Booted
 xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl install "$DEVICE" work/ios-simulator/Build/Products/Debug-iphonesimulator/App.app

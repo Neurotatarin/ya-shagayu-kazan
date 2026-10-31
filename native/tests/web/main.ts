@@ -30,11 +30,11 @@ window.kazanOfflineSmoke = async stage => {
   assert(prepared.enoughSpace, "offline-storage");
   stage("offline-cancel");
   let terminal: string | undefined;
-  const pending = downloadOffline(prepared.plan).then(() => terminal = "saved", error => terminal = (error as {code?: string}).code);
+  const pending = downloadOffline(prepared.plan, prepared.cityPlan).then(() => terminal = "saved", error => terminal = (error as {code?: string}).code);
   let actualPending = false;
   for (let i = 0; i < 80; i++) {
     const nativeState = await window.Capacitor.nativePromise("KazanOffline", "getState");
-    if ((nativeState.transfer as { id?: string })?.id === prepared.plan.id) { actualPending = true; break; }
+    if ((nativeState.transfer as { id?: string })?.id === (prepared.cityPlan ?? prepared.plan).id) { actualPending = true; break; }
     if (terminal) break;
     await sleep(25);
   }
@@ -42,11 +42,16 @@ window.kazanOfflineSmoke = async stage => {
   await cancelOffline();
   const cancellation = await pending;
   assert(cancellation === "OFFLINE_CANCELLED", `offline-cancellation-${cancellation}`);
-  assert(!offlineSnapshot().packages.some(pack => pack.id === prepared.plan.id), "partial-package-published");
+  assert(!offlineSnapshot().packages.some(pack => pack.id === (prepared.cityPlan ?? prepared.plan).id), "partial-package-published");
   stage("offline-download"); status.textContent = "Downloading actual files";
   const retry = await bounded(prepareOffline(input), 120000, "offline-retry-timeout");
-  await bounded(downloadOffline(retry.plan), 180000, "offline-download-timeout");
+  await bounded(downloadOffline(retry.plan, retry.cityPlan), 300000, "offline-download-timeout");
   const pack = offlineSnapshot().packages.find(pack => pack.id === retry.plan.id)!;
+  const city = offlineSnapshot().packages.find(pack => pack.kind === "city-map")!;
+  assert(city?.map.tileCount === 1135 && city.bytes <= 50_000_000, "city-map-coverage");
+  assert(pack.kind === "content" && pack.assets.every(asset => asset.kind === "media"), "content-map-isolation");
+  const reused = await bounded(prepareOffline({ ...input, language: "en" }), 120000, "city-map-reuse-timeout");
+  assert(!reused.cityPlan && reused.mapBytes === 0, "city-map-redownload");
   assert(pack && pack.assets.length === Object.keys(pack.files).length, "offline-files-incomplete");
   assert(pack.bytes > 0 && pack.bytes <= 300_000_000, "offline-package-limit");
   const savedLine = pack.route?.geometry.coordinates ?? [], sourceLine = walkingRoute.geometry.coordinates;
@@ -59,7 +64,8 @@ window.kazanOfflineSmoke = async stage => {
   let blockedNetworkRequests = 0;
   const diagnostics = { basicWorker: false, workerOrigin: "", webgl2: false, renderer: "", pixelRatio: devicePixelRatio, viewport: [innerWidth, innerHeight], requests: {} as Record<string, number>, signatures: {} as Record<string, string>, firstTileBytes: 0, firstTileMagic: "", contextLost: 0, localAVPlayerAdvanced: false, backgroundPlaying: false, removal: false, errors: [] as string[] };
   window.kazanSmokeDiagnostics = diagnostics;
-  const mapFiles = new globalThis.Map(pack.assets.filter(asset => asset.kind === "map").map(asset => [localMediaURL(asset.url), asset] as const));
+  Object.assign(diagnostics, { cityTileCount: city.map.tileCount, cityBytes: city.bytes, cityReusedForEnglish: !reused.cityPlan, contentHasNoMapFiles: pack.assets.every(asset => asset.kind === "media") });
+  const mapFiles = new globalThis.Map(city.assets.filter(asset => asset.kind === "map").map(asset => [localMediaURL(asset.url), asset] as const));
   window.fetch = ((resource: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof resource === "string" ? resource : resource instanceof URL ? resource.href : resource.url;
     if (/^https?:/.test(url)) { blockedNetworkRequests++; return Promise.reject(new Error("offline-network-fallback")); }
@@ -118,7 +124,7 @@ window.kazanOfflineSmoke = async stage => {
     await call("clearTrack");
     diagnostics.localAVPlayerAdvanced = advanced; diagnostics.backgroundPlaying = backgroundPlaying;
     stage("offline-tile-format");
-    const tile = pack.assets.find(asset => asset.tile)!;
+    const tile = city.assets.find(asset => asset.tile)!;
     const tileBytes = new Uint8Array(await (await fetch(localMediaURL(tile.url)!)).arrayBuffer());
     diagnostics.firstTileBytes = tileBytes.length;
     diagnostics.firstTileMagic = [...tileBytes.subarray(0, 4)].map(value => value.toString(16).padStart(2, "0")).join("");
@@ -134,7 +140,7 @@ window.kazanOfflineSmoke = async stage => {
     } finally { probe.terminate(); URL.revokeObjectURL(probeURL); }
     stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
     await bounded(prepareMapWorker(), 20000, "offline-worker-timeout");
-    map = new Map({ container: "map", style: offlineMapStyle(pack), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
+    map = new Map({ container: "map", style: offlineMapStyle(city), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
     const gl = map.getCanvas().getContext("webgl2");
     diagnostics.webgl2 = !!gl; diagnostics.renderer = gl ? String(gl.getParameter(gl.RENDERER)) : "unavailable";
     map.on("load", () => {
@@ -154,11 +160,22 @@ window.kazanOfflineSmoke = async stage => {
     map.remove(); map = undefined;
     stage("offline-remove"); await removeOffline(pack.id);
     assert(!offlineSnapshot().packages.some(item => item.id === pack.id), "offline-remove-failed");
+    assert(offlineSnapshot().packages.some(item => item.id === city.id), "content-deleted-city-map");
     diagnostics.removal = true;
     status.textContent = "Native offline checks passed";
     return { ok: true, actualNativeDownload: true, cancellation: true, savedWalkingLine: true, maxCoordinateDelta, photosDecoded: photoCount, renderedFeatures, blockedNetworkRequests, localAVPlayerAdvanced: true, backgroundPlaying, removal: true };
   } finally {
     map?.remove();
+    // Native garbage collection must retain the actual audio/photo files when
+    // the independently managed map is removed, even after a render failure.
+    if (offlineSnapshot().packages.some(item => item.id === city.id)) await removeOffline(city.id);
+    const retained = offlineSnapshot().packages.find(item => item.id === pack.id);
+    if (retained) {
+      assert(pack.assets.every(asset => !!localMediaURL(asset.url)), "city-removal-deleted-content");
+      const retainedPhoto = pack.assets.find(asset => /\.(?:jpg|webp|png)$/.test(asset.url));
+      assert(retainedPhoto && (await fetch(localMediaURL(retainedPhoto.url)!)).ok, "city-removal-deleted-photo");
+      Object.assign(diagnostics, { cityRemovalKeepsContent: true });
+    }
     // Preserve the map failure, but still check cleanup of the real files.
     if (offlineSnapshot().packages.some(item => item.id === pack.id)) {
       await removeOffline(pack.id);

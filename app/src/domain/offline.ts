@@ -4,6 +4,7 @@ import type { Language } from "../i18n";
 export type OfflineAssetKind = "media" | "map";
 export interface OfflineAsset { url: string; kind: OfflineAssetKind; tile?: boolean }
 export interface OfflineMap {
+  estimatedBytes?: number;
   style: Record<string, unknown>;
   bounds: [number, number, number, number];
   minZoom: number;
@@ -13,6 +14,9 @@ export interface OfflineMap {
 }
 export interface OfflinePlan {
   schema: 1;
+  // Absent on the original combined packages; those remain readable.
+  kind?: "city-map" | "content";
+  mapId?: string;
   id: string;
   title: string;
   language: Language;
