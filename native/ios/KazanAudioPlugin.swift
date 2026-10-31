@@ -118,7 +118,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func loadTrack(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             guard let id = call.getString("id"), let raw = call.getString("url"), let url = URL(string: raw), url.scheme == "https", url.host == "kazan-demo.38-180-191-162.sslip.io", url.path.hasPrefix("/media/") else {
-                call.reject("Недопустимый адрес аудио."); return
+                call.reject("Недопустимый адрес аудио.", "AUDIO_URL_REJECTED"); return
             }
             if self.placeId == id && self.player != nil && self.player?.currentItem?.status != .failed { call.resolve(self.snapshot()); return }
             self.stop()
@@ -202,7 +202,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         } else { MPNowPlayingInfoCenter.default().nowPlayingInfo = nil }
         if UIApplication.shared.applicationState == .active { notifyListeners("stateChange", data: data) }
     }
-    @objc func play(_ call: CAPPluginCall) { DispatchQueue.main.async { do { try self.start(); call.resolve(self.snapshot()) } catch { call.reject("Не удалось включить аудио.") } } }
+    @objc func play(_ call: CAPPluginCall) { DispatchQueue.main.async { do { try self.start(); call.resolve(self.snapshot()) } catch { call.reject("Не удалось включить аудио.", "AUDIO_SESSION_\((error as NSError).code)") } } }
     @objc func pause(_ call: CAPPluginCall) { DispatchQueue.main.async { self.stop(); call.resolve(self.snapshot()) } }
     @objc func clearTrack(_ call: CAPPluginCall) {
         DispatchQueue.main.async {

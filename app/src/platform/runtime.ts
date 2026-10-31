@@ -2,6 +2,20 @@ import { Capacitor } from "@capacitor/core";
 
 export const platform = Capacitor.getPlatform() === "ios" ? "ios" : "web";
 
+if (platform === "ios" && Capacitor.isNativePlatform()) {
+  // WKWebView can focus-zoom small fields even with Capacitor's pinch zoom
+  // disabled. Constrain only the installed shell; Safari keeps page zoom.
+  document.documentElement.dataset.nativeShell = "ios";
+  document.querySelector<HTMLMetaElement>('meta[name="viewport"]')?.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover");
+  const sizeViewport = () => {
+    const height = Math.round(window.visualViewport?.height ?? window.innerHeight);
+    if (Number.isFinite(height) && height > 0) document.documentElement.style.setProperty("--native-view-height", `${height}px`);
+  };
+  sizeViewport();
+  window.visualViewport?.addEventListener("resize", sizeViewport);
+  window.addEventListener("resize", sizeViewport);
+}
+
 // Future implementations belong to native AVPlayer/file adapters on iOS and
 // browser media/storage adapters on web. Screens depend only on these contracts.
 export interface AudioPlayback {

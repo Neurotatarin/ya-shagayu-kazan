@@ -1,0 +1,10 @@
+/* Keep the installed shell in the visible viewport, including the keyboard.
+   Only screen content scrolls. MapLibre still owns its pan/pinch gestures. */
+html[data-native-shell="ios"],
+html[data-native-shell="ios"] body,
+html[data-native-shell="ios"] #root { width: 100%; height: 100%; overflow: hidden; }
+.app-shell.platform-ios { height: var(--native-view-height, 100%); min-height: 0; overflow: hidden; }
+.app-shell.platform-ios > main { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
+.app-shell.platform-ios.screen-map > main { overflow: hidden; }
+.app-shell.platform-ios:not(.screen-map) .bottom-navigation { position: relative; bottom: auto; margin: 0 18px; }
+.app-shell.platform-ios .navigation-gap { flex: none; }

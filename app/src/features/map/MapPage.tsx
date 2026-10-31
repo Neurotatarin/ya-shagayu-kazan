@@ -136,7 +136,10 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
       view.addLayer({ id: "walking-line", type: "line", source: "walking-route", paint: { "line-color": "#08734f", "line-width": 4 }, layout: { "line-join": "round", "line-cap": "round" } });
     }
     const lngs = route.geometry.coordinates.map(c => c[0]), lats = route.geometry.coordinates.map(c => c[1]);
-    view.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: cameraPadding(!!selectedPlace), maxZoom: 16, animate: false });
+    // A selected place already sets persistent camera padding. In MapLibre 6
+    // fitBounds otherwise ADDS its padding, which can consume the whole phone
+    // viewport and throw Invalid LngLat (NaN) when returning from the player.
+    view.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: cameraPadding(!!selectedPlace), absolutePadding: true, maxZoom: 16, animate: false });
   }, [route, ready]);
 
   useEffect(() => {

@@ -87,6 +87,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
 
   function showNotice(message: string) { clearTimeout(noticeTimeout.current); setNotice(message); noticeTimeout.current = setTimeout(() => setNotice(""), 6500); }
   function go(target: Screen, id?: PlaceId) {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     if (target !== "waiting") pendingRequest.current?.abort();
     if (id) setPlaceId(id);
     setNotice(""); setSheet(undefined); setLanguageOpen(false);

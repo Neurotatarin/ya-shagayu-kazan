@@ -2,7 +2,7 @@ import { t, numberLocale } from "../../i18n";
 import { useEffect, useState, type CSSProperties } from "react";
 import { OriginalAsset } from "../../components/OriginalAsset";
 import type { Place, ShowNotice } from "../../domain/demo";
-import { seekAudio, setAudioSpeed, toggleAudio, setBackgroundEnabled, useAudioPlayback } from "../../platform/audioPlayback";
+import { audioFailureMessage, seekAudio, setAudioSpeed, toggleAudio, setBackgroundEnabled, useAudioPlayback } from "../../platform/audioPlayback";
 import { PlacePhoto } from "../../components/PlacePhoto";
 import { PhotoGallery } from "./PhotoGallery";
 
@@ -34,7 +34,7 @@ export function PlayerPage({ place, position, onPosition, onBack, onMap, onMore,
     </div>
     <div className="playback-controls">
       <button className="round-action skip-action" type="button" disabled={!available} aria-label={t("Назад на 15 секунд")} onClick={() => seek(Math.max(0, currentPosition - 15))}><OriginalAsset asset="player.imgArrowLeft1" /></button>
-      <button className="round-action play-action" type="button" disabled={!available} aria-describedby={!available ? "audio-availability" : undefined} aria-busy={active && playback.loading} aria-label={active && playback.playing ? t("Пауза") : t("Воспроизвести историю")} onClick={async () => { try { if (!await toggleAudio(place, position, speed)) notice(t("Готовая аудиозапись ещё не добавлена.")); } catch { notice(t("Не удалось начать воспроизведение. Попробуй ещё раз.")); } }}>{active && playback.playing ? <OriginalAsset asset="player.imgPause" /> : <OriginalAsset asset={available ? "place.imgPlay" : "map.imgPlay"} />}</button>
+      <button className="round-action play-action" type="button" disabled={!available} aria-describedby={!available ? "audio-availability" : undefined} aria-busy={active && playback.loading} aria-label={active && playback.playing ? t("Пауза") : t("Воспроизвести историю")} onClick={async () => { try { if (!await toggleAudio(place, position, speed)) notice(t("Готовая аудиозапись ещё не добавлена.")); } catch (error) { notice(audioFailureMessage(error)); } }}>{active && playback.playing ? <OriginalAsset asset="player.imgPause" /> : <OriginalAsset asset={available ? "place.imgPlay" : "map.imgPlay"} />}</button>
       <button className="round-action skip-action" type="button" disabled={!available} aria-label={t("Вперёд на 15 секунд")} onClick={() => seek(Math.min(duration, currentPosition + 15))}><OriginalAsset asset="player.imgArrowRight" /></button>
     </div>
     <div className="player-extra-actions">

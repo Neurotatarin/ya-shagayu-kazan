@@ -16,6 +16,12 @@ interface NativeAudio {
 }
 const native = Capacitor.getPlatform() === "ios" && Capacitor.isNativePlatform();
 const nativePlayer = registerPlugin<NativeAudio>("KazanAudio");
+export function audioFailureMessage(error: unknown) {
+  const raw = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+  const code = raw === "UNIMPLEMENTED" ? "AUDIO_BRIDGE_UNAVAILABLE" : /^AUDIO_(?:URL_REJECTED|(?:SESSION|LOAD)_-?\d+)$/.test(raw) ? raw : native ? "AUDIO_NATIVE_UNKNOWN" : "";
+  if (code) try { localStorage.setItem("kazan:audio-error:v1", JSON.stringify({ code, time: new Date().toISOString() })); } catch { /* Playback does not require diagnostic storage. */ }
+  return t("Не удалось начать воспроизведение. Попробуй ещё раз.") + (code ? ` [${code}]` : "");
+}
 const audio = native ? undefined : new Audio();
 if (audio) audio.preload = "metadata";
 let state: AudioState = { placeId: "", language: getLanguage(), position: 0, duration: 0, playing: false, loading: false, speed: 1, error: "", backgroundEnabled: false, backgroundPlaying: false, backgroundError: "" };

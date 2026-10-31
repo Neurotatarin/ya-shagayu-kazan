@@ -2,7 +2,7 @@ import type { Place } from "../../domain/demo";
 import { t } from "../../i18n";
 import { OriginalAsset } from "../../components/OriginalAsset";
 import { PlacePhoto } from "../../components/PlacePhoto";
-import { toggleAudio, useAudioPlayback } from "../../platform/audioPlayback";
+import { audioFailureMessage, toggleAudio, useAudioPlayback } from "../../platform/audioPlayback";
 
 export function MiniPlayer({ place, onOpen, onClose, notice, compact = false }: { place: Place; onOpen: () => void; onClose: () => void; notice: (message: string) => void; compact?: boolean }) {
   const playback = useAudioPlayback();
@@ -16,7 +16,7 @@ export function MiniPlayer({ place, onOpen, onClose, notice, compact = false }: 
       </button>
       <button type="button" className="mini-player-toggle" aria-label={t(playback.playing ? "Пауза" : "Воспроизвести историю")} aria-busy={playback.loading} onClick={async () => {
         try { await toggleAudio(place, playback.position, playback.speed); }
-        catch { notice(t("Не удалось начать воспроизведение. Попробуй ещё раз.")); }
+        catch (error) { notice(audioFailureMessage(error)); }
       }}><OriginalAsset asset={playback.playing ? "player.imgPause" : "place.imgPlay"} /></button>
       <button type="button" className="mini-player-close" aria-label={t("Закрыть экскурсию")} onClick={onClose}>×</button>
     </div>
