@@ -20,7 +20,7 @@ public final class KazanAudioPlugin extends Plugin {
     @Override public void load(){bound=getContext().bindService(new Intent(getContext(),KazanPlaybackService.class).setAction(KazanPlaybackService.BIND),connection,Context.BIND_AUTO_CREATE);}
     interface Action{void run()throws Exception;}
     private void perform(PluginCall call,Action action){main.post(()->{
-        Runnable task=()->{try{action.run();call.resolve(service.state());}catch(Exception error){String code="AUDIO_URL_REJECTED".equals(error.getMessage())?"AUDIO_URL_REJECTED":"AUDIO_PLAY_FAILED";call.reject(code,code);}};
+        Runnable task=()->{try{action.run();service.afterCommands(()->{if(service!=null)call.resolve(service.state());else call.reject("AUDIO_BRIDGE_UNAVAILABLE","AUDIO_BRIDGE_UNAVAILABLE");});}catch(Exception error){String code="AUDIO_URL_REJECTED".equals(error.getMessage())?"AUDIO_URL_REJECTED":"AUDIO_PLAY_FAILED";call.reject(code,code);}};
         if(service!=null){task.run();return;}waiting.add(task);main.postDelayed(()->{if(waiting.remove(task))call.reject("AUDIO_BRIDGE_UNAVAILABLE","AUDIO_BRIDGE_UNAVAILABLE");},5000);
     });}
     @PluginMethod public void loadTrack(PluginCall call){perform(call,()->service.load(call.getString("id",""),call.getString("url",""),call.getString("title",""),call.getString("artist",""),call.getString("album",""),call.getDouble("position",0.0),call.getDouble("duration",0.0),call.getFloat("speed",1f)));}

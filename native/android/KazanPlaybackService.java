@@ -44,7 +44,7 @@ public final class KazanPlaybackService extends MediaSessionService {
             @Override public void onPlayerError(PlaybackException failure){error="AUDIO_PLAY_FAILED";followVoice();emit();}
         });
         music.addListener(new Player.Listener(){
-            @Override public void onPlayerError(PlaybackException failure){musicError="AUDIO_BACKGROUND_FAILED";music.pause();emit();}
+            @Override public void onPlayerError(PlaybackException failure){musicError="AUDIO_BACKGROUND_FAILED";backgroundEnabled=false;music.pause();emit();}
         });
         Intent open=new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
         session=new MediaSession.Builder(this,voice).setSessionActivity(PendingIntent.getActivity(this,0,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE)).build();
@@ -54,6 +54,9 @@ public final class KazanPlaybackService extends MediaSessionService {
     @Override @Nullable public MediaSession onGetSession(MediaSession.ControllerInfo controller){return controller.getUid()==android.os.Process.myUid()||controller.isTrusted()?session:null;}
     void observe(Runnable observer){observers.add(observer);}
     void unobserve(Runnable observer){observers.remove(observer);}
+    // Player commands are asynchronous. Resolve bridge promises after the
+    // playback thread has processed them and its position update reached main.
+    void afterCommands(Runnable completion){voice.createMessage((type,payload)->handler.post(completion)).send();}
     private void emit(){
         if(voice==null)return;
         long now=SystemClock.elapsedRealtime();if(now-lastSaved>3000){persist();lastSaved=now;}

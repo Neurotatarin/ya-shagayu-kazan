@@ -53,6 +53,9 @@ for folder in ['mipmap-anydpi','mipmap-anydpi-v26']:
         else:xml='''<bitmap xmlns:android="http://schemas.android.com/apk/res/android" android:src="@drawable/kazan_original_icon" android:gravity="fill"/>'''
         (destination/(name+'.xml')).write_text(xml)
 (resource/'values/kazan.xml').write_text('<resources><color name="kazan_icon_background">#DEF4E5</color></resources>')
+# Replace the generated Capacitor splash with the existing brand artwork.
+for splash in resource.glob('drawable*/splash.png'):splash.unlink()
+(drawable/'splash.xml').write_text('''<layer-list xmlns:android="http://schemas.android.com/apk/res/android"><item android:drawable="@android:color/white"/><item android:width="96dp" android:height="96dp" android:gravity="center"><bitmap android:src="@drawable/kazan_original_icon" android:gravity="fill"/></item></layer-list>''')
 # nginx precompression is only for the web host. AAPT treats foo.svg.gz and
 # foo.svg as the same asset. APK already compresses assets itself.
 public=app/'src/main/assets/public'

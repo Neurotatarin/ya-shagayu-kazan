@@ -27,6 +27,7 @@ export async function audioSmoke(stage: (name: string) => void, offline: () => P
   stage("native-pause");
   const paused = await call("pause"); await sleep(700);
   const still = await call("getState");
+  window.kazanSmokeDiagnostics = { paused, still };
   if (still.playing || Math.abs(Number(still.position) - Number(paused.position)) > .2) throw new Error("native-pause-failed");
   stage("native-seek-resume");
   await call("seek", { seconds: 20 });

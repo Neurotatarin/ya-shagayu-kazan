@@ -93,6 +93,17 @@ public final class NativeCheck {
                 instrumentation.runOnMainSync(()->{controller.seekTo(60000);controller.play();});Thread.sleep(2000);instrumentation.runOnMainSync(()->after.set(controller.getCurrentPosition()));assertTrue("System seek/play failed",after.get()>61000);
                 instrumentation.runOnMainSync(()->{controller.pause();controller.release();});device.wakeUp();device.pressMenu();
                 output("background.json",new JSONObject().put("lockedPlayback",true).put("systemPause",true).put("systemSeekResume",true).toString());
+                // Check the production page too, without the browser catalog
+                // cache. Its catalog/images/audio must come from native files.
+                context.startActivity(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP));Thread.sleep(1200);
+                javascript(scenario,"localStorage.removeItem('kazan:catalog:v1');true");
+                scenario.onActivity(activity->activity.getBridge().getWebView().loadUrl("https://localhost/#/player/ushkova"));
+                until(scenario,"document.querySelector('.player-page .play-action:not(:disabled)')");
+                until(scenario,"Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0)");
+                javascript(scenario,"document.querySelector('.play-action').click();true");until(scenario,"document.querySelector('.play-action[aria-label=\"Пауза\"]')");screenshot("ui-offline-player");
+                device.pressBack();until(scenario,"document.querySelector('[data-map-ready=true]')");
+                assertEquals("true",javascript(scenario,"!!document.querySelector('.mini-player') && document.documentElement.scrollWidth<=innerWidth"));screenshot("ui-offline-map");
+                output("offline-production-ui.json",new JSONObject().put("catalogWithoutBrowserCache",true).put("localPhotos",true).put("localPlayback",true).put("mapAndMiniPlayer",true).toString());
             }
         }
     }

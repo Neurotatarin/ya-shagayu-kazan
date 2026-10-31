@@ -1,0 +1,43 @@
+name: Install signed Android release
+on:
+  push:
+    branches: [feat/android-demo]
+    paths: [deployment/android-release.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the published APK
+        run: python scripts/check-android-release.py download
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: |
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          "$SIGNER" verify --verbose --print-certs work/android-release-check/app.apk | tee work/android-release-check/signature.txt
+          python scripts/check-android-release.py certificate
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 36
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: python scripts/check-android-release.py install
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-signed-release-check
+          path: work/android-release-check/
+          retention-days: 14
