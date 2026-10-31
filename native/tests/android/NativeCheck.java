@@ -26,10 +26,52 @@ public final class NativeCheck {
         CountDownLatch ready=new CountDownLatch(1);AtomicReference<String> result=new AtomicReference<>();scenario.onActivity(activity->activity.getBridge().getWebView().evaluateJavascript(expression,value->{result.set(value);ready.countDown();}));assertTrue("JavaScript callback",ready.await(15,TimeUnit.SECONDS));return result.get();
     }
     void output(String name,String content)throws Exception{File dir=instrumentation.getTargetContext().getExternalFilesDir(null);try(FileOutputStream out=new FileOutputStream(new File(dir,name))){out.write(content.getBytes(StandardCharsets.UTF_8));}}
+    void until(ActivityScenario<MainActivity> scenario,String expression)throws Exception{for(int i=0;i<120;i++){if("true".equals(javascript(scenario,"Boolean("+expression+")")))return;Thread.sleep(500);}fail("UI condition timed out: "+expression);}
+    void screenshot(String name){UiDevice.getInstance(instrumentation).takeScreenshot(new File(instrumentation.getTargetContext().getExternalFilesDir(null),name+".png"));}
+    void ui(ActivityScenario<MainActivity> scenario)throws Exception{
+        UiDevice device=UiDevice.getInstance(instrumentation);
+        until(scenario,"document.querySelector('.home-page') && document.fonts.status==='loaded'");
+        assertEquals("\"android\"",javascript(scenario,"document.documentElement.dataset.nativeShell"));
+        assertEquals("true",javascript(scenario,"document.fonts.check('20px Onest') && document.fonts.check('20px \\\"Tenor Sans\\\"')"));
+        until(scenario,"Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0)");screenshot("ui-home");
+        for(String screen:new String[]{"map","place/ushkova","player/ushkova","zilant","profile","routes"}){
+            javascript(scenario,"location.hash='/"+screen+"';true");
+            String selector=screen.startsWith("place")?".place-page":screen.startsWith("player")?".player-page":screen.equals("map")?".map-page":screen.equals("zilant")?".chat-composer":screen.equals("profile")?".traveler-card":".themes-gallery";
+            until(scenario,"document.querySelector('"+selector+"')");
+            assertEquals(screen+" overflow","true",javascript(scenario,"document.documentElement.scrollWidth<=innerWidth && document.documentElement.scrollHeight<=innerHeight+1"));
+            if(screen.equals("map")){until(scenario,"document.querySelector('[data-map-ready=true]') && document.querySelectorAll('[data-place-id]').length===20");screenshot("ui-map");}
+            if(screen.startsWith("player"))screenshot("ui-player");
+        }
+        javascript(scenario,"location.hash='/zilant';true");until(scenario,"document.querySelector('.chat-composer input')");
+        // Focus the real input via an actual touch, rather than JS-only focus.
+        String raw=javascript(scenario,"JSON.stringify((()=>{const r=document.querySelector('.chat-composer input').getBoundingClientRect();return {x:(r.x+r.width/2)*devicePixelRatio,y:(r.y+r.height/2)*devicePixelRatio}})())");
+        JSONObject point=new JSONObject((String)new JSONTokener(raw).nextValue());device.click(point.getInt("x"),point.getInt("y"));Thread.sleep(1800);
+        assertEquals("true",javascript(scenario,"visualViewport.scale===1 && document.documentElement.scrollWidth<=innerWidth"));
+        screenshot("ui-keyboard");device.pressBack();Thread.sleep(700);until(scenario,"document.querySelector('.chat-composer')");
+        device.pressBack();until(scenario,"document.querySelector('.home-page')");
+        // Native back must restore a real map repeatedly, without a blank view.
+        for(int i=0;i<3;i++){
+            javascript(scenario,"location.hash='/player/ushkova';true");until(scenario,"document.querySelector('.player-page')");device.pressBack();until(scenario,"document.querySelector('[data-map-ready=true]')");
+            assertEquals("true",javascript(scenario,"document.querySelector('.maplibregl-canvas').getBoundingClientRect().height>300"));device.pressBack();until(scenario,"document.querySelector('.home-page')");
+        }
+        // Selected-language fallback stays disabled for a recording that does
+        // not exist. Reuse the actual language control and original RTL layout.
+        javascript(scenario,"localStorage.setItem('kazan:language:v1','ar');location.reload();true");until(scenario,"document.documentElement.dir==='rtl' && document.querySelector('.home-page')");
+        assertEquals("true",javascript(scenario,"document.documentElement.scrollWidth<=innerWidth"));screenshot("ui-arabic");
+        javascript(scenario,"location.hash='/player/ushkova';true");until(scenario,"document.querySelector('.player-page')");assertEquals("true",javascript(scenario,"document.querySelector('.player-page .play-action').disabled"));
+        javascript(scenario,"localStorage.setItem('kazan:language:v1','ru');location.reload();true");until(scenario,"document.documentElement.lang==='ru'");
+        // Runtime geolocation uses the emulator GPS, deliberately outside Kazan.
+        instrumentation.getUiAutomation().grantRuntimePermission("ru.yashagayu.kazan.demo","android.permission.ACCESS_COARSE_LOCATION");
+        instrumentation.getUiAutomation().grantRuntimePermission("ru.yashagayu.kazan.demo","android.permission.ACCESS_FINE_LOCATION");
+        javascript(scenario,"window.geoCheck=null;navigator.geolocation.getCurrentPosition(p=>window.geoCheck={lat:p.coords.latitude,lon:p.coords.longitude},e=>window.geoCheck={error:e.code},{enableHighAccuracy:true,timeout:20000});true");
+        until(scenario,"window.geoCheck!==null");String geo=javascript(scenario,"JSON.stringify(window.geoCheck)");JSONObject coords=new JSONObject((String)new JSONTokener(geo).nextValue());assertFalse("GPS denied",coords.has("error"));assertEquals(55.75,coords.getDouble("lat"),.02);assertEquals(37.62,coords.getDouble("lon"),.02);
+        output("ui.json",new JSONObject().put("screens",7).put("noOverflow",true).put("keyboardScale",1).put("nativeBack",true).put("rtl",true).put("realEmulatorGPS",true).toString());
+    }
     @Test public void nativeLifecycle()throws Exception{
         String phase=InstrumentationRegistry.getArguments().getString("phase","online");
         try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
             Thread.sleep(2500);
+            if("ui".equals(phase)){ui(scenario);return;}
             scenario.onActivity(activity->activity.getBridge().getWebView().loadUrl("https://localhost/__native_check/index.html?phase="+phase));
             JSONObject result=null;String stage="";
             for(int i=0;i<720;i++){

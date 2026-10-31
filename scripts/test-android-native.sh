@@ -9,6 +9,10 @@ run_phase() {
   grep -q 'OK (1 test)' "work/android-checks/instrumentation-$1.txt"
 }
 run_phase online
+adb emu geo fix 37.62 55.75
+adb shell settings put secure location_mode 3
+adb shell am force-stop ru.yashagayu.kazan.demo
+run_phase ui
 adb shell am force-stop ru.yashagayu.kazan.demo
 adb shell svc wifi disable
 adb shell svc data disable

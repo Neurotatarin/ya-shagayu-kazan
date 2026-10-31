@@ -29,7 +29,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: python -m unittest discover -s server -p test_server.py
-      - run: pnpm exec cap add android && python scripts/configure-android.py && pnpm exec cap sync android
+      - run: pnpm exec cap add android && pnpm exec cap sync android && python scripts/configure-android.py
       - run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon --console=plain
       - name: Package unsigned device candidate
         run: |
@@ -42,6 +42,16 @@ jobs:
         with:
           name: android-unsigned
           path: work/android-output/
+          retention-days: 14
+      - name: Verified portable signing runtime
+        run: |
+          mkdir -p work/android-signing-runtime
+          curl -fL --retry 2 --max-time 180 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jre_x64_windows_hotspot_21.0.13_9.zip' -o work/android-signing-runtime/java-windows.zip
+          echo '2332c0b4cff6bed722da3567c91d5e47568bcba863fa4945d0a8d6fc76158628  work/android-signing-runtime/java-windows.zip' | sha256sum -c -
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-signing-runtime
+          path: work/android-signing-runtime/
           retention-days: 14
       - name: Build test-only document and instrumentation
         run: |
