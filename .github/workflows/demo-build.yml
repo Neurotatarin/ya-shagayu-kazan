@@ -22,6 +22,7 @@ jobs:
           node-version: "24"
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - run: python -m unittest discover -s scripts -p test_configure_iphone.py
       - run: python -m unittest discover -s server -p test_server.py
       - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm test:e2e
@@ -55,6 +56,13 @@ jobs:
       - run: pnpm exec cap add ios
       - run: pnpm exec cap sync ios
       - run: bash scripts/build-iphone.sh
+      - run: bash scripts/test-iphone-native.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-audio-checks
+          path: work/native-checks/
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: iphone-ipa
