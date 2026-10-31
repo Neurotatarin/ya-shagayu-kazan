@@ -7,6 +7,8 @@ import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.media3.session.*;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.json.*;
@@ -27,10 +29,20 @@ public final class NativeCheck {
     }
     void output(String name,String content)throws Exception{File dir=instrumentation.getTargetContext().getExternalFilesDir(null);try(FileOutputStream out=new FileOutputStream(new File(dir,name))){out.write(content.getBytes(StandardCharsets.UTF_8));}}
     void until(ActivityScenario<MainActivity> scenario,String expression)throws Exception{for(int i=0;i<120;i++){if("true".equals(javascript(scenario,"Boolean("+expression+")")))return;Thread.sleep(500);}fail("UI condition timed out: "+expression);}
-    void screenshot(String name){UiDevice.getInstance(instrumentation).takeScreenshot(new File(instrumentation.getTargetContext().getExternalFilesDir(null),name+".png"));}
+    void screenshot(String name)throws Exception{Thread.sleep(500);UiDevice.getInstance(instrumentation).takeScreenshot(new File(instrumentation.getTargetContext().getExternalFilesDir(null),name+".png"));}
+    void atomicRecovery()throws Exception{
+        Context context=instrumentation.getTargetContext();KazanOfflineStore fixture=new KazanOfflineStore(context,new File(context.getCacheDir(),"atomic-check-"+System.nanoTime()));
+        String url="https://kazan-demo.38-180-191-162.sslip.io/media/recovery.mp3";
+        File blob=fixture.file(url);try(FileOutputStream out=new FileOutputStream(blob)){out.write(new byte[]{1,2,3});}
+        JSONObject pack=new JSONObject().put("id","atomic").put("assets",new JSONArray().put(new JSONObject().put("url",url)));
+        try(FileOutputStream out=new FileOutputStream(new File(fixture.manifests,"atomic.json.bak"))){out.write(pack.toString().getBytes(StandardCharsets.UTF_8));}
+        fixture.collect();assertEquals("Atomic backup lost",1,fixture.packages().length());assertTrue("Recovery deleted saved file",blob.isFile());fixture.remove("atomic");assertFalse(blob.exists());
+        output("atomic-recovery.json",new JSONObject().put("backupRecovered",true).put("savedFilesRetained",true).toString());
+    }
     void ui(ActivityScenario<MainActivity> scenario)throws Exception{
+        atomicRecovery();
         UiDevice device=UiDevice.getInstance(instrumentation);
-        until(scenario,"document.querySelector('.home-page') && document.fonts.status==='loaded'");
+        until(scenario,"document.querySelector('.welcome-scene') && document.fonts.status==='loaded'");
         assertEquals("\"android\"",javascript(scenario,"document.documentElement.dataset.nativeShell"));
         assertEquals("true",javascript(scenario,"document.fonts.check('20px Onest') && document.fonts.check('20px \\\"Tenor Sans\\\"')"));
         until(scenario,"Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0)");screenshot("ui-home");
@@ -45,7 +57,13 @@ public final class NativeCheck {
         javascript(scenario,"location.hash='/zilant';true");until(scenario,"document.querySelector('.chat-composer input')");
         // Focus the real input via an actual touch, rather than JS-only focus.
         String raw=javascript(scenario,"JSON.stringify((()=>{const r=document.querySelector('.chat-composer input').getBoundingClientRect();return {x:(r.x+r.width/2)*devicePixelRatio,y:(r.y+r.height/2)*devicePixelRatio}})())");
-        JSONObject point=new JSONObject((String)new JSONTokener(raw).nextValue());device.click(point.getInt("x"),point.getInt("y"));Thread.sleep(1800);
+        JSONObject point=new JSONObject((String)new JSONTokener(raw).nextValue());int[] offset=new int[2];
+        scenario.onActivity(activity->{WebView view=activity.getBridge().getWebView();view.getLocationOnScreen(offset);offset[0]+=view.getPaddingLeft();offset[1]+=view.getPaddingTop();});
+        device.click(point.getInt("x")+offset[0],point.getInt("y")+offset[1]);
+        until(scenario,"document.activeElement===document.querySelector('.chat-composer input')");
+        AtomicBoolean keyboard=new AtomicBoolean();
+        for(int i=0;i<40&&!keyboard.get();i++){scenario.onActivity(activity->{WindowInsetsCompat insets=ViewCompat.getRootWindowInsets(activity.getBridge().getWebView());keyboard.set(insets!=null&&insets.isVisible(WindowInsetsCompat.Type.ime()));});Thread.sleep(100);}
+        assertTrue("Real Android keyboard did not open",keyboard.get());
         assertEquals("true",javascript(scenario,"visualViewport.scale===1 && document.documentElement.scrollWidth<=innerWidth"));
         screenshot("ui-keyboard");device.pressBack();Thread.sleep(700);until(scenario,"document.querySelector('.chat-composer')");
         device.pressBack();until(scenario,"document.querySelector('.home-page')");

@@ -8,16 +8,23 @@ run_phase() {
   adb shell am instrument -w -r -e phase "$1" -e class ru.yashagayu.kazan.demo.NativeCheck ru.yashagayu.kazan.demo.test/androidx.test.runner.AndroidJUnitRunner | tee "work/android-checks/instrumentation-$1.txt"
   grep -q 'OK (1 test)' "work/android-checks/instrumentation-$1.txt"
 }
-run_phase online
-adb emu geo fix 37.62 55.75
-adb shell settings put secure location_mode 3
-adb shell am force-stop ru.yashagayu.kazan.demo
-run_phase ui
+failed=0
+run_phase online || failed=1
 adb shell am force-stop ru.yashagayu.kazan.demo
 adb shell svc wifi disable
 adb shell svc data disable
 adb shell cmd connectivity airplane-mode enable
 sleep 3
-run_phase offline
+run_phase offline || failed=1
 adb shell am force-stop ru.yashagayu.kazan.demo
-run_phase remove
+run_phase remove || failed=1
+adb shell cmd connectivity airplane-mode disable
+adb shell svc wifi enable
+adb shell svc data enable
+adb emu geo fix 37.62 55.75
+adb shell settings put secure location_mode 3
+adb shell settings put secure show_ime_with_hard_keyboard 1
+adb shell am force-stop ru.yashagayu.kazan.demo
+sleep 3
+run_phase ui || failed=1
+exit "$failed"

@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "Я шагаю по Казани",
   webDir: "dist",
   android: { backgroundColor: "#ffffff", allowMixedContent: false, webContentsDebuggingEnabled: false },
-  plugins: { SystemBars: { style: "DARK", initialViewportFitValueHint: "cover" } },
+  plugins: { SystemBars: { style: "LIGHT", insetsHandling: "native", initialViewportFitValueHint: "cover", animation: "NONE" } },
   ios: {
     contentInset: "never",
     backgroundColor: "#ffffff",

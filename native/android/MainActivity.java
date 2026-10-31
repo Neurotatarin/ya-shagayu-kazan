@@ -3,6 +3,7 @@ package ru.yashagayu.kazan.demo;
 import android.os.Bundle;
 import android.webkit.WebView;
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.EdgeToEdge;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -11,6 +12,7 @@ import com.getcapacitor.BridgeActivity;
 public final class MainActivity extends BridgeActivity {
     @Override public void onCreate(Bundle state){
         registerPlugin(KazanAudioPlugin.class);registerPlugin(KazanOfflinePlugin.class);
+        EdgeToEdge.enable(this);
         super.onCreate(state);
         WebView view=getBridge().getWebView();view.getSettings().setTextZoom(100);view.getSettings().setSupportZoom(false);view.getSettings().setBuiltInZoomControls(false);
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);

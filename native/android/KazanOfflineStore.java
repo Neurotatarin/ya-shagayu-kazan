@@ -25,6 +25,7 @@ final class KazanOfflineStore {
     volatile JSONObject transfer;
     final Set<HttpsURLConnection> connections=ConcurrentHashMap.newKeySet();
     private final Map<String,Long> estimates=new ConcurrentHashMap<>();
+    private final Map<String,File> paths=new ConcurrentHashMap<>();
     interface Progress { void update(JSONObject value); }
     static final class Failure extends IOException { final String code; Failure(String code){super(code);this.code=code;} }
     KazanOfflineStore(Context context) throws IOException { this(context,new File(context.getNoBackupFilesDir(),"KazanOffline")); }
@@ -33,7 +34,7 @@ final class KazanOfflineStore {
         if(!files.isDirectory()&&!files.mkdirs() || !manifests.isDirectory()&&!manifests.mkdirs())throw new Failure("OFFLINE_STORAGE");
     }
     static String hash(String raw) {
-        try { byte[] digest=MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));StringBuilder out=new StringBuilder();for(byte b:digest)out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString(); }
+        try { byte[] digest=MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));char[] out=new char[digest.length*2];String hex="0123456789abcdef";for(int i=0;i<digest.length;i++){int b=digest[i]&255;out[i*2]=hex.charAt(b>>>4);out[i*2+1]=hex.charAt(b&15);}return new String(out); }
         catch(Exception e){throw new IllegalStateException(e);}
     }
     static URL allowed(String raw) throws Failure {
@@ -45,9 +46,11 @@ final class KazanOfflineStore {
         }catch(Exception e){throw new Failure("OFFLINE_URL_REJECTED");}
     }
     File file(String raw) {
-        String path=URI.create(raw).getPath(),ext=path.substring(path.lastIndexOf('.')+1).toLowerCase(Locale.ROOT);
-        if(!ext.matches("[a-z0-9]{1,6}"))ext="bin";
-        return new File(files,hash(raw)+"."+ext);
+        return paths.computeIfAbsent(raw,key->{
+            String path=URI.create(key).getPath(),ext=path.substring(path.lastIndexOf('.')+1).toLowerCase(Locale.ROOT);
+            if(!ext.matches("[a-z0-9]{1,6}"))ext="bin";
+            return new File(files,hash(key)+"."+ext);
+        });
     }
     File localAudio(String raw) {
         try {
@@ -65,9 +68,12 @@ final class KazanOfflineStore {
     }
     private File manifest(String id) throws Failure { if(!id.matches("[A-Za-z0-9_-]{1,120}"))throw new Failure("OFFLINE_PREPARE");return new File(manifests,id+".json"); }
     synchronized JSONArray packages() {
-        JSONArray result=new JSONArray();File[] list=manifests.listFiles((d,n)->n.endsWith(".json"));if(list==null)return result;
-        Arrays.sort(list,Comparator.comparing(File::getName));
-        for(File entry:list)try {
+        JSONArray result=new JSONArray();File[] list=manifests.listFiles((d,n)->n.endsWith(".json")||n.endsWith(".json.bak"));if(list==null)return result;
+        // Older Android AtomicFile implementations can leave only .bak after
+        // a process death. Discover its base before garbage collecting blobs.
+        SortedSet<String> names=new TreeSet<>();for(File entry:list)names.add(entry.getName().replaceFirst("\\.bak$",""));
+        for(String name:names)try {
+            File entry=new File(manifests,name);
             JSONObject pack=new JSONObject(new String(new AtomicFile(entry).readFully(),StandardCharsets.UTF_8));JSONArray assets=pack.getJSONArray("assets");JSONObject paths=new JSONObject();boolean complete=true;
             for(int i=0;i<assets.length();i++){String url=assets.getJSONObject(i).getString("url");allowed(url);File item=file(url);if(!item.isFile()){complete=false;break;}paths.put(url,item.toURI().toString().replace("file:/","file:///"));}
             if(complete)result.put(pack.put("files",paths));
