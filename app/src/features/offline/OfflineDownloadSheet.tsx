@@ -9,7 +9,10 @@ import { OfflinePackageCard, type OfflineCardState } from "./OfflinePackageCard"
 
 export interface OfflineContext { id: string; title: string; language: Language; placeIds: PlaceId[]; catalog: DemoCatalog; route?: WalkingRoute }
 const mb = (bytes: number) => Math.ceil(bytes / 1_000_000).toLocaleString(numberLocale());
-export const downloadedDescription = (pack: OfflinePackage) => t("{0} · {1} МБ. Карта, фотографии и доступная запись сохранены на iPhone.", {0: languageNames[pack.language], 1: mb(pack.bytes)});
+export const downloadedDescription = (pack: OfflinePackage) => {
+  const count = pack.catalog.places.filter(place => pack.placeIds.includes(place.id) && (place.audioTracks?.[pack.language] || (pack.language === "ru" && place.audioUrl))).length;
+  return t("{0} · {1} МБ. Карта и фотографии сохранены. Аудиозаписей: {2} из {3}.", {0: languageNames[pack.language], 1: mb(pack.bytes), 2: count, 3: pack.placeIds.length});
+};
 const packageTitle = (pack: OfflinePackage) => {
   const catalog = localizeCatalog(pack.catalog, getLanguage());
   return (pack.placeIds.length === 1 ? catalog.places.find(place => place.id === pack.placeIds[0])?.title : catalog.routes.find(route => route.placeIds?.join(",") === pack.placeIds.join(","))?.title) ?? pack.title;

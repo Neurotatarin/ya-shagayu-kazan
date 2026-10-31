@@ -10,7 +10,9 @@ export default defineConfig({
     { name: "phone-small", use: { browserName: "chromium", viewport: { width: 320, height: 568 } } },
     { name: "phone-390", use: { browserName: "chromium", viewport: { width: 390, height: 844 } } },
     { name: "phone-402", use: { browserName: "chromium", viewport: { width: 402, height: 874 } } },
-    { name: "iphone-xr-webkit", use: { ...devices["iPhone XR"], browserName: "webkit" } },
+    // Serialize WebKit checks that share the host's native media pipeline;
+    // keep all real playback, duration and position assertions unchanged.
+    { name: "iphone-xr-webkit", workers: 1, use: { ...devices["iPhone XR"], browserName: "webkit" } },
     { name: "desktop", use: { browserName: "chromium", viewport: { width: 1440, height: 1000 } } },
   ],
   webServer: deployed ? undefined : [

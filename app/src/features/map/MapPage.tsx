@@ -25,6 +25,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
   const { language } = useI18n();
   const offline = useOfflineState();
   const [offlineFallback, setOfflineFallback] = useState(false);
+  const [outsideSavedArea, setOutsideSavedArea] = useState(false);
   const savedMap = downloadedMap(routePlaceIds, selected, offlineFallback);
   const missingOfflineMap = nativeDownloads && !offline.connected && !savedMap;
   const container = useRef<HTMLDivElement>(null), search = useRef<HTMLInputElement>(null);
@@ -73,11 +74,17 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
   }
 
   useEffect(() => {
-    setReady(false); setMapError(false); let active = true;
+    setReady(false); setMapError(false); setOutsideSavedArea(false); let active = true;
     const initialZoom = 14.3 + Math.log2(Math.max(280, container.current!.clientWidth) / 402);
     const initialPlace = places.find(p => p.id === selected);
     const view = new Map({ container: container.current!, style: savedMap ? offlineMapStyle(savedMap) : missingOfflineMap ? { version: 8, sources: {}, layers: [{ id: "offline-background", type: "background", paint: { "background-color": "#f0f7f2" } }] } : "https://tiles.openfreemap.org/styles/positron", center: initialPlace?.coordinates ?? [49.1098, 55.7978], zoom: initialZoom, ...(savedMap ? { minZoom: savedMap.map.minZoom } : {}), attributionControl: false, fadeDuration: 0, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false, localIdeographFontFamily: false });
     map.current = view; view.touchZoomRotate.disableRotation();
+    const checkSavedArea = () => {
+      if (!savedMap || !active) return;
+      const center = view.getCenter(), [west, south, east, north] = savedMap.map.bounds;
+      setOutsideSavedArea(center.lng < west || center.lng > east || center.lat < south || center.lat > north);
+    };
+    view.on("moveend", checkSavedArea);
     view.on("load", () => {
       if (!active) return;
       // Style real vector geometry with the approved Figma palette.
@@ -88,6 +95,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
       }
       localizeMap(view); setReady(true); setMapError(false);
       if (initialPlace?.coordinates) view.jumpTo({ center: initialPlace.coordinates, padding: cameraPadding(true) });
+      checkSavedArea();
     });
     view.on("error", () => { if (active) { if (!savedMap && downloadedMap(routePlaceIds, selected, true)) setOfflineFallback(true); else setMapError(true); } });
     view.on("click", () => {
@@ -180,7 +188,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
       <button className={`audio-filter ${audioOnly ? "filter-selected" : ""}`} type="button" aria-pressed={audioOnly} onClick={() => { setAudioOnly(value => !value); setSearching(true); }}><OriginalAsset asset="map.imgHeadphones" /><span>{t("Аудиогид")}</span></button>
       {searching && <div className="map-search-results"><div className="search-results-heading"><span>{t("Места ·")}{results.length}</span><button type="button" onClick={() => { setSearching(false); search.current?.blur(); }} aria-label={t("Закрыть результаты поиска")}>×</button></div>{results.length ? results.map(result => <button type="button" key={result.id} onClick={() => onOpen(result.id)}><span>{result.title}</span><OriginalAsset asset="profile.imgArrowRight" /></button>) : <p>{audioOnly ? t("Готовые аудиозаписи пока не добавлены.") : t("Ничего не нашлось. Попробуй другое название.")}</p>}</div>}
     </div>
-    {(mapError || !ready || missingOfflineMap) && <div className="map-load-state" role="status">{missingOfflineMap ? t("Эта область не скачана. Сохрани экскурсию или маршрут при подключении к интернету.") : mapError ? <><span>{t("Карта не загрузилась. Список мест доступен.")}</span><button type="button" onClick={() => { setOfflineFallback(false); setMapAttempt(n => n + 1); }}>{t("Повторить")}</button></> : t("Загружаем карту…")}</div>}
+    {(mapError || !ready || missingOfflineMap || outsideSavedArea) && <div className="map-load-state" role="status">{missingOfflineMap || outsideSavedArea ? t("Эта область не скачана. Сохрани экскурсию или маршрут при подключении к интернету.") : mapError ? <><span>{t("Карта не загрузилась. Список мест доступен.")}</span><button type="button" onClick={() => { setOfflineFallback(false); setMapAttempt(n => n + 1); }}>{t("Повторить")}</button></> : t("Загружаем карту…")}</div>}
     <button className="round-action white-action locate-map" type="button" aria-label={t("Моё местоположение")} onClick={locate}><OriginalAsset asset="map.imgNavigationArrow1" /></button>
     <div className="map-attribution"><a href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a> · <a href="https://www.openmaptiles.org" target="_blank" rel="noreferrer">OpenMapTiles</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a> · <a href="https://routing.openstreetmap.de/about.html" target="_blank" rel="noreferrer">FOSSGIS</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">{t("Исправить")}</a></div>
     <div className="map-context-dock">

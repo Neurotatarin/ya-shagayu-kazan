@@ -196,7 +196,15 @@ public final class KazanOfflinePlugin: CAPPlugin, CAPBridgedPlugin {
             } catch { call.reject("Не удалось подготовить пакет.", "OFFLINE_PLAN") }
         }
     }
-    @objc func cancel(_ call: CAPPluginCall) { queue.async { self.job?.cancel(); self.metadataSession.getAllTasks { tasks in for task in tasks { task.cancel() } }; call.resolve() } }
+    @objc func cancel(_ call: CAPPluginCall) {
+        queue.async {
+            self.job?.cancel()
+            self.metadataSession.getAllTasks { tasks in
+                for task in tasks { task.cancel() }
+                self.queue.async { call.resolve() }
+            }
+        }
+    }
     @objc func remove(_ call: CAPPluginCall) {
         queue.async {
             guard self.job == nil else { call.reject("Дождись завершения или отмени загрузку.", "OFFLINE_BUSY"); return }

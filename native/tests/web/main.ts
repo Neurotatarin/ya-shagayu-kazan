@@ -3,6 +3,7 @@ import workerURL from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import catalog from "../../../server/catalog.json";
 import walkingRoute from "../../../tests/fixtures/walking-route.json";
+import { backgroundMusic } from "../../../app/src/data/backgroundMusic";
 import { cancelOffline, downloadOffline, initializeOffline, localMediaURL, offlineSnapshot, prepareOffline, removeOffline } from "../../../app/src/platform/offlineStore";
 import { offlineMapStyle, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
 import type { DemoCatalog, PlaceImage, WalkingRoute } from "../../../app/src/domain/demo";
@@ -30,7 +31,12 @@ window.kazanOfflineSmoke = async stage => {
   const pack = offlineSnapshot().packages.find(pack => pack.id === retry.plan.id)!;
   assert(pack && pack.assets.length === Object.keys(pack.files).length, "offline-files-incomplete");
   assert(pack.bytes > 0 && pack.bytes <= 300_000_000, "offline-package-limit");
-  assert(JSON.stringify(pack.route?.geometry) === JSON.stringify(walkingRoute.geometry), "offline-walking-geometry");
+  const savedLine = pack.route?.geometry.coordinates ?? [], sourceLine = walkingRoute.geometry.coordinates;
+  assert(pack.route?.geometry.type === "LineString" && savedLine.length === sourceLine.length && pack.route.placeIds.join(",") === input.placeIds.join(","), "offline-walking-geometry");
+  const maxCoordinateDelta = Math.max(...sourceLine.flatMap((point, index) => point.map((coordinate, axis) => Math.abs(coordinate - savedLine[index]![axis]!))));
+  // JSON dictionaries may reorder keys and NSNumber may round a Double by one
+  // ULP. Keep the same line within sub-millimetre numeric precision.
+  assert(maxCoordinateDelta < 1e-9, "offline-walking-coordinates");
   const fetchOnline = window.fetch.bind(window);
   let blockedNetworkRequests = 0;
   window.fetch = ((resource: RequestInfo | URL, init?: RequestInit) => {
@@ -81,11 +87,22 @@ window.kazanOfflineSmoke = async stage => {
       await sleep(500);
     }
     assert(advanced, "offline-local-audio-did-not-advance");
+    stage("offline-background");
+    await call("setBackground", { enabled: true, url: "https://kazan-demo.38-180-191-162.sslip.io" + backgroundMusic.url, volume: .08 });
+    let backgroundPlaying = false;
+    for (let i = 0; i < 60; i++) {
+      const state = await call("getState");
+      assert(!state.backgroundError, "offline-background-error");
+      if (state.backgroundPlaying) { backgroundPlaying = true; break; }
+      await sleep(500);
+    }
+    assert(backgroundPlaying, "offline-background-not-playing");
+    await call("setBackground", { enabled: false });
     await call("clearTrack");
     map.remove(); map = undefined;
     stage("offline-remove"); await removeOffline(pack.id);
     assert(!offlineSnapshot().packages.some(item => item.id === pack.id), "offline-remove-failed");
     status.textContent = "Native offline checks passed";
-    return { ok: true, actualNativeDownload: true, cancellation: true, savedWalkingLine: true, photosDecoded: photoCount, renderedFeatures, blockedNetworkRequests, localAVPlayerAdvanced: true, removal: true };
+    return { ok: true, actualNativeDownload: true, cancellation: true, savedWalkingLine: true, maxCoordinateDelta, photosDecoded: photoCount, renderedFeatures, blockedNetworkRequests, localAVPlayerAdvanced: true, backgroundPlaying, removal: true };
   } finally { map?.remove(); window.fetch = fetchOnline; }
 };

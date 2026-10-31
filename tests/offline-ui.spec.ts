@@ -168,3 +168,27 @@ test("native saved catalog survives a cold reload without browser catalog cache;
   await expect(page.locator("#audio-availability")).toContainText("coming soon");
   expect(requests).toEqual([]);
 });
+
+test("offline map keeps actual GPS and explains areas that have not been downloaded", async ({ page, context }, info) => {
+  test.skip(info.project.name !== "phone-402");
+  await fixture(page); await openDownload(page);
+  await card(page).getByRole("button", { name: "Скачать на iPhone" }).click();
+  await contract(page, "complete");
+  await expect(card(page)).toHaveAttribute("data-state", "Saved");
+  await page.route("**/offline-ui-file/**", route => route.fulfill({ contentType: "application/octet-stream", body: Buffer.alloc(0) }));
+  await page.evaluate(() => (window as any).offlineContract.network(false));
+  await page.getByRole("button", { name: "Закрыть окно" }).click();
+  await page.getByRole("button", { name: "Карта", exact: true }).click();
+  await expect(page.locator(".map-page")).toHaveAttribute("data-map-ready", "true");
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ longitude: 37.6176, latitude: 55.7558 });
+  await page.getByRole("button", { name: "Моё местоположение" }).click();
+  await expect(page.locator(".real-user-position")).toBeAttached();
+  await expect(page.locator(".notice-region")).toContainText("вне Казани");
+  await page.locator('[data-place-id="temple"]').dispatchEvent("click");
+  await expect(page.locator(".map-load-state")).toContainText("Эта область не скачана");
+  await page.getByRole("button", { name: "Идти к этому месту" }).click();
+  await expect(page.locator(".notice-region")).toContainText("Новые пути рассчитываются онлайн");
+  await page.locator('[data-place-id="ushkova"]').dispatchEvent("click");
+  await expect(page.locator(".map-load-state")).toHaveCount(0);
+});
