@@ -34,6 +34,7 @@ public final class KazanPlaybackService extends MediaSessionService {
         super.onCreate();
         try{offline=new KazanOfflineStore(this);}catch(Exception ignored){}
         voice=new ExoPlayer.Builder(this).build();
+        voice.setWakeMode(C.WAKE_MODE_LOCAL);
         voice.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_SPEECH).build(),true);
         voice.setHandleAudioBecomingNoisy(true);
         music=new ExoPlayer.Builder(this).build();music.setRepeatMode(Player.REPEAT_MODE_ONE);music.setVolume(musicVolume);
@@ -50,7 +51,7 @@ public final class KazanPlaybackService extends MediaSessionService {
         restore();handler.post(ticker);
     }
     @Override @Nullable public IBinder onBind(Intent intent){return BIND.equals(intent.getAction())?binder:super.onBind(intent);}
-    @Override @Nullable public MediaSession onGetSession(MediaSession.ControllerInfo controller){return session;}
+    @Override @Nullable public MediaSession onGetSession(MediaSession.ControllerInfo controller){return controller.getUid()==android.os.Process.myUid()||controller.isTrusted()?session:null;}
     void observe(Runnable observer){observers.add(observer);}
     void unobserve(Runnable observer){observers.remove(observer);}
     private void emit(){

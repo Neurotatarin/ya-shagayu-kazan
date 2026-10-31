@@ -13,5 +13,5 @@
     "allowImportingTsExtensions": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["app/src", "vite.config.ts", "capacitor.config.ts", "playwright.config.ts", "tests", "native/tests/web/**/*.ts", "scripts/native-smoke-vite.config.ts"]
+  "include": ["app/src", "vite.config.ts", "capacitor.config.ts", "playwright.config.ts", "tests", "native/tests/web/**/*.ts", "native/tests/android-web/**/*.ts", "scripts/native-smoke-vite.config.ts", "scripts/android-smoke-vite.config.ts"]
 }
