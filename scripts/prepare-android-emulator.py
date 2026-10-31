@@ -8,9 +8,17 @@ import json,re,subprocess,time,xml.etree.ElementTree as ET
 root=Path('work/emulator-startup');root.mkdir(parents=True,exist_ok=True)
 def adb(*args):return subprocess.check_output(['adb',*args],timeout=40)
 def snapshot(index):
-    adb('shell','uiautomator','dump','/sdcard/startup.xml')
-    raw=adb('exec-out','cat','/sdcard/startup.xml');(root/f'{index}.xml').write_bytes(raw)
-    return ET.fromstring(raw)
+    # At first boot the accessibility root may not exist yet. This runs before
+    # our app is installed, so wait for the OS rather than interpreting its
+    # error text as XML or masking an application failure.
+    for sample in range(8):
+        try:
+            adb('shell','uiautomator','dump','/sdcard/startup.xml')
+            raw=adb('exec-out','cat','/sdcard/startup.xml');(root/f'{index}-{sample}.xml').write_bytes(raw)
+            return ET.fromstring(raw)
+        except (subprocess.CalledProcessError,subprocess.TimeoutExpired,ET.ParseError):
+            time.sleep(3)
+    raise RuntimeError('Disposable Android accessibility root is not ready')
 assert b'ru.yashagayu.kazan.demo' not in adb('shell','pm','list','packages','ru.yashagayu.kazan.demo')
 time.sleep(15);recovered=[]
 for attempt in range(4):
