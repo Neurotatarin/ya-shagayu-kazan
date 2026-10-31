@@ -40,7 +40,11 @@ def screen(name):
     result=subprocess.check_output(['adb','exec-out','screencap','-p'],timeout=30);(root/(name+'.png')).write_bytes(result)
 def playing():
     raw=adb('shell','dumpsys','media_session');(root/'media-session.txt').write_text(raw)
-    return package in raw and re.search(r'\bstate=3\b',raw) is not None
+    own=raw.split('package='+package,1)
+    if len(own)!=2:return False
+    session=re.split(r'\n\s*package=',own[1],maxsplit=1)[0]
+    # Android 16 prints PLAYING(3); older versions print the numeric value.
+    return re.search(r'\bstate=(?:PLAYING\()?3\b',session) is not None
 
 if sys.argv[1]=='download':
     with urllib.request.urlopen(release['url'],timeout=120) as response:data=response.read()
