@@ -5,5 +5,5 @@ import { resolve } from "node:path";
 export default defineConfig({
   root: resolve("native/tests/web"),
   base: "./",
-  build: { outDir: resolve("work/native-smoke-web"), emptyOutDir: true, target: "es2020" },
+  build: { outDir: resolve("work/native-smoke-web"), emptyOutDir: true, target: "safari15" },
 });

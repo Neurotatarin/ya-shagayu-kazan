@@ -1,16 +1,16 @@
-import { Map, setWorkerUrl } from "maplibre-gl";
-import workerURL from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+import { Map } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import catalog from "../../../server/catalog.json";
 import walkingRoute from "../../../tests/fixtures/walking-route.json";
 import { backgroundMusic } from "../../../app/src/data/backgroundMusic";
 import { audioSmoke } from "./audioSmoke";
+import { prepareMapWorker } from "../../../app/src/platform/mapWorker";
 import { cancelOffline, downloadOffline, initializeOffline, localMediaURL, offlineSnapshot, prepareOffline, removeOffline } from "../../../app/src/platform/offlineStore";
 import { offlineMapStyle, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
 import type { DemoCatalog, PlaceImage, WalkingRoute } from "../../../app/src/domain/demo";
 
 declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) => void) => Promise<Record<string, unknown>>; kazanSmokeStage?: string; kazanSmokeResult?: Record<string, unknown>; Capacitor: { nativePromise: (plugin: string, method: string, options?: unknown) => Promise<Record<string, unknown>> } } }
-setWorkerUrl(workerURL); registerOfflineMapProtocol();
+registerOfflineMapProtocol();
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const assert = (condition: unknown, code: string) => { if (!condition) throw new Error(code); };
 async function bounded<T>(operation: Promise<T>, milliseconds: number, code: string) {
@@ -78,6 +78,7 @@ window.kazanOfflineSmoke = async stage => {
       assert(image.naturalWidth > 0, "offline-photo-decode"); photoCount++;
     }
     stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
+    await bounded(prepareMapWorker(), 20000, "offline-worker-timeout");
     map = new Map({ container: "map", style: offlineMapStyle(pack), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
     map.on("load", () => {
       map!.addSource("saved-route", { type: "geojson", data: { type: "Feature", properties: {}, geometry: pack.route!.geometry } });

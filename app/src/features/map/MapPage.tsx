@@ -1,7 +1,6 @@
 import { t, getLanguage, useI18n, numberLocale } from "../../i18n";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
-import { Map, Marker, setWorkerUrl, type GeoJSONSource } from "maplibre-gl";
-import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+import { Map, Marker, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { PlacePhoto, hasPlacePhoto } from "../../components/PlacePhoto";
 import { OriginalAsset } from "../../components/OriginalAsset";
@@ -11,8 +10,8 @@ import { calculateWalkingRoute } from "../../data/api";
 import { countPlaces, type Place, type PlaceId, type ShowNotice, type WalkingRoute } from "../../domain/demo";
 import { downloadedMap, nativeDownloads, nativeOnline, useOfflineState } from "../../platform/offlineStore";
 import { offlineMapStyle, registerOfflineMapProtocol } from "../../platform/offlineMap";
+import { prepareMapWorker } from "../../platform/mapWorker";
 
-setWorkerUrl(workerUrl);
 registerOfflineMapProtocol();
 const distance = (m: number) => m < 1000 ? t("{0} м", {0: Math.round(m)}) : t("{0} км", {0: (m / 1000).toLocaleString(numberLocale(), { maximumFractionDigits: 1 })});
 function localizeMap(view: Map) {
@@ -75,41 +74,46 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
 
   useEffect(() => {
     setReady(false); setMapError(false); setOutsideSavedArea(false); let active = true;
-    const initialZoom = 14.3 + Math.log2(Math.max(280, container.current!.clientWidth) / 402);
-    const initialPlace = places.find(p => p.id === selected);
-    const view = new Map({ container: container.current!, style: savedMap ? offlineMapStyle(savedMap) : missingOfflineMap ? { version: 8, sources: {}, layers: [{ id: "offline-background", type: "background", paint: { "background-color": "#f0f7f2" } }] } : "https://tiles.openfreemap.org/styles/positron", center: initialPlace?.coordinates ?? [49.1098, 55.7978], zoom: initialZoom, ...(savedMap ? { minZoom: savedMap.map.minZoom } : {}), attributionControl: false, fadeDuration: 0, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false, localIdeographFontFamily: false });
-    map.current = view; view.touchZoomRotate.disableRotation();
-    const checkSavedArea = () => {
-      if (!savedMap || !active) return;
-      const center = view.getCenter(), [west, south, east, north] = savedMap.map.bounds;
-      setOutsideSavedArea(center.lng < west || center.lng > east || center.lat < south || center.lat > north);
-    };
-    view.on("moveend", checkSavedArea);
-    view.on("load", () => {
+    let cleanup: (() => void) | undefined;
+    void prepareMapWorker().then(() => {
       if (!active) return;
-      // Style real vector geometry with the approved Figma palette.
-      for (const layer of view.getStyle().layers) {
-        if (layer.type === "background") view.setPaintProperty(layer.id, "background-color", "#f0f7f2");
-        if (layer.type === "fill" && /park|wood|landcover|landuse/.test(layer.id)) view.setPaintProperty(layer.id, "fill-color", "#def4e5");
-        if (layer.type === "fill" && /building/.test(layer.id)) view.setPaintProperty(layer.id, "fill-color", "#dce9e1");
-      }
-      localizeMap(view); setReady(true); setMapError(false);
-      if (initialPlace?.coordinates) view.jumpTo({ center: initialPlace.coordinates, padding: cameraPadding(true) });
-      checkSavedArea();
-    });
-    view.on("error", () => { if (active) { if (!savedMap && downloadedMap(routePlaceIds, selected, true)) setOfflineFallback(true); else setMapError(true); } });
-    view.on("click", () => {
-      const next = !quietRef.current; quietRef.current = next;
-      mapActions.current.onSelect(undefined); mapActions.current.onQuietChange(next);
-      setSearching(false); search.current?.blur();
-    });
-    view.on("movestart", event => {
-      if (!event.originalEvent) return;
-      quietRef.current = true; mapActions.current.onSelect(undefined); mapActions.current.onQuietChange(true);
-      setSearching(false); search.current?.blur();
-    });
-    const observer = new ResizeObserver(() => view.resize()); observer.observe(container.current!);
-    return () => { active = false; observer.disconnect(); view.remove(); map.current = undefined; userMarker.current = undefined; };
+      const initialZoom = 14.3 + Math.log2(Math.max(280, container.current!.clientWidth) / 402);
+      const initialPlace = places.find(p => p.id === selected);
+      const view = new Map({ container: container.current!, style: savedMap ? offlineMapStyle(savedMap) : missingOfflineMap ? { version: 8, sources: {}, layers: [{ id: "offline-background", type: "background", paint: { "background-color": "#f0f7f2" } }] } : "https://tiles.openfreemap.org/styles/positron", center: initialPlace?.coordinates ?? [49.1098, 55.7978], zoom: initialZoom, ...(savedMap ? { minZoom: savedMap.map.minZoom } : {}), attributionControl: false, fadeDuration: 0, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false, localIdeographFontFamily: false });
+      map.current = view; view.touchZoomRotate.disableRotation();
+      const checkSavedArea = () => {
+        if (!savedMap || !active) return;
+        const center = view.getCenter(), [west, south, east, north] = savedMap.map.bounds;
+        setOutsideSavedArea(center.lng < west || center.lng > east || center.lat < south || center.lat > north);
+      };
+      view.on("moveend", checkSavedArea);
+      view.on("load", () => {
+        if (!active) return;
+        // Style real vector geometry with the approved Figma palette.
+        for (const layer of view.getStyle().layers) {
+          if (layer.type === "background") view.setPaintProperty(layer.id, "background-color", "#f0f7f2");
+          if (layer.type === "fill" && /park|wood|landcover|landuse/.test(layer.id)) view.setPaintProperty(layer.id, "fill-color", "#def4e5");
+          if (layer.type === "fill" && /building/.test(layer.id)) view.setPaintProperty(layer.id, "fill-color", "#dce9e1");
+        }
+        localizeMap(view); setReady(true); setMapError(false);
+        if (initialPlace?.coordinates) view.jumpTo({ center: initialPlace.coordinates, padding: cameraPadding(true) });
+        checkSavedArea();
+      });
+      view.on("error", () => { if (active) { if (!savedMap && downloadedMap(routePlaceIds, selected, true)) setOfflineFallback(true); else setMapError(true); } });
+      view.on("click", () => {
+        const next = !quietRef.current; quietRef.current = next;
+        mapActions.current.onSelect(undefined); mapActions.current.onQuietChange(next);
+        setSearching(false); search.current?.blur();
+      });
+      view.on("movestart", event => {
+        if (!event.originalEvent) return;
+        quietRef.current = true; mapActions.current.onSelect(undefined); mapActions.current.onQuietChange(true);
+        setSearching(false); search.current?.blur();
+      });
+      const observer = new ResizeObserver(() => view.resize()); observer.observe(container.current!);
+      cleanup = () => { observer.disconnect(); view.remove(); map.current = undefined; userMarker.current = undefined; };
+    }).catch(() => { if (active) setMapError(true); });
+    return () => { active = false; cleanup?.(); };
   }, [mapAttempt, savedMap?.id, offline.connected]);
   useEffect(() => { if (offline.connected) setOfflineFallback(false); }, [offline.connected]);
   useEffect(() => { if (ready && map.current) localizeMap(map.current); }, [ready, language]);
