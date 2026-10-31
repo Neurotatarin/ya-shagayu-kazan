@@ -57,7 +57,8 @@ elif sys.argv[1]=='install':
         initial_pid=adb('shell','pidof',package).strip();assert initial_pid
         time.sleep(5)
         find('Начать прогулку');screen('release-home');tap('Начать прогулку')
-        find('Выбрать Кул-Шариф');screen('release-map');tap('Выбрать Кул-Шариф');tap('Слушать')
+        marker='Выбрать '+next(p['title'] for p in json.loads(Path('server/catalog.json').read_text())['places'] if p['id']=='kul-sharif')
+        find(marker);screen('release-map');tap(marker);tap('Слушать')
         for _ in range(4):
             try:find('Воспроизвести историю',timeout=6);break
             except RuntimeError:adb('shell','input','swipe','530','1850','530','900','350')
