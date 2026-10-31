@@ -1,7 +1,7 @@
 name: Figma pages web and physical iPhone
 on:
   push:
-    branches: [demo/figma-restart, demo/global-mini-player, demo/map-context-controls, fix/imperial-zilant, fix/iphone-runtime-audit]
+    branches: [demo/figma-restart, demo/global-mini-player, demo/map-context-controls, fix/imperial-zilant, fix/iphone-runtime-audit, feat/iphone-offline]
   workflow_dispatch:
 permissions:
   contents: read

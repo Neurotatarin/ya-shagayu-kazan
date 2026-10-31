@@ -24,7 +24,7 @@ export function PlacePage({ place, favorite, visited, onVisit, onFavorite, onBac
       </aside>
       <p className="audio-eyebrow">{t("АУДИОИСТОРИЯ")}</p>
       <button className={`primary-action listen-story ${place.audioUrl ? "" : "audio-pending"}`} type="button" onClick={onListen}>{place.audioUrl ? <><OriginalAsset asset="place.imgPlay" /><span>{t("Слушать историю · {0}:{1}", {0: Math.floor(place.durationSeconds / 60), 1: String(Math.round(place.durationSeconds) % 60).padStart(2, "0")})}</span></> : <><span>{t("Открыть фотогалерею")}</span><OriginalAsset asset="profile.imgArrowRight" /></>}</button>
-      {!place.audioUrl && <p className="audio-availability-note">{t("Аудио на этом языке готовится")}</p>}
+      {(!place.audioUrl || place.audioOfflineMissing) && <p className="audio-availability-note">{t(place.audioOfflineMissing ? "Запись не скачана. Подключись к интернету, чтобы сохранить её на iPhone." : "Аудио на этом языке готовится")}</p>}
       <button className="visit-place" type="button" aria-pressed={visited} onClick={onVisit}><OriginalAsset asset="place.imgMapPin" />{visited ? t("Посещение отмечено") : t("Я здесь")}</button>
     </section>
   </main>;

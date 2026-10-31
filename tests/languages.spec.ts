@@ -98,11 +98,11 @@ test("changing language stops Russian audio and never plays it as a fallback", a
   await expect(page.locator(".play-action")).toBeDisabled();
   await expect.poll(() => page.evaluate(() => window.languageAudio.every(audio => audio.paused))).toBe(true);
   await expect(page.getByRole("slider")).toBeDisabled();
-  await page.getByRole("button", { name: "Offline", exact: true }).click();
-  await expect(page.locator(".notice")).toContainText("Coming soon");
+  await expect(page.getByRole("button", { name: "Offline", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Offline", exact: true })).toHaveAttribute("title", "Downloads are available in the installed iPhone app.");
   await choose(page, "ar");
   await expect(page.locator(".play-action")).toBeDisabled();
-  await expect(page.locator(".notice")).toContainText("قريباً");
+  await expect(page.locator("#audio-availability")).toContainText("التسجيل بهذه اللغة");
 });
 
 test("available language tracks use their own URLs, durations and saved positions", async ({ page }, info) => {

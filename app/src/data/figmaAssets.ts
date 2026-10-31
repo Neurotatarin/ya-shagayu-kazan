@@ -1,5 +1,10 @@
 // Original Figma exports; native SVG dimensions must remain unchanged.
 export const figmaAssets = {
+  "offline.imgCloudArrowDown": {
+    "src": "/assets/screens/offline-cloud-arrow-down.svg",
+    "width": 32,
+    "height": 32
+  },
   "route-imperial.img01": {
     "src": "/assets/screens/route-imperial-img01.svg",
     "width": 100.85,

@@ -9,17 +9,24 @@ import { DetailSheet } from "../../components/DetailSheet";
 import { figmaAssets } from "../../data/figmaAssets";
 import { calculateWalkingRoute } from "../../data/api";
 import { countPlaces, type Place, type PlaceId, type ShowNotice, type WalkingRoute } from "../../domain/demo";
+import { downloadedMap, nativeDownloads, nativeOnline, useOfflineState } from "../../platform/offlineStore";
+import { offlineMapStyle, registerOfflineMapProtocol } from "../../platform/offlineMap";
 
 setWorkerUrl(workerUrl);
+registerOfflineMapProtocol();
 const distance = (m: number) => m < 1000 ? t("{0} м", {0: Math.round(m)}) : t("{0} км", {0: (m / 1000).toLocaleString(numberLocale(), { maximumFractionDigits: 1 })});
 function localizeMap(view: Map) {
   for (const layer of view.getStyle().layers) if (layer.type === "symbol" && (JSON.stringify(layer.layout?.["text-field"]) ?? "").includes("name")) view.setLayoutProperty(layer.id, "text-field", ["coalesce", ["get", `name:${getLanguage()}`], ["get", getLanguage() === "ru" ? "name" : "name:en"], ["get", "name:latin"], ["get", "name"]]);
 }
 const inKazan = ([x, y]: [number, number]) => x >= 48.8 && x <= 49.4 && y >= 55.6 && y <= 56;
-type Props = { places: readonly Place[]; selected?: PlaceId; routePlaceIds: PlaceId[]; routeTitle: string; quiet: boolean; onQuietChange: (quiet: boolean) => void; onSelect: (id?: PlaceId) => void; onOpen: (id: PlaceId) => void; onListen: (id: PlaceId) => void; onFilters: () => void; notice: ShowNotice };
+type Props = { places: readonly Place[]; selected?: PlaceId; routePlaceIds: PlaceId[]; routeTitle: string; quiet: boolean; onQuietChange: (quiet: boolean) => void; onSelect: (id?: PlaceId) => void; onOpen: (id: PlaceId) => void; onListen: (id: PlaceId) => void; onFilters: () => void; onDownload: (route: WalkingRoute) => void; notice: ShowNotice };
 
-export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, onQuietChange, onSelect, onOpen, onListen, onFilters, notice }: Props) {
+export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, onQuietChange, onSelect, onOpen, onListen, onFilters, onDownload, notice }: Props) {
   const { language } = useI18n();
+  const offline = useOfflineState();
+  const [offlineFallback, setOfflineFallback] = useState(false);
+  const savedMap = downloadedMap(routePlaceIds, selected, offlineFallback);
+  const missingOfflineMap = nativeDownloads && !offline.connected && !savedMap;
   const container = useRef<HTMLDivElement>(null), search = useRef<HTMLInputElement>(null);
   const map = useRef<Map | undefined>(undefined), userMarker = useRef<Marker | undefined>(undefined);
   const watch = useRef<number | undefined>(undefined);
@@ -53,6 +60,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
     if (dy > 45 && dy > Math.abs(dx)) { cardSwiped.current = true; closeCard(); }
   }
   function walkHere() {
+    if (!nativeOnline()) return notice(t("Нет сети. Новые пути рассчитываются онлайн."));
     if (!position) return notice(t("Разреши геолокацию кнопкой со стрелкой, чтобы проложить путь от тебя."));
     if (!inKazan(position)) return notice(t("Путь от тебя доступен в Казани. Сейчас можно просматривать готовые прогулки."));
     setStart(position); setWalkingTarget(place.id); setRouteAttempt(n => n + 1);
@@ -68,7 +76,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
     setReady(false); setMapError(false); let active = true;
     const initialZoom = 14.3 + Math.log2(Math.max(280, container.current!.clientWidth) / 402);
     const initialPlace = places.find(p => p.id === selected);
-    const view = new Map({ container: container.current!, style: "https://tiles.openfreemap.org/styles/positron", center: initialPlace?.coordinates ?? [49.1098, 55.7978], zoom: initialZoom, attributionControl: false, fadeDuration: 0, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false, localIdeographFontFamily: false });
+    const view = new Map({ container: container.current!, style: savedMap ? offlineMapStyle(savedMap) : missingOfflineMap ? { version: 8, sources: {}, layers: [{ id: "offline-background", type: "background", paint: { "background-color": "#f0f7f2" } }] } : "https://tiles.openfreemap.org/styles/positron", center: initialPlace?.coordinates ?? [49.1098, 55.7978], zoom: initialZoom, ...(savedMap ? { minZoom: savedMap.map.minZoom } : {}), attributionControl: false, fadeDuration: 0, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false, localIdeographFontFamily: false });
     map.current = view; view.touchZoomRotate.disableRotation();
     view.on("load", () => {
       if (!active) return;
@@ -81,7 +89,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
       localizeMap(view); setReady(true); setMapError(false);
       if (initialPlace?.coordinates) view.jumpTo({ center: initialPlace.coordinates, padding: cameraPadding(true) });
     });
-    view.on("error", () => { if (active) setMapError(true); });
+    view.on("error", () => { if (active) { if (!savedMap && downloadedMap(routePlaceIds, selected, true)) setOfflineFallback(true); else setMapError(true); } });
     view.on("click", () => {
       const next = !quietRef.current; quietRef.current = next;
       mapActions.current.onSelect(undefined); mapActions.current.onQuietChange(next);
@@ -94,7 +102,8 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
     });
     const observer = new ResizeObserver(() => view.resize()); observer.observe(container.current!);
     return () => { active = false; observer.disconnect(); view.remove(); map.current = undefined; userMarker.current = undefined; };
-  }, [mapAttempt]);
+  }, [mapAttempt, savedMap?.id, offline.connected]);
+  useEffect(() => { if (offline.connected) setOfflineFallback(false); }, [offline.connected]);
   useEffect(() => { if (ready && map.current) localizeMap(map.current); }, [ready, language]);
 
   useEffect(() => {
@@ -118,7 +127,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
     if (!walkingTarget && ids.length < 2) { setRouteBusy(false); return; }
     calculateWalkingRoute(ids, controller.signal, walkingTarget ? start : undefined).then(value => { if (!controller.signal.aborted) setRoute(value); }).catch(error => { if (!controller.signal.aborted) setRouteError(navigator.onLine ? error.message : t("Нет сети. Новые пути рассчитываются онлайн.")); }).finally(() => { if (!controller.signal.aborted) setRouteBusy(false); });
     return () => controller.abort();
-  }, [routeKey, walkingTarget, start, routeAttempt]);
+  }, [routeKey, walkingTarget, start, routeAttempt, offline.connected]);
 
   useEffect(() => {
     if (!ready || !map.current) return;
@@ -160,7 +169,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
       if (first && inKazan(real)) map.current?.jumpTo({ center: real, zoom: 16 });
       else if (first) notice(t("Ты сейчас вне Казани. Показываю Казань и её маршруты; твои координаты не подменяются."));
       first = false;
-    }, error => notice(error.code === 1 ? t("Геолокация не разрешена. Карта и маршруты остаются доступны.") : t("Не удалось определить местоположение. Карта доступна; попробуй ещё раз.")), { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+    }, error => notice(error.code === 1 ? t("Геолокация не разрешена. Карта и маршруты остаются доступны.") : t("Не удалось определить местоположение. Карта доступна; попробуй ещё раз.")), { enableHighAccuracy: true, timeout: nativeOnline() ? 15000 : 60000, maximumAge: 10000 });
   }
 
   return <main className="map-page" aria-label={t("Интерактивная карта Казани")} data-figma-node="2022:7008" data-map-ready={ready} data-route-source={route ? "foot" : undefined} data-map-quiet={quiet} data-card-open={!!selectedPlace && !quiet}
@@ -171,7 +180,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
       <button className={`audio-filter ${audioOnly ? "filter-selected" : ""}`} type="button" aria-pressed={audioOnly} onClick={() => { setAudioOnly(value => !value); setSearching(true); }}><OriginalAsset asset="map.imgHeadphones" /><span>{t("Аудиогид")}</span></button>
       {searching && <div className="map-search-results"><div className="search-results-heading"><span>{t("Места ·")}{results.length}</span><button type="button" onClick={() => { setSearching(false); search.current?.blur(); }} aria-label={t("Закрыть результаты поиска")}>×</button></div>{results.length ? results.map(result => <button type="button" key={result.id} onClick={() => onOpen(result.id)}><span>{result.title}</span><OriginalAsset asset="profile.imgArrowRight" /></button>) : <p>{audioOnly ? t("Готовые аудиозаписи пока не добавлены.") : t("Ничего не нашлось. Попробуй другое название.")}</p>}</div>}
     </div>
-    {(mapError || !ready) && <div className="map-load-state" role="status">{mapError ? <><span>{t("Карта не загрузилась. Список мест доступен.")}</span><button type="button" onClick={() => setMapAttempt(n => n + 1)}>{t("Повторить")}</button></> : t("Загружаем карту…")}</div>}
+    {(mapError || !ready || missingOfflineMap) && <div className="map-load-state" role="status">{missingOfflineMap ? t("Эта область не скачана. Сохрани экскурсию или маршрут при подключении к интернету.") : mapError ? <><span>{t("Карта не загрузилась. Список мест доступен.")}</span><button type="button" onClick={() => { setOfflineFallback(false); setMapAttempt(n => n + 1); }}>{t("Повторить")}</button></> : t("Загружаем карту…")}</div>}
     <button className="round-action white-action locate-map" type="button" aria-label={t("Моё местоположение")} onClick={locate}><OriginalAsset asset="map.imgNavigationArrow1" /></button>
     <div className="map-attribution"><a href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a> · <a href="https://www.openmaptiles.org" target="_blank" rel="noreferrer">OpenMapTiles</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a> · <a href="https://routing.openstreetmap.de/about.html" target="_blank" rel="noreferrer">FOSSGIS</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">{t("Исправить")}</a></div>
     <div className="map-context-dock">
@@ -190,6 +199,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
     {routeDetails && <DetailSheet title={title} onClose={() => setRouteDetails(false)}>
       <p>{summary}</p>
       {routeError && <button className="sheet-option" type="button" onClick={() => setRouteAttempt(n => n + 1)}>{t("Повторить расчёт")}</button>}
+      {!walkingTarget && <button className="sheet-option" type="button" disabled={!nativeDownloads || !route || !!offline.transfer} title={!nativeDownloads ? t("Скачивание доступно в установленном приложении iPhone.") : undefined} onClick={() => { if (route) { setRouteDetails(false); onDownload(route); } }}>{t("Скачать маршрут на iPhone")}</button>}
       {(walkingTarget ? [walkingTarget] : routePlaceIds).map(id => places.find(p => p.id === id)).filter((p): p is Place => !!p).map(p => <button key={p.id} className="sheet-option" type="button" onClick={() => { setRouteDetails(false); setQuiet(false); onSelect(p.id); map.current?.jumpTo({ center: p.coordinates!, padding: cameraPadding(true) }); }}>{p.title}</button>)}
     </DetailSheet>}
   </main>;

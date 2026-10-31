@@ -3,7 +3,8 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState }
 import { localizeCatalog, localizeHome } from "../i18n/catalog";
 import { LanguageControl } from "../components/LanguageControl";
 import type { Destination, HomeContent, HomeRepository } from "../domain/home";
-import { readScreen, type DemoCatalog, type PlaceId, type Screen, type ThemeRoute, type ZilantAnswer } from "../domain/demo";
+import { readScreen, type DemoCatalog, type PlaceId, type Screen, type ThemeRoute, type ZilantAnswer, type WalkingRoute } from "../domain/demo";
+import type { OfflinePackage } from "../domain/offline";
 import { localHomeRepository } from "../data/homeRepository";
 import { apiCatalogRepository, askZilant, getServerProgress, putServerProgress } from "../data/api";
 import { HomePage } from "../features/home/HomePage";
@@ -21,6 +22,8 @@ import { platform } from "../platform/runtime";
 import { acknowledgeProgress, audioPosition, withAudioPosition, hasPendingProgress, loadLocalProgress, saveLocalProgress } from "../platform/localProgress";
 import { clearAudioForLanguageChange, closeAudio, useAudioPlayback } from "../platform/audioPlayback";
 import { backgroundMusic } from "../data/backgroundMusic";
+import { hasDownloadedAudio, nativeDownloads, nativeOnline, removeOffline, useOfflineState } from "../platform/offlineStore";
+import { OfflineDownloadSheet, OfflineSavedPackages, type OfflineContext } from "../features/offline/OfflineDownloadSheet";
 
 type Sheet = ProfileSheet | "map-filters" | "player-actions";
 const sheetTitles: Record<Sheet, string> = { favorites: "Избранное", offline: "Офлайн-маршруты", settings: "Настройки", awards: "Награды", account: "Твоя Казань", "map-filters": "Фильтры карты", "player-actions": "Аудиоистория" };
@@ -28,10 +31,15 @@ const MapPage = lazy(() => import("../features/map/MapPage").then(module => ({ d
 
 export function App({ repository = localHomeRepository }: { repository?: HomeRepository }) {
   const { language } = useI18n();
+  const downloads = useOfflineState();
   const [sourceContent, setContent] = useState<HomeContent>();
   const [sourceCatalog, setCatalog] = useState<DemoCatalog>();
   const content = useMemo(() => sourceContent && localizeHome(sourceContent, language), [sourceContent, language]);
-  const catalog = useMemo(() => sourceCatalog && localizeCatalog(sourceCatalog, language), [sourceCatalog, language]);
+  const catalog = useMemo(() => {
+    if (!sourceCatalog) return undefined;
+    const localized = localizeCatalog(sourceCatalog, language);
+    return nativeDownloads && !downloads.connected ? { ...localized, places: localized.places.map(place => ({ ...place, audioOfflineMissing: !!place.audioUrl && !hasDownloadedAudio(place.audioUrl) })) } : localized;
+  }, [sourceCatalog, language, downloads.connected, downloads.packages]);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -49,6 +57,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   const [routeTitle, setRouteTitle] = useState(t("Кремль и Кремлёвская улица"));
   const [progressReady, setProgressReady] = useState(false);
   const [sheet, setSheet] = useState<Sheet>();
+  const [offlineContext, setOfflineContext] = useState<OfflineContext>();
   const [notice, setNotice] = useState("");
   const noticeTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pendingRequest = useRef<AbortController | undefined>(undefined);
@@ -62,7 +71,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     return () => controller.abort();
   }, [repository, attempt]);
   useEffect(() => {
-    function onHashChange() { setScreen(readScreen(location.hash)); const id = location.hash.split("/")[2]; if (id && /^[a-z][a-z0-9-]{0,50}$/.test(id)) setPlaceId(id); setSheet(undefined); }
+    function onHashChange() { setScreen(readScreen(location.hash)); const id = location.hash.split("/")[2]; if (id && /^[a-z][a-z0-9-]{0,50}$/.test(id)) setPlaceId(id); setSheet(undefined); setOfflineContext(undefined); }
     window.addEventListener("hashchange", onHashChange);
     return () => { window.removeEventListener("hashchange", onHashChange); clearTimeout(noticeTimeout.current); pendingRequest.current?.abort(); };
   }, []);
@@ -74,10 +83,10 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     return () => { active = false; };
   }, []);
   useEffect(() => {
-    if (!progressReady) return;
+    if (!progressReady || !nativeOnline()) return;
     const timeout = setTimeout(() => { syncQueue.current = syncQueue.current.catch(() => {}).then(async () => { await putServerProgress(progress); acknowledgeProgress(progress); }).catch(() => showNotice(t("Не удалось сохранить прогресс на сервере. Копия осталась на этом устройстве."))); }, 900);
     return () => clearTimeout(timeout);
-  }, [progress, progressReady]);
+  }, [progress, progressReady, downloads.connected]);
   useEffect(() => {
     if (!playback.placeId) return;
     dirtyProgress.current = true;
@@ -90,7 +99,7 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     if (target !== "waiting") pendingRequest.current?.abort();
     if (id) setPlaceId(id);
-    setNotice(""); setSheet(undefined); setLanguageOpen(false);
+    setNotice(""); setSheet(undefined); setOfflineContext(undefined); setLanguageOpen(false);
     location.hash = `/${target}${id ? `/${id}` : ""}`;
     setScreen(target);
     if (target === screen) window.scrollTo({ top: 0, behavior: "auto" });
@@ -111,6 +120,23 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     }
     void closeAudio().catch(() => showNotice(t("Не удалось закрыть экскурсию. Попробуй ещё раз.")));
   }
+  function openDownloaded(pack: OfflinePackage) {
+    if (pack.route) { setRoutePlaceIds(pack.placeIds); setRouteTitle(pack.title); setMapSelection(undefined); go("map"); }
+    else { setRoutePlaceIds([]); go("player", pack.placeIds[0]); }
+  }
+  async function removeDownloaded(pack: OfflinePackage) {
+    if (pack.language === playback.language && pack.placeIds.includes(playback.placeId)) {
+      updateProgress(withAudioPosition(progress, playback.placeId, playback.language, playback.position));
+      await closeAudio();
+    }
+    await removeOffline(pack.id);
+  }
+  async function downloadRoute(route: WalkingRoute) {
+    if (!sourceCatalog) return;
+    const bytes = new TextEncoder().encode(route.placeIds.join(","));
+    const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].slice(0, 8).map(value => value.toString(16).padStart(2, "0")).join("");
+    setOfflineContext({ id: "route-" + hash, title: catalog?.routes.find(item => item.placeIds?.join(",") === route.placeIds.join(","))?.title ?? routeTitle, language, placeIds: route.placeIds, catalog: sourceCatalog, route });
+  }
   async function sendQuestion(text: string) {
     pendingRequest.current?.abort();
     if (answer) setTurns(previous => [...previous, { question, answer: answer.message }].slice(-7));
@@ -130,9 +156,9 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
   return <div className={`app-shell platform-${platform} screen-${screen} ${screen === "home" ? "" : "additional-screen"} ${showMiniPlayer ? `has-mini-player ${withNavigation ? "" : "mini-player-without-navigation"}` : ""} ${screen === "map" && mapQuiet ? "map-chrome-hidden" : ""}`}>
     {content && catalog && place ? <>
       {screen === "home" && <HomePage content={content} onNavigate={navigate} />}
-      {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>{t("Загружаем карту…")}</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={t(routeTitle).replace(/\n/g, " ")} quiet={mapQuiet} onQuietChange={setMapQuiet} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} notice={showNotice} /></Suspense>}
+      {screen === "map" && <Suspense fallback={<main className="map-page content-state" aria-busy="true"><p>{t("Загружаем карту…")}</p></main>}><MapPage places={catalog.places} selected={mapSelection} routePlaceIds={routePlaceIds} routeTitle={(catalog.routes.find(item => item.placeIds?.join(",") === routePlaceIds.join(","))?.title ?? t(routeTitle)).replace(/\n/g, " ")} quiet={mapQuiet} onQuietChange={setMapQuiet} onSelect={setMapSelection} onOpen={openPlace} onListen={id => go("player", id)} onFilters={() => setSheet("map-filters")} onDownload={route => { void downloadRoute(route).catch(() => showNotice(t("Не удалось подготовить офлайн-пакет. Попробуй ещё раз."))); }} notice={showNotice} /></Suspense>}
       {screen === "place" && <PlacePage place={place} visited={progress.visited?.includes(place.id) ?? false} onVisit={() => updateProgress({ ...progress, visited: progress.visited?.includes(place.id) ? progress.visited.filter(id => id !== place.id) : [...(progress.visited ?? []), place.id] })} favorite={progress.favorites.includes(place.id)} onFavorite={() => updateProgress({ ...progress, favorites: progress.favorites.includes(place.id) ? progress.favorites.filter(id => id !== place.id) : [...progress.favorites, place.id] })} onBack={() => { setMapSelection(place.id); go("map"); }} onListen={() => go("player", place.id)} />}
-      {screen === "player" && <PlayerPage key={place.id} place={place} position={audioPosition(progress, place.id, language)} onPosition={seconds => updateProgress(withAudioPosition(progress, place.id, language, seconds))} onBack={() => go("place", place.id)} onMap={() => { setMapSelection(place.id); go("map"); }} onMore={() => setSheet("player-actions")} notice={showNotice} />}
+      {screen === "player" && <PlayerPage key={place.id} place={place} position={audioPosition(progress, place.id, language)} onPosition={seconds => updateProgress(withAudioPosition(progress, place.id, language, seconds))} onBack={() => go("place", place.id)} onMap={() => { setMapSelection(place.id); go("map"); }} onMore={() => setSheet("player-actions")} onOffline={() => { if (sourceCatalog) setOfflineContext({ id: "place-" + place.id, title: place.title, language, placeIds: [place.id], catalog: sourceCatalog }); }} notice={showNotice} />}
       {screen === "routes" && <RoutesPage routes={catalog.routes} onSelect={chooseRoute} onZilant={() => go("zilant")} />}
       {screen === "profile" && <ProfilePage onOpen={setSheet} />}
       {chat && <ZilantPage key={screen} mode={screen as "zilant" | "dialog" | "waiting"} question={question} answer={answer} routePlace={catalog.places.find(p => answer?.placeIds.includes(p.id) && hasPlacePhoto(p))} error={chatError} turns={turns} onSend={sendQuestion} onNew={() => { setQuestion(""); setAnswer(undefined); setTurns([]); setChatError(""); setConversation(crypto.randomUUID()); go("zilant"); }} onStop={() => { pendingRequest.current?.abort(); go("zilant"); showNotice(t("Ожидание ответа остановлено.")); }} onMap={() => { if (!answer?.placeIds.length) return; setRoutePlaceIds(answer.placeIds); setRouteTitle(answer.routeTitle); setMapSelection(undefined); go("map"); }} onAlternative={() => go("routes")} />}
@@ -140,16 +166,17 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     {withNavigation && <div className="navigation-gap" aria-hidden="true" />}
     {showMiniPlayer && playingPlace && <MiniPlayer place={playingPlace} compact={screen === "map"} onOpen={() => go("player", playingPlace.id)} onClose={closeExcursion} notice={showNotice} />}
     {withNavigation && <BottomNavigation current={current} onNavigate={navigate} concealed={screen === "map" && mapQuiet} />}
-    <LanguageControl concealed={screen === "map" && mapQuiet} open={languageOpen} onOpen={() => { setSheet(undefined); setLanguageOpen(true); }} onClose={() => setLanguageOpen(false)} onChange={changeLanguage} />
+    <LanguageControl concealed={screen === "map" && mapQuiet} open={languageOpen} onOpen={() => { setSheet(undefined); setOfflineContext(undefined); setLanguageOpen(true); }} onClose={() => setLanguageOpen(false)} onChange={changeLanguage} />
     <div className="notice-region" role="status" aria-live="polite" aria-atomic="true">{notice && <div className="notice"><span>{t(notice)}</span><button type="button" aria-label={t("Закрыть сообщение")} onClick={() => setNotice("")}>×</button></div>}</div>
     {sheet && catalog && place && <DetailSheet title={t(sheetTitles[sheet])} onClose={() => setSheet(undefined)}>
       {sheet === "favorites" ? <>{catalog.places.filter(p => progress.favorites.includes(p.id)).map(p => <button className="saved-place-row" key={p.id} type="button" onClick={() => openPlace(p.id)}>{hasPlacePhoto(p) && <PlacePhoto place={p} />}<span>{p.title}</span><OriginalAsset asset="profile.imgArrowRight" /></button>)}{!progress.favorites.length && <p>{t("Пока ничего нет. Сохрани понравившееся место с помощью закладки.")}</p>}</>
         : sheet === "map-filters" ? <><p>{t("В каталоге {0} мест. Выбери место, чтобы открыть его карточку.", {0: catalog.places.length})}</p>{catalog.places.map(p => <button key={p.id} type="button" className="sheet-option" onClick={() => openPlace(p.id)}>{p.title}</button>)}</>
         : sheet === "player-actions" ? <><button className="sheet-option" type="button" onClick={() => openPlace(place.id)}>{t("Открыть место")}</button><p>{place.audioUrl ? t("Готовая аудиоистория. Позиция сохраняется, пока ты гуляешь по Казани.") : t("Готовая аудиозапись для этого места ещё не загружена.")}</p><p>{t("Музыкальный фон включается кнопкой «Фон» и играет только вместе с рассказом.")}</p><p className="music-credit">«{backgroundMusic.title}» — {backgroundMusic.author} (<a href={backgroundMusic.sourceUrl} target="_blank" rel="noreferrer">incompetech.com</a>{t("). Лицензия")} <a href={backgroundMusic.licenseUrl} target="_blank" rel="noreferrer">{backgroundMusic.license}</a>{t(". Оригинальная запись; при воспроизведении уменьшена громкость и включён повтор.")}</p></>
         : sheet === "awards" ? <><div className="sheet-medal"><OriginalAsset asset="profile.imgFrame" /></div><p>{t("Ты отметил посещение {0} мест.", {0: progress.visited?.length ?? 0})}</p>{catalog.places.filter(p => progress.visited?.includes(p.id)).map(p => <p key={p.id}>{p.title}</p>)}<p>{t("Правила выдачи наград ещё согласуются.")}</p></>
-        : sheet === "offline" ? <><p>{t("Скачанных маршрутов пока нет.")}</p><p>{t("Полноценная загрузка карты, текстов, фотографий и аудио ещё не подключена.")}</p><button className="primary-action" type="button" onClick={() => go("routes")}>{t("Выбрать маршрут")}</button></>
+        : sheet === "offline" ? <OfflineSavedPackages onOpen={openDownloaded} onRemove={removeDownloaded} onChoose={() => go("routes")} />
         : sheet === "account" ? <><p>{t("Ты знакомишься с Казанью как гость.")}</p><p>{t("Избранное, посещения и позиция истории сохраняются на устройстве и сервере для этой гостевой сессии. Вход по email и объединение устройств ещё не подключены.")}</p></>
         : <><p>{t("Казань · Русский язык")}</p><p>{t("Рабочая демоверсия: интерактивная карта и Зилант через OpenAI.")}</p><button className="sheet-option" type="button" onClick={() => setSheet("account")}>{t("Аккаунт и синхронизация")}</button></>}
     </DetailSheet>}
+    {offlineContext && <OfflineDownloadSheet context={offlineContext} onClose={() => setOfflineContext(undefined)} onOpen={openDownloaded} onRemove={removeDownloaded} />}
   </div>;
 }

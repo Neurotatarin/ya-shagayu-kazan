@@ -17,6 +17,7 @@ export interface Place {
   image?: PlaceImage; galleryUrl?: string;
   audioTracks?: Partial<Record<Language, { url: string; durationSeconds: number }>>;
   audioLanguage?: Language;
+  audioOfflineMissing?: boolean;
   translations?: Partial<Record<Language, Partial<Pick<Place, "title" | "eyebrow" | "address" | "description">>>>;
 }
 export interface ThemeRoute {

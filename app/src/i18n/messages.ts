@@ -1,4 +1,5 @@
 // Russian copy is the stable lookup key and the original Figma wording.
+import { offlineMessages } from "./offlineMessages";
 // Each entry contains English and Arabic; no runtime translation service.
 const entries: [string, string, string][] = [
   ["Выбранное место", "Selected place", "المكان المحدد"],
@@ -304,4 +305,4 @@ const entries: [string, string, string][] = [
   ["В каталоге {0} мест. Выбери место, чтобы открыть его карточку.", "There are {0} places in the catalogue. Choose one to see its details.", "يضم الدليل {0} مكاناً. اختر مكاناً لعرض تفاصيله."],
   ["Ты отметил посещение {0} мест.", "Places you marked as visited: {0}.", "عدد الأماكن التي سجلت زيارتها: {0}."],
 ];
-export const messages: Record<string, readonly [string, string]> = Object.fromEntries(entries.map(([ru, en, ar]) => [ru, [en, ar]]));
+export const messages: Record<string, readonly [string, string]> = Object.fromEntries([...entries, ...offlineMessages].map(([ru, en, ar]) => [ru, [en, ar]]));

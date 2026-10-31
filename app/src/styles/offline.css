@@ -1,0 +1,24 @@
+/* Figma 2037:8075; original Onest styles, brand variables and SVG geometry. */
+.offline-package-card {
+  --offline-gap: 16px;
+  --offline-padding: 24px;
+  --offline-radius: 30px;
+  --offline-control-height: 44px;
+  display: flex; flex-direction: column; align-items: stretch; gap: var(--offline-gap);
+  width: 100%; min-width: 0; padding: var(--offline-padding); border-radius: var(--offline-radius);
+  background: var(--pale); color: var(--ink); font: 400 14px/20px var(--font-body);
+}
+.offline-card-heading { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 28px; overflow: hidden; padding: 0; border: 0; background: transparent; color: var(--ink); text-align: start; font: 600 14px/20px var(--font-body); }
+.offline-card-heading > span:last-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.offline-card-icon { position: relative; display: block; flex: 0 0 28px; width: 28px; height: 28px; }
+.offline-card-icon > img { position: absolute; left: 0; top: 0; }
+.offline-card-status { color: var(--green); font-weight: 600; }
+.offline-card-body { color: var(--muted); overflow-wrap: anywhere; }
+.offline-card-progress { width: 100%; height: 4px; border-radius: 2px; overflow: hidden; background: var(--mint); }
+.offline-card-progress > span { display: block; height: 4px; border-radius: 2px; background: var(--green); }
+.offline-card-action { width: 100%; min-height: var(--offline-control-height); padding: 8px; border: 0; border-radius: var(--offline-radius); background: var(--green); color: var(--white); font: 600 14px/20px var(--font-body); }
+.offline-card-action:disabled { opacity: .45; cursor: default; }
+.offline-package-card[data-state="Saved"] .offline-card-action { background: var(--mint); color: var(--green); }
+.offline-package-list { display: flex; flex-direction: column; gap: 16px; }
+.player-extra-actions .offline-action:disabled { opacity: .45; cursor: default; }
+.player-extra-actions .offline-saved { background: var(--mint); }

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { Capacitor, registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import type { Place } from "../domain/demo";
-import { mediaUrl } from "../data/api";
+import { mediaUrl, remoteMediaUrl } from "../data/api";
 import { backgroundMusic } from "../data/backgroundMusic";
 import { getLanguage, isLanguage, t, type Language } from "../i18n";
 
@@ -134,9 +134,11 @@ export async function toggleAudio(place: Place, position: number, speed = 1): Pr
   if (native) {
     await nativeReady;
     if (version !== trackVersion) return false;
-    updateNative(await nativePlayer.loadTrack({ id: place.id + "@" + (place.audioLanguage ?? "ru"), url: mediaUrl(place.audioUrl), title: place.title, artist: t("Зилант"), album: t("Я шагаю по Казани"), duration: place.durationSeconds, position, speed }));
+    const sameTrack = state.placeId === place.id && state.language === (place.audioLanguage ?? "ru");
+    const wasPlaying = sameTrack && state.playing;
+    updateNative(await nativePlayer.loadTrack({ id: place.id + "@" + (place.audioLanguage ?? "ru"), url: remoteMediaUrl(place.audioUrl), title: place.title, artist: t("Зилант"), album: t("Я шагаю по Казани"), duration: place.durationSeconds, position: sameTrack ? state.position : position, speed }));
     if (version !== trackVersion) return false;
-    updateNative(await (state.playing ? nativePlayer.pause() : nativePlayer.play()));
+    updateNative(await (wasPlaying ? nativePlayer.pause() : nativePlayer.play()));
   } else if (audio) {
     prepareBrowser(place, position, speed);
     audio.preload = "auto";
@@ -166,7 +168,7 @@ export async function setBackgroundEnabled(enabled: boolean) {
   update({ backgroundError: "" });
   if (native) {
     await nativeReady;
-    try { updateNative(await nativePlayer.setBackground({ enabled, url: mediaUrl(backgroundMusic.url), volume: backgroundMusic.volume })); }
+    try { updateNative(await nativePlayer.setBackground({ enabled, url: remoteMediaUrl(backgroundMusic.url), volume: backgroundMusic.volume })); }
     catch { backgroundFailure(); }
   } else {
     try {

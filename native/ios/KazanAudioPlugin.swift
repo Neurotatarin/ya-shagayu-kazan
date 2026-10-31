@@ -6,6 +6,7 @@ import Capacitor
 class KazanBridgeViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         bridge?.registerPluginInstance(KazanAudioPlugin())
+        bridge?.registerPluginInstance(KazanOfflinePlugin())
     }
 }
 
@@ -38,6 +39,8 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     private var artist = "Зилант"
     private var album = "Я шагаю по Казани"
     private var source = ""
+    private var resolvedSource = ""
+    private var musicSource = ""
     private var position = 0.0
     private var duration = 0.0
     private var speed = 1.0
@@ -120,17 +123,20 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             guard let id = call.getString("id"), let raw = call.getString("url"), let url = URL(string: raw), url.scheme == "https", url.host == "kazan-demo.38-180-191-162.sslip.io", url.path.hasPrefix("/media/") else {
                 call.reject("Недопустимый адрес аудио.", "AUDIO_URL_REJECTED"); return
             }
-            if self.placeId == id && self.player != nil && self.player?.currentItem?.status != .failed { call.resolve(self.snapshot()); return }
+            let local = KazanOfflineStore.file(raw)
+            let resolved = KazanOfflineStore.localAudio(local) ? local : url
+            if self.placeId == id && self.resolvedSource == resolved.absoluteString && self.player != nil && self.player?.currentItem?.status != .failed { call.resolve(self.snapshot()); return }
             self.stop()
             if let observer = self.timeObserver { self.player?.removeTimeObserver(observer) }
             self.itemObserver?.invalidate(); self.playbackObserver?.invalidate()
             self.placeId = id; self.title = call.getString("title") ?? "История Казани"; self.source = raw
+            self.resolvedSource = resolved.absoluteString
             self.artist = call.getString("artist") ?? "Зилант"; self.album = call.getString("album") ?? "Я шагаю по Казани"
             self.duration = max(0, call.getDouble("duration") ?? 0)
             self.position = max(0, min(call.getDouble("position") ?? 0, self.duration))
             self.speed = max(1, min(call.getDouble("speed") ?? 1, 2))
             self.failure = ""; self.wantsPlay = false; self.pendingSeek = self.position
-            let item = AVPlayerItem(url: url)
+            let item = AVPlayerItem(url: resolved)
             let player = AVPlayer(playerItem: item); self.player = player
             player.automaticallyWaitsToMinimizeStalling = true
             self.itemObserver = item.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
@@ -179,7 +185,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     }
     private func snapshot() -> [String: Any] {
         if pendingSeek == nil, let seconds = player?.currentTime().seconds, seconds.isFinite { position = max(0, seconds) }
-        return ["placeId": placeId, "position": position, "duration": duration, "playing": wantsPlay, "loading": wantsPlay && player?.timeControlStatus != .playing, "speed": speed, "error": failure, "backgroundEnabled": backgroundEnabled, "backgroundPlaying": music?.timeControlStatus == .playing, "backgroundError": backgroundError]
+        return ["placeId": placeId, "position": position, "duration": duration, "playing": wantsPlay, "loading": wantsPlay && player?.timeControlStatus != .playing, "speed": speed, "error": failure, "backgroundEnabled": backgroundEnabled, "backgroundPlaying": music?.timeControlStatus == .playing, "backgroundError": backgroundError, "local": resolvedSource.hasPrefix("file:")]
     }
     private func save() {
         guard !placeId.isEmpty else { return }
@@ -211,7 +217,7 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             self.itemObserver?.invalidate(); self.itemObserver = nil
             self.playbackObserver?.invalidate(); self.playbackObserver = nil
             self.player?.replaceCurrentItem(with: nil); self.player = nil
-            self.pendingSeek = nil; self.placeId = ""; self.title = ""; self.source = ""
+            self.pendingSeek = nil; self.placeId = ""; self.title = ""; self.source = ""; self.resolvedSource = ""
             self.position = 0; self.duration = 0; self.failure = ""; self.resumeAfterInterruption = false
             UserDefaults.standard.removeObject(forKey: self.storageKey)
             self.emit(); call.resolve(self.snapshot())
@@ -227,13 +233,16 @@ public class KazanAudioPlugin: CAPPlugin, CAPBridgedPlugin {
                 guard let raw = call.getString("url"), let url = URL(string: raw), url.scheme == "https", url.host == "kazan-demo.38-180-191-162.sslip.io", url.path.hasPrefix("/media/") else {
                     call.reject("Недопустимый адрес музыки."); return
                 }
-                if self.music == nil || self.musicLooper?.status == .failed {
+                let local = KazanOfflineStore.file(raw)
+                let resolved = KazanOfflineStore.localAudio(local) ? local : url
+                if self.music == nil || self.musicLooper?.status == .failed || self.musicSource != resolved.absoluteString {
                     self.music?.pause(); self.musicObserver?.invalidate()
                     self.musicLooper?.disableLooping(); self.musicLooper = nil
                     let queue = AVQueuePlayer()
                     queue.volume = Float(max(0, min(call.getDouble("volume") ?? 0.08, 0.15)))
                     self.music = queue
-                    let looper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: url))
+                    self.musicSource = resolved.absoluteString
+                    let looper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: resolved))
                     self.musicLooper = looper
                     self.musicObserver = looper.observe(\.status, options: [.new]) { [weak self] looper, _ in
                         DispatchQueue.main.async {

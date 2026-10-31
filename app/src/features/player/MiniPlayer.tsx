@@ -14,7 +14,7 @@ export function MiniPlayer({ place, onOpen, onClose, notice, compact = false }: 
         <PlacePhoto place={place} className="mini-player-photo" alt="" />
         <span className="mini-player-copy"><span className="mini-player-title">{place.title}</span><span className="mini-player-status">{status}</span></span>
       </button>
-      <button type="button" className="mini-player-toggle" aria-label={t(playback.playing ? "Пауза" : "Воспроизвести историю")} aria-busy={playback.loading} onClick={async () => {
+      <button type="button" className="mini-player-toggle" disabled={place.audioOfflineMissing && !playback.playing} aria-label={t(playback.playing ? "Пауза" : "Воспроизвести историю")} aria-busy={playback.loading} onClick={async () => {
         try { await toggleAudio(place, playback.position, playback.speed); }
         catch (error) { notice(audioFailureMessage(error)); }
       }}><OriginalAsset asset={playback.playing ? "player.imgPause" : "place.imgPlay"} /></button>

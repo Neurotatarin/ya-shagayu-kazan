@@ -20,7 +20,8 @@ source = delegate.read_text(encoding='utf-8')
 marker = '// BEGIN KAZAN AUDIO'
 if marker in source:
     source = source[:source.index(marker)].rstrip() + '\n'
-source += '\n' + marker + '\n' + (repository / 'native/ios/KazanAudioPlugin.swift').read_text(encoding='utf-8') + '\n// END KAZAN AUDIO\n'
+native_sources = ['KazanAudioPlugin.swift', 'KazanOfflinePlugin.swift']
+source += '\n' + marker + '\n' + '\n'.join((repository / 'native/ios' / name).read_text(encoding='utf-8') for name in native_sources) + '\n// END KAZAN AUDIO\n'
 delegate.write_text(source, encoding='utf-8')
 
 # Capacitor 8.5 creates the active controller in SceneDelegate, replacing the

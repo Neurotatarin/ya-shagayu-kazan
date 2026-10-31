@@ -5,17 +5,21 @@ import type { Place, ShowNotice } from "../../domain/demo";
 import { audioFailureMessage, seekAudio, setAudioSpeed, toggleAudio, setBackgroundEnabled, useAudioPlayback } from "../../platform/audioPlayback";
 import { PlacePhoto } from "../../components/PlacePhoto";
 import { PhotoGallery } from "./PhotoGallery";
+import { findDownloadedPlace, nativeDownloads, useOfflineState } from "../../platform/offlineStore";
 
 const time = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
-export function PlayerPage({ place, position, onPosition, onBack, onMap, onMore, notice }: { place: Place; position: number; onPosition: (seconds: number) => void; onBack: () => void; onMap: () => void; onMore: () => void; notice: ShowNotice }) {
+export function PlayerPage({ place, position, onPosition, onBack, onMap, onMore, onOffline, notice }: { place: Place; position: number; onPosition: (seconds: number) => void; onBack: () => void; onMap: () => void; onMore: () => void; onOffline: () => void; notice: ShowNotice }) {
   const playback = useAudioPlayback();
+  const downloads = useOfflineState();
   const [selectedSpeed, setSpeed] = useState(1);
-  const available = !!place.audioUrl;
+  const available = !!place.audioUrl && (!place.audioOfflineMissing || (playback.placeId === place.id && playback.language === place.audioLanguage && playback.playing));
   const active = playback.placeId === place.id && playback.language === place.audioLanguage && available;
   const currentPosition = Math.min(active ? playback.position : position, active && playback.duration ? playback.duration : place.durationSeconds);
   const speed = active ? playback.speed : selectedSpeed;
   const duration = active && playback.duration ? playback.duration : place.durationSeconds;
+  const ownDownload = downloads.transfer?.id === `place-${place.id}-${place.audioLanguage ?? "ru"}` ? downloads.transfer : undefined;
+  const downloaded = !!findDownloadedPlace(place.id, place.audioLanguage ?? "ru");
   const seek = (seconds: number) => { if (active) seekAudio(seconds); onPosition(seconds); };
   useEffect(() => { if (active && Math.abs(playback.position - position) >= 5) onPosition(playback.position); }, [active, Math.floor(playback.position / 5)]);
   useEffect(() => { if (playback.error && active) notice(playback.error); }, [playback.error, active]);
@@ -27,7 +31,7 @@ export function PlayerPage({ place, position, onPosition, onBack, onMap, onMore,
       <span className="cover-color" /><p>{t("У каждого")}<br />{t("дома —")}<br />{t("свой голос.")}</p>
       <div className="cover-zilant-window"><OriginalAsset asset="player.imgZilantListenPng" /></div>
     </PhotoGallery>
-    <div className="player-caption"><h1>{place.title}</h1><p id="audio-availability" aria-live="polite">{!available ? t("Аудио на этом языке готовится") : active && playback.loading ? t("Загружаем запись…") : t("Зилант рассказывает · Казань")}</p></div>
+    <div className="player-caption"><h1>{place.title}</h1><p id="audio-availability" aria-live="polite">{!available ? t(place.audioOfflineMissing ? "Запись не скачана. Подключись к интернету, чтобы сохранить её на iPhone." : "Аудио на этом языке готовится") : active && playback.loading ? t("Загружаем запись…") : t("Зилант рассказывает · Казань")}</p></div>
     <div className="player-progress">
       <input aria-label={t("Позиция аудиоистории")} type="range" disabled={!available} min="0" max={duration || 1} step="1" value={available ? currentPosition : 0} onChange={event => seek(Number(event.target.value))} style={{ "--progress": `${duration ? 100 * currentPosition / duration : 0}%` } as CSSProperties} />
       <div className="player-times" dir="ltr"><span>{available ? time(currentPosition) : "0:00"}</span><span>{available ? time(Math.round(duration)) : "—:—"}</span></div>
@@ -38,7 +42,7 @@ export function PlayerPage({ place, position, onPosition, onBack, onMap, onMore,
       <button className="round-action skip-action" type="button" disabled={!available} aria-label={t("Вперёд на 15 секунд")} onClick={() => seek(Math.min(duration, currentPosition + 15))}><OriginalAsset asset="player.imgArrowRight" /></button>
     </div>
     <div className="player-extra-actions">
-      <button type="button" onClick={() => notice(t("Скачивание карты и материалов маршрута будет подключено отдельно."))}><OriginalAsset asset="player.imgCloudArrowDown" /><span>{t("Офлайн")}</span></button>
+      <button className={`offline-action ${downloaded ? "offline-saved" : ""}`} type="button" disabled={!nativeDownloads} title={!nativeDownloads ? t("Скачивание доступно в установленном приложении iPhone.") : undefined} onClick={onOffline}><OriginalAsset asset="player.imgCloudArrowDown" /><span>{ownDownload?.total ? `${Math.floor(100 * ownDownload.completed / ownDownload.total)}%` : t(downloaded ? "Скачано" : "Офлайн")}</span></button>
       <button className="playback-speed" type="button" disabled={!available} aria-label={t("Скорость воспроизведения {0}", {0: speed})} onClick={() => { const next = speed === 2 ? 1 : speed + .25; setSpeed(next); if (active) setAudioSpeed(next); }}><span dir="ltr">{speed.toLocaleString(numberLocale())}×</span></button>
       <button className="background-toggle" type="button" aria-label={t("Музыкальный фон")} aria-pressed={playback.backgroundEnabled && available} onClick={() => { if (!available) return notice(t("Аудио на этом языке готовится")); void setBackgroundEnabled(!playback.backgroundEnabled); }}><OriginalAsset asset="map.imgHeadphones" /><span>{t("Фон")}</span></button>
       <button type="button" onClick={onMap}><OriginalAsset asset="player.imgMapTrifold" /><span>{t("Карта")}</span></button>

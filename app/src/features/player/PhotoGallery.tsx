@@ -23,6 +23,7 @@ export function PhotoGallery({ place, children }: { place: Place; children: Reac
   const down = useRef<{ x: number; y: number } | undefined>(undefined), swiped = useRef(false);
   const current = items[index - 1], total = items.length + 1;
   const caption = current ? photoCaption(current, place) : "";
+  const gallerySource = place.galleryUrl ? mediaUrl(place.galleryUrl) : "";
   useEffect(() => {
     if (!place.galleryUrl) return;
     const url = mediaUrl(place.galleryUrl), controller = new AbortController();
@@ -35,7 +36,7 @@ export function PhotoGallery({ place, children }: { place: Place; children: Reac
       if (!controller.signal.aborted) { albums.set(url, data.items); setItems(data.items); }
     }).catch(() => { if (!controller.signal.aborted) setFailed(true); });
     return () => controller.abort();
-  }, [place.galleryUrl, attempt]);
+  }, [gallerySource, attempt]);
   useEffect(() => {
     const next = items[index];
     if (next) { const image = new Image(); image.src = mediaUrl(next.url); }

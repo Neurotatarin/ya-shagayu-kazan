@@ -7,6 +7,7 @@ enum KazanAudioSmoke {
     private static var timer: Timer?
     private static var attempts = 0
     private static var started = false
+    private static var mapCaptured = false
 
     static func start() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in probe() }
@@ -22,7 +23,7 @@ enum KazanAudioSmoke {
 
     private static func probe() {
         attempts += 1
-        guard attempts < 240 else { finish(["ok": false, "check": started ? "bridge-timeout" : "scene-timeout"]); return }
+        guard attempts < 1100 else { finish(["ok": false, "check": started ? "bridge-timeout" : "scene-timeout"]); return }
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else { return }
         guard let controller = root as? KazanBridgeViewController else {
@@ -44,6 +45,12 @@ enum KazanAudioSmoke {
                   let status = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
             let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             try? data.write(to: directory.appendingPathComponent("kazan-audio-progress.json"), options: .atomic)
+            if status["stage"] as? String == "offline-map-rendered" && !mapCaptured {
+                mapCaptured = true
+                webView.takeSnapshot(with: nil) { image, _ in
+                    try? image?.pngData()?.write(to: directory.appendingPathComponent("kazan-offline-map.png"), options: .atomic)
+                }
+            }
             if let result = status["result"] as? [String: Any] { finish(result) }
         }
     }
@@ -92,7 +99,11 @@ enum KazanAudioSmoke {
       stage("native-clear");
       const cleared = await call("clearTrack");
       if (cleared.playing || cleared.placeId !== "") throw new Error("clear-failed");
-      return {ok: true, check: "complete", nativeBridge: true, avPlayerAdvanced: true, initialPlaybackSeconds: playing.position, pause: true, seekResume: true, clear: true};
+      stage("offline-module");
+      for (let i = 0; i < 100 && typeof window.kazanOfflineSmoke !== "function"; i++) await sleep(100);
+      if (typeof window.kazanOfflineSmoke !== "function") throw new Error("offline-module-missing");
+      const offline = await window.kazanOfflineSmoke(stage);
+      return {ok: true, check: "complete", nativeBridge: true, avPlayerAdvanced: true, initialPlaybackSeconds: playing.position, pause: true, seekResume: true, clear: true, offline};
     } catch (_) {
       void call("clearTrack").catch(() => {});
       return {ok: false, check};
