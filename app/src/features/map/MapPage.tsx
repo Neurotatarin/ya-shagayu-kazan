@@ -9,7 +9,7 @@ import { figmaAssets } from "../../data/figmaAssets";
 import { calculateWalkingRoute } from "../../data/api";
 import { countPlaces, type Place, type PlaceId, type ShowNotice, type WalkingRoute } from "../../domain/demo";
 import { downloadedMap, nativeDownloads, nativeOnline, useOfflineState } from "../../platform/offlineStore";
-import { offlineMapStyle, registerOfflineMapProtocol } from "../../platform/offlineMap";
+import { offlineMapStyle, offlineMapRequest, registerOfflineMapProtocol } from "../../platform/offlineMap";
 import { prepareMapWorker } from "../../platform/mapWorker";
 
 registerOfflineMapProtocol();
@@ -79,7 +79,7 @@ export function MapPage({ places, selected, routePlaceIds, routeTitle, quiet, on
       if (!active) return;
       const initialZoom = 14.3 + Math.log2(Math.max(280, container.current!.clientWidth) / 402);
       const initialPlace = places.find(p => p.id === selected);
-      const view = new Map({ container: container.current!, style: savedMap ? offlineMapStyle(savedMap) : missingOfflineMap ? { version: 8, sources: {}, layers: [{ id: "offline-background", type: "background", paint: { "background-color": "#f0f7f2" } }] } : "https://tiles.openfreemap.org/styles/positron", center: initialPlace?.coordinates ?? [49.1098, 55.7978], zoom: initialZoom, ...(savedMap ? { minZoom: savedMap.map.minZoom } : {}), attributionControl: false, fadeDuration: 0, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false, localIdeographFontFamily: false });
+      const view = new Map({ container: container.current!, style: savedMap ? offlineMapStyle(savedMap) : missingOfflineMap ? { version: 8, sources: {}, layers: [{ id: "offline-background", type: "background", paint: { "background-color": "#f0f7f2" } }] } : "https://tiles.openfreemap.org/styles/positron", center: initialPlace?.coordinates ?? [49.1098, 55.7978], zoom: initialZoom, ...(savedMap ? { minZoom: savedMap.map.minZoom, transformRequest: offlineMapRequest } : {}), attributionControl: false, fadeDuration: 0, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false, localIdeographFontFamily: false });
       map.current = view; view.touchZoomRotate.disableRotation();
       const checkSavedArea = () => {
         if (!savedMap || !active) return;

@@ -21,10 +21,9 @@ export function registerOfflineMapProtocol() {
   });
 }
 export function offlineMapStyle(pack: OfflinePackage): StyleSpecification {
-  const style = JSON.parse(JSON.stringify(pack.map.style)) as StyleSpecification;
-  const sources = style.sources as Record<string, { type: string; tiles?: string[] }>;
-  for (const source of Object.values(sources)) if (source.type === "vector" && source.tiles) source.tiles = source.tiles.map(offlineURL);
-  if (typeof style.sprite === "string") style.sprite = offlineURL(style.sprite);
-  if (style.glyphs) style.glyphs = offlineURL(style.glyphs);
-  return style;
+  return JSON.parse(JSON.stringify(pack.map.style)) as StyleSpecification;
 }
+// Expand sprite @2x/.json/.png and glyph/tile templates as standard HTTPS
+// URLs first. Older Android WebViews do not reliably mutate URL.pathname for
+// custom schemes. Redirect only the final resource request to private files.
+export const offlineMapRequest = (url: string) => ({ url: offlineURL(url) });

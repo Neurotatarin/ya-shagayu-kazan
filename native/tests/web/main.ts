@@ -6,7 +6,7 @@ import { backgroundMusic } from "../../../app/src/data/backgroundMusic";
 import { audioSmoke } from "./audioSmoke";
 import { prepareMapWorker } from "../../../app/src/platform/mapWorker";
 import { cancelOffline, downloadOffline, initializeOffline, localMediaURL, offlineSnapshot, prepareOffline, removeOffline } from "../../../app/src/platform/offlineStore";
-import { offlineMapStyle, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
+import { offlineMapStyle, offlineMapRequest, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
 import type { DemoCatalog, PlaceImage, WalkingRoute } from "../../../app/src/domain/demo";
 
 declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) => void) => Promise<Record<string, unknown>>; kazanSmokeStage?: string; kazanSmokeResult?: Record<string, unknown>; kazanSmokeDiagnostics?: Record<string, unknown>; Capacitor: { nativePromise: (plugin: string, method: string, options?: unknown) => Promise<Record<string, unknown>> } } }
@@ -140,7 +140,7 @@ window.kazanOfflineSmoke = async stage => {
     } finally { probe.terminate(); URL.revokeObjectURL(probeURL); }
     stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
     await bounded(prepareMapWorker(), 20000, "offline-worker-timeout");
-    map = new Map({ container: "map", style: offlineMapStyle(city), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
+    map = new Map({ container: "map", style: offlineMapStyle(city), transformRequest: offlineMapRequest, center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
     const gl = map.getCanvas().getContext("webgl2");
     diagnostics.webgl2 = !!gl; diagnostics.renderer = gl ? String(gl.getParameter(gl.RENDERER)) : "unavailable";
     map.on("load", () => {

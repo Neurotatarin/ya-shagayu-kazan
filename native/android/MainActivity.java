@@ -12,8 +12,11 @@ import com.getcapacitor.BridgeActivity;
 public final class MainActivity extends BridgeActivity {
     @Override public void onCreate(Bundle state){
         registerPlugin(KazanAudioPlugin.class);registerPlugin(KazanOfflinePlugin.class);
-        EdgeToEdge.enable(this);
         super.onCreate(state);
+        EdgeToEdge.enable(this);
+        if(getSupportActionBar()!=null)getSupportActionBar().hide();
+        WindowInsetsControllerCompat bars=new WindowInsetsControllerCompat(getWindow(),getWindow().getDecorView());
+        bars.setAppearanceLightStatusBars(true);bars.setAppearanceLightNavigationBars(true);
         WebView view=getBridge().getWebView();view.getSettings().setTextZoom(100);view.getSettings().setSupportZoom(false);view.getSettings().setBuiltInZoomControls(false);
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
         getOnBackPressedDispatcher().addCallback(this,new OnBackPressedCallback(true){

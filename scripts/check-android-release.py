@@ -45,7 +45,8 @@ elif sys.argv[1]=='install':
         assert 'Success' in adb('install','-r',str(root/'app.apk'))
         status=adb('shell','am','start','-W','-n',package+'/.MainActivity');assert 'Status: ok' in status
         find('Начать прогулку');screen('release-home');tap('Начать прогулку')
-        find('Выбрать Дом Ушковой');screen('release-map');tap('Выбрать Дом Ушковой');tap('Слушать')
+        find('Поиск места');screen('release-map');tap('Поиск места');tap('Дом Ушковой')
+        tap('Слушать историю · 4:15')
         for _ in range(4):
             try:find('Воспроизвести историю',timeout=6);break
             except RuntimeError:adb('shell','input','swipe','530','1850','530','900','350')

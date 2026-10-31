@@ -5,7 +5,7 @@ import route from "../../../tests/fixtures/walking-route.json";
 import { backgroundMusic } from "../../../app/src/data/backgroundMusic";
 import { audioSmoke } from "../web/audioSmoke";
 import { initializeOffline, prepareOffline, downloadOffline, offlineSnapshot, cancelOffline, localMediaURL, removeOffline } from "../../../app/src/platform/offlineStore";
-import { offlineMapStyle, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
+import { offlineMapStyle, offlineMapRequest, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
 import { prepareMapWorker } from "../../../app/src/platform/mapWorker";
 import type { DemoCatalog, WalkingRoute, PlaceImage } from "../../../app/src/domain/demo";
 
@@ -44,7 +44,7 @@ async function offline(){
   const diagnostics={mapErrors:[] as string[],photos,localOrigin:location.origin,localTileURL:localMediaURL(city.assets.find(a=>a.tile)!.url)};window.kazanSmokeDiagnostics=diagnostics;
   let network=0;const fetchLocal=fetch.bind(window);
   window.fetch=((resource:RequestInfo|URL,init?:RequestInit)=>{const raw=typeof resource==="string"?resource:resource instanceof URL?resource.href:resource.url;if(/^https?:/.test(raw)&&new URL(raw).origin!==location.origin){network++;return Promise.reject(new Error("external-network"));}return fetchLocal(resource,init);}) as typeof fetch;
-  const map=new Map({container:"map",style:offlineMapStyle(city),center:[49.12,55.79],zoom:14,attributionControl:false,fadeDuration:0});
+  const map=new Map({container:"map",style:offlineMapStyle(city),transformRequest:offlineMapRequest,center:[49.12,55.79],zoom:14,attributionControl:false,fadeDuration:0});
   const counts:number[]=[];window.kazanMapCounts=counts;
   const idle=()=>new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("map-timeout")),60000);map.once("idle",()=>{clearTimeout(timer);resolve();});map.once("error",event=>{diagnostics.mapErrors.push(String(event.error?.message??"unknown").slice(0,400));clearTimeout(timer);reject(new Error("map-resource-error"));});map.getCanvas().addEventListener("webglcontextlost",()=>reject(new Error("map-context-lost")),{once:true});});
   await idle();
