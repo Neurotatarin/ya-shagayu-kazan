@@ -9,8 +9,9 @@ from pathlib import Path
 app = Path('ios/App/App')
 delegate = app / 'AppDelegate.swift'
 source = delegate.read_text()
-assert source.count('return true') == 1
-source = source.replace('return true', 'KazanAudioSmoke.start()\n        return true', 1)
+launch, native = source.split('// BEGIN KAZAN AUDIO', 1)
+assert launch.count('return true') == 1
+source = launch.replace('return true', 'KazanAudioSmoke.start()\n        return true', 1) + '// BEGIN KAZAN AUDIO' + native
 source += '\n' + Path('native/tests/AudioBridgeSmoke.swift').read_text()
 delegate.write_text(source)
 # The test document uses native downloads and locally served MapLibre assets;

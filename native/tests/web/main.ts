@@ -2,9 +2,10 @@ import { Map, setWorkerUrl } from "maplibre-gl";
 import workerURL from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import catalog from "../../../server/catalog.json";
+import walkingRoute from "../../../tests/fixtures/walking-route.json";
 import { cancelOffline, downloadOffline, initializeOffline, localMediaURL, offlineSnapshot, prepareOffline, removeOffline } from "../../../app/src/platform/offlineStore";
 import { offlineMapStyle, registerOfflineMapProtocol } from "../../../app/src/platform/offlineMap";
-import type { DemoCatalog, PlaceImage } from "../../../app/src/domain/demo";
+import type { DemoCatalog, PlaceImage, WalkingRoute } from "../../../app/src/domain/demo";
 
 declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) => void) => Promise<Record<string, unknown>>; Capacitor: { nativePromise: (plugin: string, method: string, options?: unknown) => Promise<Record<string, unknown>> } } }
 setWorkerUrl(workerURL); registerOfflineMapProtocol();
@@ -14,7 +15,7 @@ window.kazanOfflineSmoke = async stage => {
   const status = document.getElementById("status")!;
   await initializeOffline();
   stage("offline-prepare"); status.textContent = "Preparing native offline package";
-  const input = { id: "native-offline-check", title: "Native offline check", language: "ru" as const, placeIds: ["ushkova"], catalog: catalog as unknown as DemoCatalog };
+  const input = { id: "native-offline-check", title: "Native offline check", language: "ru" as const, placeIds: walkingRoute.placeIds, route: walkingRoute as unknown as WalkingRoute, catalog: catalog as unknown as DemoCatalog };
   const prepared = await prepareOffline(input);
   assert(prepared.enoughSpace, "offline-storage");
   stage("offline-cancel");
@@ -29,6 +30,7 @@ window.kazanOfflineSmoke = async stage => {
   const pack = offlineSnapshot().packages.find(pack => pack.id === retry.plan.id)!;
   assert(pack && pack.assets.length === Object.keys(pack.files).length, "offline-files-incomplete");
   assert(pack.bytes > 0 && pack.bytes <= 300_000_000, "offline-package-limit");
+  assert(JSON.stringify(pack.route?.geometry) === JSON.stringify(walkingRoute.geometry), "offline-walking-geometry");
   const fetchOnline = window.fetch.bind(window);
   let blockedNetworkRequests = 0;
   window.fetch = ((resource: RequestInfo | URL, init?: RequestInit) => {
@@ -52,12 +54,17 @@ window.kazanOfflineSmoke = async stage => {
     }
     stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
     map = new Map({ container: "map", style: offlineMapStyle(pack), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
+    map.on("load", () => {
+      map!.addSource("saved-route", { type: "geojson", data: { type: "Feature", properties: {}, geometry: pack.route!.geometry } });
+      map!.addLayer({ id: "saved-route", type: "line", source: "saved-route", paint: { "line-color": "#08734f", "line-width": 4 } });
+    });
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("offline-map-timeout")), 60000);
       map!.on("error", () => { clearTimeout(timeout); reject(new Error("offline-map-resource")); });
       map!.once("idle", () => { renderedFeatures = map!.queryRenderedFeatures().length; clearTimeout(timeout); resolve(); });
     });
     assert(renderedFeatures > 10, "offline-map-empty");
+    assert(map.queryRenderedFeatures(undefined, { layers: ["saved-route"] }).length > 0, "offline-route-not-visible");
     assert(blockedNetworkRequests === 0, "offline-map-fell-back-online");
     stage("offline-map-rendered"); await sleep(1500);
     stage("offline-local-audio");
@@ -79,6 +86,6 @@ window.kazanOfflineSmoke = async stage => {
     stage("offline-remove"); await removeOffline(pack.id);
     assert(!offlineSnapshot().packages.some(item => item.id === pack.id), "offline-remove-failed");
     status.textContent = "Native offline checks passed";
-    return { ok: true, actualNativeDownload: true, cancellation: true, photosDecoded: photoCount, renderedFeatures, blockedNetworkRequests, localAVPlayerAdvanced: true, removal: true };
+    return { ok: true, actualNativeDownload: true, cancellation: true, savedWalkingLine: true, photosDecoded: photoCount, renderedFeatures, blockedNetworkRequests, localAVPlayerAdvanced: true, removal: true };
   } finally { map?.remove(); window.fetch = fetchOnline; }
 };

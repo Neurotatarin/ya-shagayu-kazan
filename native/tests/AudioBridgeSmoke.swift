@@ -104,9 +104,10 @@ enum KazanAudioSmoke {
       if (typeof window.kazanOfflineSmoke !== "function") throw new Error("offline-module-missing");
       const offline = await window.kazanOfflineSmoke(stage);
       return {ok: true, check: "complete", nativeBridge: true, avPlayerAdvanced: true, initialPlaybackSeconds: playing.position, pause: true, seekResume: true, clear: true, offline};
-    } catch (_) {
+    } catch (error) {
       void call("clearTrack").catch(() => {});
-      return {ok: false, check};
+      const category = String(error?.code || error?.message || "");
+      return {ok: false, check, reason: /^[A-Za-z0-9_-]{1,90}$/.test(category) ? category : "unclassified"};
     }
     """#
 }

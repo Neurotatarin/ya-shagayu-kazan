@@ -36,6 +36,7 @@ class IphoneConfigurationTest(unittest.TestCase):
                 self.assertIn('SceneDelegateProxy.shared.scene(scene, willConnectTo:', scene)
                 delegate = (app / 'AppDelegate.swift').read_text(encoding='utf-8')
                 self.assertIn('bridge?.registerPluginInstance(KazanAudioPlugin())', delegate)
+                self.assertIn('bridge?.registerPluginInstance(KazanOfflinePlugin())', delegate)
                 self.assertEqual(delegate.count('class KazanBridgeViewController:'), 1)
                 info = plistlib.loads((app / 'Info.plist').read_bytes())
                 self.assertIn('audio', info['UIBackgroundModes'])
