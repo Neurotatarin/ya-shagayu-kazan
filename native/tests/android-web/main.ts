@@ -41,11 +41,12 @@ async function offline(){
   for(const gallery of Object.values(content.galleries) as {items:PlaceImage[]}[])for(const photo of gallery.items){const url=localMediaURL(photo.url);assert(url,"missing-photo-file");const image=new Image();image.src=url!;await image.decode();assert(image.naturalWidth>0,"photo-empty");photos++;image.src="";}
   assert(photos>=30,"photo-count");
   stage("offline-map");registerOfflineMapProtocol();await prepareMapWorker();
+  const diagnostics={mapErrors:[] as string[],photos,localOrigin:location.origin,localTileURL:localMediaURL(city.assets.find(a=>a.tile)!.url)};window.kazanSmokeDiagnostics=diagnostics;
   let network=0;const fetchLocal=fetch.bind(window);
   window.fetch=((resource:RequestInfo|URL,init?:RequestInit)=>{const raw=typeof resource==="string"?resource:resource instanceof URL?resource.href:resource.url;if(/^https?:/.test(raw)&&new URL(raw).origin!==location.origin){network++;return Promise.reject(new Error("external-network"));}return fetchLocal(resource,init);}) as typeof fetch;
   const map=new Map({container:"map",style:offlineMapStyle(city),center:[49.12,55.79],zoom:14,attributionControl:false,fadeDuration:0});
   const counts:number[]=[];window.kazanMapCounts=counts;
-  const idle=()=>new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("map-timeout")),60000);map.once("idle",()=>{clearTimeout(timer);resolve();});map.once("error",()=>{clearTimeout(timer);reject(new Error("map-resource-error"));});map.getCanvas().addEventListener("webglcontextlost",()=>reject(new Error("map-context-lost")),{once:true});});
+  const idle=()=>new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("map-timeout")),60000);map.once("idle",()=>{clearTimeout(timer);resolve();});map.once("error",event=>{diagnostics.mapErrors.push(String(event.error?.message??"unknown").slice(0,400));clearTimeout(timer);reject(new Error("map-resource-error"));});map.getCanvas().addEventListener("webglcontextlost",()=>reject(new Error("map-context-lost")),{once:true});});
   await idle();
   map.addSource("saved-route",{type:"geojson",data:{type:"Feature",properties:{},geometry:content.route!.geometry}});
   map.addLayer({id:"saved-route",type:"line",source:"saved-route",paint:{"line-color":"#08734f","line-width":4}});

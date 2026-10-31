@@ -2,7 +2,7 @@ name: Install signed Android release
 on:
   push:
     branches: [feat/android-demo]
-    paths: [deployment/android-release.json]
+    paths: [deployment/android-release.json, .github/workflows/android-release-check.yml, scripts/check-android-release.py]
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,8 +32,11 @@ jobs:
           api-level: 36
           arch: x86_64
           profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          disk-size: 6G
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          emulator-options: -no-window -gpu swiftshader -feature -Vulkan -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
           script: python scripts/check-android-release.py install
       - uses: actions/upload-artifact@v4
         if: always()
