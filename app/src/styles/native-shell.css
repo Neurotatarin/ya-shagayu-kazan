@@ -12,3 +12,7 @@ html[data-native-shell="android"] {
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
 }
+@media (min-width: 768px) {
+  /* Keep the existing centered phone composition inside a wide native window. */
+  .app-shell.platform-android { height: calc(var(--native-view-height, 100dvh) - 48px); }
+}

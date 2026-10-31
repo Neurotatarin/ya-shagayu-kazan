@@ -5,7 +5,6 @@ import android.content.*;
 import android.net.Uri;
 import android.os.*;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.media3.common.*;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.*;
@@ -16,7 +15,7 @@ import java.util.*;
 
 /** Owns both players outside the WebView lifecycle. Media3 owns the foreground notification. */
 public final class KazanPlaybackService extends MediaSessionService {
-    static final String BIND="ru.yashagayu.kazan.BIND",PLAY="ru.yashagayu.kazan.PLAY";
+    static final String BIND="ru.yashagayu.kazan.BIND";
     final class LocalBinder extends Binder { KazanPlaybackService service(){return KazanPlaybackService.this;} }
     private final LocalBinder binder=new LocalBinder();
     private final Handler handler=new Handler(Looper.getMainLooper());
@@ -48,9 +47,12 @@ public final class KazanPlaybackService extends MediaSessionService {
         });
         Intent open=new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
         session=new MediaSession.Builder(this,voice).setSessionActivity(PendingIntent.getActivity(this,0,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE)).build();
+        // This bridge binds locally rather than through MediaController. Add
+        // the session explicitly so Media3 owns notification/FGS transitions.
+        addSession(session);
         restore();handler.post(ticker);
     }
-    @Override @Nullable public IBinder onBind(Intent intent){return BIND.equals(intent.getAction())?binder:super.onBind(intent);}
+    @Override @Nullable public IBinder onBind(Intent intent){IBinder framework=super.onBind(intent);return BIND.equals(intent.getAction())?binder:framework;}
     @Override @Nullable public MediaSession onGetSession(MediaSession.ControllerInfo controller){return controller.getUid()==android.os.Process.myUid()||controller.isTrusted()?session:null;}
     void observe(Runnable observer){observers.add(observer);}
     void unobserve(Runnable observer){observers.remove(observer);}
@@ -85,7 +87,7 @@ public final class KazanPlaybackService extends MediaSessionService {
         error="";
         if(voice.getPlaybackState()==Player.STATE_ENDED)voice.seekTo(0);
         if(voice.getPlaybackState()==Player.STATE_IDLE)voice.prepare();
-        ContextCompat.startForegroundService(this,new Intent(this,KazanPlaybackService.class).setAction(PLAY));voice.play();emit();
+        voice.play();emit();
     }
     void pause(){voice.pause();followVoice();persist();emit();}
     void seek(double seconds){long duration=voice.getDuration();voice.seekTo(Math.max(0,Math.min((long)(seconds*1000),duration>0?duration:Long.MAX_VALUE)));persist();emit();}
