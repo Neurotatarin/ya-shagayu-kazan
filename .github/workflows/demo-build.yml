@@ -39,10 +39,10 @@ jobs:
           path: dist/
           retention-days: 14
   iphone:
-    # The arm64 VM's Metal simulator aborts (METAL 102) before WebGL
-    # renders even a tile. Use the standard Intel host, keeping the same
-    # Xcode, native scenario and rendering assertions; no paid runner.
-    runs-on: macos-15-intel
+    # macOS15 VMs lose the simulator Metal context (arm64: METAL102;
+    # Intel: contextlost). Keep Xcode and full map assertions on the newer
+    # standard host, without a paid runner or device application workaround.
+    runs-on: macos-26
     timeout-minutes: 25
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer

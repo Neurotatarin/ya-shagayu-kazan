@@ -57,7 +57,7 @@ window.kazanOfflineSmoke = async stage => {
   assert(maxCoordinateDelta < 1e-9, "offline-walking-coordinates");
   const fetchOnline = window.fetch.bind(window);
   let blockedNetworkRequests = 0;
-  const diagnostics = { basicWorker: false, workerOrigin: "", webgl2: false, renderer: "", pixelRatio: devicePixelRatio, viewport: [innerWidth, innerHeight], requests: {} as Record<string, number>, signatures: {} as Record<string, string>, firstTileBytes: 0, firstTileMagic: "", contextLost: 0, errors: [] as string[] };
+  const diagnostics = { basicWorker: false, workerOrigin: "", webgl2: false, renderer: "", pixelRatio: devicePixelRatio, viewport: [innerWidth, innerHeight], requests: {} as Record<string, number>, signatures: {} as Record<string, string>, firstTileBytes: 0, firstTileMagic: "", contextLost: 0, localAVPlayerAdvanced: false, backgroundPlaying: false, removal: false, errors: [] as string[] };
   window.kazanSmokeDiagnostics = diagnostics;
   const mapFiles = new globalThis.Map(pack.assets.filter(asset => asset.kind === "map").map(asset => [localMediaURL(asset.url), asset] as const));
   window.fetch = ((resource: RequestInfo | URL, init?: RequestInit) => {
@@ -90,44 +90,6 @@ window.kazanOfflineSmoke = async stage => {
       assert(image.naturalWidth > 0, "offline-photo-decode"); photoCount++;
       image.removeAttribute("src");
     }
-    stage("offline-tile-format");
-    const tile = pack.assets.find(asset => asset.tile)!;
-    const tileBytes = new Uint8Array(await (await fetch(localMediaURL(tile.url)!)).arrayBuffer());
-    diagnostics.firstTileBytes = tileBytes.length;
-    diagnostics.firstTileMagic = [...tileBytes.subarray(0, 4)].map(value => value.toString(16).padStart(2, "0")).join("");
-    assert(!(tileBytes[0] === 0x1f && tileBytes[1] === 0x8b), "offline-tile-still-gzip");
-    assert(tileBytes[0] !== 0x3c && tileBytes[0] !== 0x7b, "offline-tile-not-protobuf");
-    stage("offline-worker-probe");
-    const probeURL = URL.createObjectURL(new Blob(["self.postMessage({ok:true,origin:self.location.origin});"], { type: "text/javascript" }));
-    const probe = new Worker(probeURL);
-    try {
-      const result = await bounded(new Promise<{ok: boolean; origin: string}>((resolve, reject) => { probe.onmessage = event => resolve(event.data); probe.onerror = () => reject(new Error("offline-basic-worker-error")); }), 10000, "offline-basic-worker-timeout");
-      diagnostics.basicWorker = result.ok; diagnostics.workerOrigin = result.origin;
-      assert(result.ok, "offline-basic-worker-invalid");
-    } finally { probe.terminate(); URL.revokeObjectURL(probeURL); }
-    stage("offline-webgl-probe");
-    const canvas = document.createElement("canvas"), gl = canvas.getContext("webgl2");
-    diagnostics.webgl2 = !!gl;
-    assert(gl, "offline-webgl2-unavailable");
-    diagnostics.renderer = String(gl!.getParameter(gl!.RENDERER));
-    gl!.getExtension("WEBGL_lose_context")?.loseContext();
-    stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
-    await bounded(prepareMapWorker(), 20000, "offline-worker-timeout");
-    map = new Map({ container: "map", style: offlineMapStyle(pack), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
-    map.on("load", () => {
-      map!.addSource("saved-route", { type: "geojson", data: { type: "Feature", properties: {}, geometry: pack.route!.geometry } });
-      map!.addLayer({ id: "saved-route", type: "line", source: "saved-route", paint: { "line-color": "#08734f", "line-width": 4 } });
-    });
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("offline-map-timeout")), 60000);
-      map!.on("error", event => { const message = event.error?.message ?? ""; const kind = /worker/i.test(message) ? "worker" : /pbf|protobuf|varint/i.test(message) ? "protobuf" : /glyph|font/i.test(message) ? "glyph" : /webgl|gpu|context/i.test(message) ? "graphics" : "resource"; diagnostics.errors.push(kind); clearTimeout(timeout); reject(new Error("offline-map-" + kind)); });
-      map!.getCanvas().addEventListener("webglcontextlost", () => { diagnostics.contextLost++; });
-      map!.once("idle", () => { renderedFeatures = map!.queryRenderedFeatures().length; clearTimeout(timeout); resolve(); });
-    });
-    assert(renderedFeatures > 10, "offline-map-empty");
-    assert(map.queryRenderedFeatures(undefined, { layers: ["saved-route"] }).length > 0, "offline-route-not-visible");
-    assert(blockedNetworkRequests === 0, "offline-map-fell-back-online");
-    stage("offline-map-rendered"); await sleep(1500);
     stage("offline-local-audio");
     const call = (method: string, options?: unknown) => window.Capacitor.nativePromise("KazanAudio", method, options);
     const narration = catalog.places.find(place => place.id === "ushkova")!;
@@ -154,12 +116,56 @@ window.kazanOfflineSmoke = async stage => {
     assert(backgroundPlaying, "offline-background-not-playing");
     await call("setBackground", { enabled: false });
     await call("clearTrack");
+    diagnostics.localAVPlayerAdvanced = advanced; diagnostics.backgroundPlaying = backgroundPlaying;
+    stage("offline-tile-format");
+    const tile = pack.assets.find(asset => asset.tile)!;
+    const tileBytes = new Uint8Array(await (await fetch(localMediaURL(tile.url)!)).arrayBuffer());
+    diagnostics.firstTileBytes = tileBytes.length;
+    diagnostics.firstTileMagic = [...tileBytes.subarray(0, 4)].map(value => value.toString(16).padStart(2, "0")).join("");
+    assert(!(tileBytes[0] === 0x1f && tileBytes[1] === 0x8b), "offline-tile-still-gzip");
+    assert(tileBytes[0] !== 0x3c && tileBytes[0] !== 0x7b, "offline-tile-not-protobuf");
+    stage("offline-worker-probe");
+    const probeURL = URL.createObjectURL(new Blob(["self.postMessage({ok:true,origin:self.location.origin});"], { type: "text/javascript" }));
+    const probe = new Worker(probeURL);
+    try {
+      const result = await bounded(new Promise<{ok: boolean; origin: string}>((resolve, reject) => { probe.onmessage = event => resolve(event.data); probe.onerror = () => reject(new Error("offline-basic-worker-error")); }), 10000, "offline-basic-worker-timeout");
+      diagnostics.basicWorker = result.ok; diagnostics.workerOrigin = result.origin;
+      assert(result.ok, "offline-basic-worker-invalid");
+    } finally { probe.terminate(); URL.revokeObjectURL(probeURL); }
+    stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
+    await bounded(prepareMapWorker(), 20000, "offline-worker-timeout");
+    map = new Map({ container: "map", style: offlineMapStyle(pack), center: [49.1208124, 55.7918589], zoom: 15, fadeDuration: 0, attributionControl: false });
+    const gl = map.getCanvas().getContext("webgl2");
+    diagnostics.webgl2 = !!gl; diagnostics.renderer = gl ? String(gl.getParameter(gl.RENDERER)) : "unavailable";
+    map.on("load", () => {
+      map!.addSource("saved-route", { type: "geojson", data: { type: "Feature", properties: {}, geometry: pack.route!.geometry } });
+      map!.addLayer({ id: "saved-route", type: "line", source: "saved-route", paint: { "line-color": "#08734f", "line-width": 4 } });
+    });
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("offline-map-timeout")), 60000);
+      map!.on("error", event => { const message = event.error?.message ?? ""; const kind = /worker/i.test(message) ? "worker" : /pbf|protobuf|varint/i.test(message) ? "protobuf" : /glyph|font/i.test(message) ? "glyph" : /webgl|gpu|context/i.test(message) ? "graphics" : "resource"; diagnostics.errors.push(kind); clearTimeout(timeout); reject(new Error("offline-map-" + kind)); });
+      map!.getCanvas().addEventListener("webglcontextlost", () => { diagnostics.contextLost++; clearTimeout(timeout); reject(new Error("offline-graphics-context-lost")); });
+      map!.once("idle", () => { renderedFeatures = map!.queryRenderedFeatures().length; clearTimeout(timeout); resolve(); });
+    });
+    assert(renderedFeatures > 10, "offline-map-empty");
+    assert(map.queryRenderedFeatures(undefined, { layers: ["saved-route"] }).length > 0, "offline-route-not-visible");
+    assert(blockedNetworkRequests === 0, "offline-map-fell-back-online");
+    stage("offline-map-rendered"); await sleep(1500);
     map.remove(); map = undefined;
     stage("offline-remove"); await removeOffline(pack.id);
     assert(!offlineSnapshot().packages.some(item => item.id === pack.id), "offline-remove-failed");
+    diagnostics.removal = true;
     status.textContent = "Native offline checks passed";
     return { ok: true, actualNativeDownload: true, cancellation: true, savedWalkingLine: true, maxCoordinateDelta, photosDecoded: photoCount, renderedFeatures, blockedNetworkRequests, localAVPlayerAdvanced: true, backgroundPlaying, removal: true };
-  } finally { map?.remove(); window.fetch = fetchOnline; }
+  } finally {
+    map?.remove();
+    // Preserve the map failure, but still check cleanup of the real files.
+    if (offlineSnapshot().packages.some(item => item.id === pack.id)) {
+      await removeOffline(pack.id);
+      diagnostics.removal = !offlineSnapshot().packages.some(item => item.id === pack.id);
+    }
+    window.fetch = fetchOnline;
+  }
 };
 
 // Run once from the final document itself. Native code only observes results;
