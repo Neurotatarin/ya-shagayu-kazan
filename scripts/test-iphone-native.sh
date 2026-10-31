@@ -25,11 +25,14 @@ mkdir -p work/native-checks
 for _ in $(seq 1 150); do
   if test -f "$DATA/Documents/kazan-audio-smoke.json"; then
     cp "$DATA/Documents/kazan-audio-smoke.json" work/native-checks/result.json
+    if test -f "$DATA/Documents/kazan-audio-progress.json"; then cp "$DATA/Documents/kazan-audio-progress.json" work/native-checks/progress.json; fi
     xcrun simctl io "$DEVICE" screenshot work/native-checks/simulator.png
     python3 -c 'import json; r=json.load(open("work/native-checks/result.json")); print(json.dumps(r,sort_keys=True)); assert r["ok"], "Native simulator audio check failed"'
     exit 0
   fi
   sleep 1
 done
+if test -f "$DATA/Documents/kazan-audio-progress.json"; then cp "$DATA/Documents/kazan-audio-progress.json" work/native-checks/progress.json; fi
+xcrun simctl io "$DEVICE" screenshot work/native-checks/simulator.png || true
 printf 'Native simulator audio check timed out.\n' >&2
 exit 1

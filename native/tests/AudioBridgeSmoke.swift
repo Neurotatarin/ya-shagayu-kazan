@@ -21,28 +21,37 @@ enum KazanAudioSmoke {
     }
 
     private static func probe() {
-        guard !started else { return }
         attempts += 1
-        guard attempts < 120 else { finish(["ok": false, "check": "scene-timeout"]); return }
+        guard attempts < 240 else { finish(["ok": false, "check": started ? "bridge-timeout" : "scene-timeout"]); return }
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else { return }
         guard let controller = root as? KazanBridgeViewController else {
             finish(["ok": false, "check": "wrong-root-controller"]); return
         }
-        guard let webView = controller.webView, !webView.isLoading, scene.activationState == .foregroundActive else { return }
-        started = true
-        webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
-            switch result {
-            case .success(let value):
-                finish(value as? [String: Any] ?? ["ok": false, "check": "invalid-result"])
-            case .failure:
-                finish(["ok": false, "check": "javascript-evaluation"])
+        guard let webView = controller.webView, webView.url?.scheme == "capacitor", !webView.isLoading, scene.activationState == .foregroundActive else { return }
+        if !started {
+            started = true
+            // Launch normally in the page's event loop. Polling a global result
+            // avoids keeping a WebKit callAsyncJavaScript completion open while
+            // Capacitor needs to evaluate the native promise responses itself.
+            webView.evaluateJavaScript("window.kazanSmokePromise = (async function(){\n" + script + "\n})().then(r => { window.kazanSmokeResult = r; }); void 0;") { _, error in
+                if error != nil { finish(["ok": false, "check": "javascript-start"]) }
             }
+            return
+        }
+        webView.evaluateJavaScript("JSON.stringify({stage:window.kazanSmokeStage || 'starting', result:window.kazanSmokeResult || null})") { value, _ in
+            guard let text = value as? String, let data = text.data(using: .utf8),
+                  let status = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+            let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            try? data.write(to: directory.appendingPathComponent("kazan-audio-progress.json"), options: .atomic)
+            if let result = status["result"] as? [String: Any] { finish(result) }
         }
     }
 
     private static let script = #"""
     let check = "plugin-header";
+    const stage = name => { check = name; window.kazanSmokeStage = name; };
+    stage(check);
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const call = (method, options = {}) => window.Capacitor.nativePromise("KazanAudio", method, options);
     const until = async predicate => {
@@ -57,35 +66,35 @@ enum KazanAudioSmoke {
     try {
       const header = window.Capacitor?.PluginHeaders?.find(p => p.name === "KazanAudio");
       if (!header || !["getState", "loadTrack", "play", "pause", "seek", "clearTrack"].every(name => header.methods.some(m => m.name === name))) throw new Error("missing-header");
-      check = "native-get-state";
+      stage("native-get-state");
       const initial = await call("getState");
       if (typeof initial.position !== "number") throw new Error("invalid-state");
       await call("clearTrack");
-      check = "url-guard";
+      stage("url-guard");
       let rejected = false;
       try { await call("loadTrack", {id: "smoke@ru", url: "http://invalid.example/audio.mp3"}); }
       catch (error) { rejected = error.code === "AUDIO_URL_REJECTED"; }
       if (!rejected) throw new Error("missing-url-guard");
-      check = "native-load-play";
+      stage("native-load-play");
       await call("loadTrack", {id: "smoke@ru", url: "https://kazan-demo.38-180-191-162.sslip.io/media/ushkova-5e9c3ac57387.mp3", title: "Audio bridge check", artist: "Test", album: "Test", duration: 255, position: 0, speed: 1});
       await call("play");
       const playing = await until(state => state.playing && !state.loading && state.position > 1.5);
-      check = "native-pause";
+      stage("native-pause");
       const paused = await call("pause");
       await sleep(700);
       const still = await call("getState");
       if (still.playing || Math.abs(still.position - paused.position) > 0.2) throw new Error("pause-failed");
-      check = "native-seek-resume";
+      stage("native-seek-resume");
       await call("seek", {seconds: 20});
       await until(state => Math.abs(state.position - 20) < 0.5);
       await call("play");
       await until(state => state.playing && state.position > 21);
-      check = "native-clear";
+      stage("native-clear");
       const cleared = await call("clearTrack");
       if (cleared.playing || cleared.placeId !== "") throw new Error("clear-failed");
       return {ok: true, check: "complete", nativeBridge: true, avPlayerAdvanced: true, initialPlaybackSeconds: playing.position, pause: true, seekResume: true, clear: true};
     } catch (_) {
-      try { await call("clearTrack"); } catch (_) {}
+      void call("clearTrack").catch(() => {});
       return {ok: false, check};
     }
     """#

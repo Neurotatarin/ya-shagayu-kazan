@@ -38,7 +38,6 @@ jobs:
           path: dist/
           retention-days: 14
   iphone:
-    needs: web
     runs-on: macos-15
     timeout-minutes: 25
     env:
@@ -64,6 +63,7 @@ jobs:
           path: work/native-checks/
           retention-days: 14
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: iphone-ipa
           path: work/iphone-output/
