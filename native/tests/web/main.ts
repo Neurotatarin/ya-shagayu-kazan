@@ -29,9 +29,16 @@ window.kazanOfflineSmoke = async stage => {
   const prepared = await bounded(prepareOffline(input), 120000, "offline-prepare-timeout");
   assert(prepared.enoughSpace, "offline-storage");
   stage("offline-cancel");
-  const pending = downloadOffline(prepared.plan).then(() => "saved", error => (error as {code?: string}).code);
-  const nativeState = await window.Capacitor.nativePromise("KazanOffline", "getState");
-  assert((nativeState.transfer as { id?: string })?.id === prepared.plan.id, "offline-download-not-pending");
+  let terminal: string | undefined;
+  const pending = downloadOffline(prepared.plan).then(() => terminal = "saved", error => terminal = (error as {code?: string}).code);
+  let actualPending = false;
+  for (let i = 0; i < 80; i++) {
+    const nativeState = await window.Capacitor.nativePromise("KazanOffline", "getState");
+    if ((nativeState.transfer as { id?: string })?.id === prepared.plan.id) { actualPending = true; break; }
+    if (terminal) break;
+    await sleep(25);
+  }
+  assert(actualPending, `offline-download-not-pending-${terminal ?? "timeout"}`);
   await cancelOffline();
   const cancellation = await pending;
   assert(cancellation === "OFFLINE_CANCELLED", `offline-cancellation-${cancellation}`);
