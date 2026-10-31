@@ -8,12 +8,16 @@ enum KazanAudioSmoke {
     private static var attempts = 0
     private static var started = false
     private static var mapCaptured = false
+    private static var evaluating = false
+    private static var finished = false
 
     static func start() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in probe() }
     }
 
     private static func finish(_ result: [String: Any]) {
+        guard !finished else { return }
+        finished = true
         timer?.invalidate()
         let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         if let data = try? JSONSerialization.data(withJSONObject: result, options: [.sortedKeys]) {
@@ -22,6 +26,7 @@ enum KazanAudioSmoke {
     }
 
     private static func probe() {
+        guard !finished, !evaluating else { return }
         attempts += 1
         guard attempts < 1100 else { finish(["ok": false, "check": started ? "bridge-timeout" : "scene-timeout"]); return }
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -31,18 +36,27 @@ enum KazanAudioSmoke {
         }
         guard let webView = controller.webView, webView.url?.scheme == "capacitor", !webView.isLoading, scene.activationState == .foregroundActive else { return }
         if !started {
-            started = true
-            // Launch normally in the page's event loop. Polling a global result
-            // avoids keeping a WebKit callAsyncJavaScript completion open while
-            // Capacitor needs to evaluate the native promise responses itself.
-            webView.evaluateJavaScript("window.kazanSmokePromise = (async function(){\n" + script + "\n})().then(r => { window.kazanSmokeResult = r; }); void 0;") { _, error in
-                if error != nil { finish(["ok": false, "check": "javascript-start"]) }
+            evaluating = true
+            // isLoading may briefly be false before the final document/module
+            // is ready. Never inject into a document about to be replaced.
+            webView.evaluateJavaScript("document.readyState === 'complete' && typeof window.kazanOfflineSmoke === 'function'") { value, _ in
+                evaluating = false
+                guard !finished, value as? Bool == true else { return }
+                started = true
+                // The async function runs in the page's event loop. Leave no
+                // WebKit async completion open while Capacitor resolves calls.
+                webView.evaluateJavaScript("window.kazanSmokePromise = (async function(){\n" + script + "\n})().then(r => { window.kazanSmokeResult = r; }); void 0;") { _, error in
+                    if error != nil { finish(["ok": false, "check": "javascript-start"]) }
+                }
             }
             return
         }
-        webView.evaluateJavaScript("JSON.stringify({stage:window.kazanSmokeStage || 'starting', result:window.kazanSmokeResult || null})") { value, _ in
+        evaluating = true
+        webView.evaluateJavaScript("JSON.stringify({stage:window.kazanSmokeStage || 'starting', moduleReady:typeof window.kazanOfflineSmoke === 'function', result:window.kazanSmokeResult || null})") { value, _ in
+            evaluating = false
             guard let text = value as? String, let data = text.data(using: .utf8),
                   let status = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+            if status["stage"] as? String == "starting", status["moduleReady"] as? Bool == true { started = false; return }
             let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             try? data.write(to: directory.appendingPathComponent("kazan-audio-progress.json"), options: .atomic)
             if status["stage"] as? String == "offline-map-rendered" && !mapCaptured {

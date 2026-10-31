@@ -12,12 +12,17 @@ declare global { interface Window { kazanOfflineSmoke: (stage: (name: string) =>
 setWorkerUrl(workerURL); registerOfflineMapProtocol();
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const assert = (condition: unknown, code: string) => { if (!condition) throw new Error(code); };
+async function bounded<T>(operation: Promise<T>, milliseconds: number, code: string) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([operation, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(code)), milliseconds); })]); }
+  finally { clearTimeout(timer); }
+}
 window.kazanOfflineSmoke = async stage => {
   const status = document.getElementById("status")!;
   await initializeOffline();
   stage("offline-prepare"); status.textContent = "Preparing native offline package";
   const input = { id: "native-offline-check", title: "Native offline check", language: "ru" as const, placeIds: walkingRoute.placeIds, route: walkingRoute as unknown as WalkingRoute, catalog: catalog as unknown as DemoCatalog };
-  const prepared = await prepareOffline(input);
+  const prepared = await bounded(prepareOffline(input), 120000, "offline-prepare-timeout");
   assert(prepared.enoughSpace, "offline-storage");
   stage("offline-cancel");
   const pending = downloadOffline(prepared.plan).then(() => "saved", error => (error as {code?: string}).code);
@@ -26,8 +31,8 @@ window.kazanOfflineSmoke = async stage => {
   assert(await pending === "OFFLINE_CANCELLED", "offline-cancellation");
   assert(!offlineSnapshot().packages.some(pack => pack.id === prepared.plan.id), "partial-package-published");
   stage("offline-download"); status.textContent = "Downloading actual files";
-  const retry = await prepareOffline(input);
-  await downloadOffline(retry.plan);
+  const retry = await bounded(prepareOffline(input), 120000, "offline-retry-timeout");
+  await bounded(downloadOffline(retry.plan), 180000, "offline-download-timeout");
   const pack = offlineSnapshot().packages.find(pack => pack.id === retry.plan.id)!;
   assert(pack && pack.assets.length === Object.keys(pack.files).length, "offline-files-incomplete");
   assert(pack.bytes > 0 && pack.bytes <= 300_000_000, "offline-package-limit");
@@ -52,10 +57,11 @@ window.kazanOfflineSmoke = async stage => {
     const gallery = await (await fetch(localMediaURL(galleryURL)!)).json() as { items: PlaceImage[] };
     assert(gallery.items.length >= 15, "offline-photo-inventory");
     for (const photo of gallery.items) {
+      stage(`offline-photo-file-${photoCount + 1}`);
       assert(photo.license && photo.author && photo.sourceUrl, "offline-photo-credit");
       const local = localMediaURL(photo.url);
       assert(local && !/^https?:/.test(local), "offline-photo-not-local");
-      const image = new Image(); image.src = local!; await image.decode();
+      const image = new Image(); image.src = local!; await bounded(image.decode(), 20000, "offline-photo-decode-timeout");
       assert(image.naturalWidth > 0, "offline-photo-decode"); photoCount++;
     }
     stage("offline-map-render"); status.textContent = "Offline street map (network blocked)";
