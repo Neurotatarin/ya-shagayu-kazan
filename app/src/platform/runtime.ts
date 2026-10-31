@@ -1,11 +1,13 @@
 import { Capacitor } from "@capacitor/core";
 
-export const platform = Capacitor.getPlatform() === "ios" ? "ios" : "web";
+export const platform = Capacitor.isNativePlatform() && ["ios", "android"].includes(Capacitor.getPlatform()) ? Capacitor.getPlatform() as "ios" | "android" : "web";
+export const isNativeShell = platform !== "web";
+export const deviceName = platform === "android" ? "Android" : "iPhone";
 
-if (platform === "ios" && Capacitor.isNativePlatform()) {
+if (isNativeShell) {
   // WKWebView can focus-zoom small fields even with Capacitor's pinch zoom
   // disabled. Constrain only the installed shell; Safari keeps page zoom.
-  document.documentElement.dataset.nativeShell = "ios";
+  document.documentElement.dataset.nativeShell = platform;
   document.querySelector<HTMLMetaElement>('meta[name="viewport"]')?.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover");
   const sizeViewport = () => {
     const height = Math.round(window.visualViewport?.height ?? window.innerHeight);

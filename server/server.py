@@ -21,7 +21,7 @@ STATE = Path(os.environ.get("KAZAN_STATE", str(ROOT / "state")))
 STATE.mkdir(parents=True, exist_ok=True)
 DB = STATE / "kazan.sqlite3"
 ORIGIN = "https://kazan-demo.38-180-191-162.sslip.io"
-ALLOWED_ORIGINS = {ORIGIN, "capacitor://localhost", "http://localhost", "http://127.0.0.1:5173", "http://127.0.0.1:4173"}
+ALLOWED_ORIGINS = {ORIGIN, "capacitor://localhost", "https://localhost", "http://localhost", "http://127.0.0.1:5173", "http://127.0.0.1:4173"}
 UA = "YaShagayuKazan-demo/0.4 (+https://github.com/Neurotatarin/ya-shagayu-kazan)"
 ROUTER = "https://routing.openstreetmap.de/routed-foot/route/v1/foot/"
 routing_lock = threading.Lock()

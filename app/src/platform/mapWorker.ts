@@ -5,6 +5,7 @@ import workerURL from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 let initialization: Promise<void> | undefined;
 export function prepareMapWorker() {
   if (!initialization) initialization = (async () => {
+    if (Capacitor.isNativePlatform()) setWorkerCount(1);
     if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios") {
       // Bound the worker memory footprint on phones such as iPhone XR.
       setWorkerCount(1);

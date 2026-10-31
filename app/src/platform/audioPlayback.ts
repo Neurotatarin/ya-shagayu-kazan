@@ -4,6 +4,7 @@ import type { Place } from "../domain/demo";
 import { mediaUrl, remoteMediaUrl } from "../data/api";
 import { backgroundMusic } from "../data/backgroundMusic";
 import { getLanguage, isLanguage, t, type Language } from "../i18n";
+import { isNativeShell } from "./runtime";
 
 interface AudioState { placeId: string; language: Language; position: number; duration: number; playing: boolean; loading: boolean; speed: number; error: string; backgroundEnabled: boolean; backgroundPlaying: boolean; backgroundError: string }
 type NativeState = Omit<AudioState, "language">;
@@ -14,7 +15,7 @@ interface NativeAudio {
   setBackground(options: { enabled: boolean; url: string; volume: number }): Promise<NativeState>;
   addListener(event: "stateChange", listener: (state: NativeState) => void): Promise<PluginListenerHandle>;
 }
-const native = Capacitor.getPlatform() === "ios" && Capacitor.isNativePlatform();
+const native = isNativeShell;
 const nativePlayer = registerPlugin<NativeAudio>("KazanAudio");
 export function audioFailureMessage(error: unknown) {
   const raw = error && typeof error === "object" && "code" in error ? String(error.code) : "";

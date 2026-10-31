@@ -4,6 +4,7 @@ import type { DemoCatalog, PlaceId, WalkingRoute } from "../domain/demo";
 import type { OfflinePackage, OfflinePlan, OfflineState, OfflineTransfer } from "../domain/offline";
 import { makeCityMapPlan, makeOfflinePlan } from "./offlinePlan";
 import { offlineCity } from "../data/offlineCity";
+import { isNativeShell } from "./runtime";
 
 interface Estimate { upperBytes: number; availableBytes: number; enoughSpace: boolean }
 interface NativeOffline {
@@ -15,7 +16,7 @@ interface NativeOffline {
   remove(options: { id: string }): Promise<void>;
   addListener(event: string, callback: (value: Record<string, unknown>) => void): Promise<PluginListenerHandle>;
 }
-export const nativeDownloads = Capacitor.getPlatform() === "ios" && Capacitor.isNativePlatform();
+export const nativeDownloads = isNativeShell;
 const bridge = registerPlugin<NativeOffline>("KazanOffline");
 const origin = "https://kazan-demo.38-180-191-162.sslip.io";
 let state: OfflineState = { ready: !nativeDownloads, connected: navigator.onLine, packages: [], error: "" };

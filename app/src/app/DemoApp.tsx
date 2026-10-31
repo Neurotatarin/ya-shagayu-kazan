@@ -105,6 +105,22 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     if (target === screen) window.scrollTo({ top: 0, behavior: "auto" });
   }
   function navigate(destination: Destination) { go(destination); }
+  useEffect(() => {
+    if (platform !== "android") return;
+    const host = window as Window & { kazanAndroidBack?: () => boolean };
+    host.kazanAndroidBack = () => {
+      if (offlineContext) setOfflineContext(undefined);
+      else if (sheet) setSheet(undefined);
+      else if (languageOpen) setLanguageOpen(false);
+      else if (screen === "map" && mapQuiet) setMapQuiet(false);
+      else if (screen === "player") go("map");
+      else if (screen === "place") go("map");
+      else if (screen !== "home") go("home");
+      else return false;
+      return true;
+    };
+    return () => { delete host.kazanAndroidBack; };
+  }, [screen, sheet, offlineContext, languageOpen, mapQuiet]);
   function openPlace(id: PlaceId) { go("place", id); }
   function chooseRoute(route: ThemeRoute) { if (!route.placeIds?.length) return showNotice(t("Остановки этой прогулки ещё проверяются.")); setRoutePlaceIds(route.placeIds); setRouteTitle(sourceCatalog?.routes.find(item => item.id === route.id)?.title ?? route.title); setMapSelection(undefined); go("map"); }
   function updateProgress(next: typeof progress) { dirtyProgress.current = true; setProgress(next); if (!saveLocalProgress(next)) showNotice(t("Браузер не разрешил сохранение. Изменения доступны до закрытия страницы.")); }

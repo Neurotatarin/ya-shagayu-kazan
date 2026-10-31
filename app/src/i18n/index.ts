@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { messages } from "./messages";
+import { platform } from "../platform/runtime";
 
 export const languages = ["ru", "en", "ar"] as const;
 export type Language = typeof languages[number];
@@ -32,7 +33,8 @@ export function translate(message: string, locale: Language, values: Values = {}
   const source = messages[message] ? message : sourceKeys.get(message) ?? message;
   const pair = messages[source];
   const text = locale === "ru" ? source : pair?.[locale === "en" ? 0 : 1] ?? message;
-  return text.replace(/\{(\w+)\}/g, (match, name: string) => String(values[name] ?? match));
+  const deviceText = platform === "android" ? text.replace(/iPhone/g, "Android") : text;
+  return deviceText.replace(/\{(\w+)\}/g, (match, name: string) => String(values[name] ?? match));
 }
 export function t(message: string, values?: Values) { return translate(message, language, values); }
 export function useI18n() { return { language: useSyncExternalStore(subscribe, getLanguage), t }; }
