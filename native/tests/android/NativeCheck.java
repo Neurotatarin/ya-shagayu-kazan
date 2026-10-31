@@ -54,6 +54,12 @@ public final class NativeCheck {
             if(screen.equals("map")){until(scenario,"document.querySelector('[data-map-ready=true]') && document.querySelectorAll('[data-place-id]').length===20");screenshot("ui-map");}
             if(screen.startsWith("player"))screenshot("ui-player");
         }
+        // Actual authenticated foot-routing API, then a component-owned sheet.
+        javascript(scenario,"document.querySelector('.theme-tatar').click();true");
+        until(scenario,"document.querySelector('.map-page[data-route-source=foot]')");
+        javascript(scenario,"document.querySelector('.map-route-peek').click();true");until(scenario,"document.querySelector('dialog[open]')");
+        device.pressBack();until(scenario,"document.querySelector('.map-page[data-route-source=foot]') && !document.querySelector('dialog[open]')");
+        device.pressBack();until(scenario,"document.querySelector('.home-page')");
         javascript(scenario,"location.hash='/zilant';true");until(scenario,"document.querySelector('.chat-composer input')");
         // Focus the real input via an actual touch, rather than JS-only focus.
         String raw=javascript(scenario,"JSON.stringify((()=>{const r=document.querySelector('.chat-composer input').getBoundingClientRect();return {x:(r.x+r.width/2)*devicePixelRatio,y:(r.y+r.height/2)*devicePixelRatio}})())");

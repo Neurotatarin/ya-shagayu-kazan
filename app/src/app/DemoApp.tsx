@@ -109,6 +109,9 @@ export function App({ repository = localHomeRepository }: { repository?: HomeRep
     if (platform !== "android") return;
     const host = window as Window & { kazanAndroidBack?: () => boolean };
     host.kazanAndroidBack = () => {
+      const dialogs = document.querySelectorAll<HTMLDialogElement>("dialog[open]");
+      const dialog = dialogs[dialogs.length - 1];
+      if (dialog) { dialog.dispatchEvent(new Event("cancel", { cancelable: true })); return true; }
       if (offlineContext) setOfflineContext(undefined);
       else if (sheet) setSheet(undefined);
       else if (languageOpen) setLanguageOpen(false);

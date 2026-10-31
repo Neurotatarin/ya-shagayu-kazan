@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 mkdir -p work/android-checks
-sleep 15
-trap 'adb logcat -d -s AndroidRuntime Capacitor/Console KazanAudio > work/android-checks/logcat.txt; adb pull /sdcard/Android/data/ru.yashagayu.kazan.demo/files work/android-checks/files >/dev/null 2>&1 || true' EXIT
+trap 'adb logcat -d -s AndroidRuntime Capacitor/Console KazanAudio > work/android-checks/logcat.txt; adb pull /sdcard/Android/data/ru.yashagayu.kazan.demo/files work/android-checks/files >/dev/null 2>&1 || true; if test -d work/emulator-startup; then cp -r work/emulator-startup work/android-checks/emulator-startup; fi' EXIT
+python scripts/prepare-android-emulator.py
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 adb install -r android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 run_phase() {

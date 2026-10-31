@@ -2,7 +2,7 @@ name: Install signed Android release
 on:
   push:
     branches: [feat/android-demo]
-    paths: [deployment/android-release.json, .github/workflows/android-release-check.yml, scripts/check-android-release.py]
+    paths: [deployment/android-release.json, .github/workflows/android-release-check.yml, scripts/check-android-release.py, scripts/prepare-android-emulator.py]
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +30,7 @@ jobs:
       - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 36
+          target: google_apis
           arch: x86_64
           profile: pixel_6
           cores: 4

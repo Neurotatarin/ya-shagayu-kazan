@@ -11,10 +11,12 @@ export function registerOfflineMapProtocol() {
   addProtocol("kazan-offline", async (parameters, controller) => {
     const original = parameters.url.replace(/^kazan-offline:\/\//, "https://");
     const local = localMediaURL(original);
+    const parsed = new URL(original);
+    const resource = parsed.origin + parsed.pathname;
     // An unavailable local asset never silently falls back to the network.
-    if (!local) throw new Error("OFFLINE_MAP_ASSET_MISSING");
+    if (!local) throw new Error(`OFFLINE_MAP_ASSET_MISSING lookup ${resource}`);
     const response = await fetch(local, { signal: controller.signal });
-    if (!response.ok) throw new Error("OFFLINE_MAP_ASSET_MISSING");
+    if (!response.ok) throw new Error(`OFFLINE_MAP_ASSET_MISSING HTTP ${response.status} ${resource}`);
     return { data: parameters.type === "json" ? await response.json() : await response.arrayBuffer() };
   });
 }

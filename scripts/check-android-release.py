@@ -3,7 +3,7 @@
 No debugging bridge, injected JS, API credentials or rebuilt replacement APK.
 """
 from pathlib import Path
-import hashlib,json,re,subprocess,sys,time,urllib.request,xml.etree.ElementTree as ET
+import hashlib,json,re,subprocess,sys,time,urllib.request,xml.etree.ElementTree as ET,shutil
 
 root=Path('work/android-release-check');root.mkdir(parents=True,exist_ok=True)
 release=json.loads(Path('deployment/android-release.json').read_text())
@@ -41,7 +41,7 @@ elif sys.argv[1]=='certificate':
     assert 'Verified using v2 scheme (APK Signature Scheme v2): true' in text
 elif sys.argv[1]=='install':
     try:
-        time.sleep(15) # Let the freshly booted system finish its first frame/dex work.
+        subprocess.run([sys.executable,'scripts/prepare-android-emulator.py'],check=True)
         assert 'Success' in adb('install','-r',str(root/'app.apk'))
         status=adb('shell','am','start','-W','-n',package+'/.MainActivity');assert 'Status: ok' in status
         find('Начать прогулку');screen('release-home');tap('Начать прогулку')
@@ -58,6 +58,7 @@ elif sys.argv[1]=='install':
         assert 'FATAL EXCEPTION' not in crash and 'Fatal signal' not in crash
         (root/'result.json').write_text(json.dumps({'ok':True,'signedAPKInstalled':True,'exactSHA256':release['sha256'],'releaseUI':True,'nativeMediaSession':True,'background':True,'androidAPI':36},indent=2))
     finally:
+        if Path('work/emulator-startup').is_dir():shutil.copytree('work/emulator-startup',root/'emulator-startup',dirs_exist_ok=True)
         screen('release-final-state')
         (root/'launch-log.txt').write_text(adb('logcat','-d','-s','AndroidRuntime','Capacitor/Console'))
 else:raise RuntimeError('Unknown phase')
